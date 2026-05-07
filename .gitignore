@@ -18,3 +18,6 @@ __pycache__/
 .idea/
 .vscode/
 *.swp
+
+# Local planning docs
+docs/integration-plan-s4c2.md
