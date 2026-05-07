@@ -1,0 +1,20 @@
+# Build output
+dist/
+*.tar.gz
+
+# Dependencies
+src/node_modules/
+node_modules/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+*.swp
