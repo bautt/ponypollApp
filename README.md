@@ -6,6 +6,14 @@
 
 ---
 
+## Screenshots
+
+| Poll view | Question editor |
+|---|---|
+| ![Poll view — question with answer options and live timer](docs/screenshots/poll.png) | ![Editor — WYSIWYG question editor with type selector](docs/screenshots/editor.png) |
+
+---
+
 ## Features
 
 | Feature | Detail |
