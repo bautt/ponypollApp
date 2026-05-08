@@ -120,6 +120,7 @@ export default function SettingsPage() {
                     poll_index: c.poll_index || 'ponypoll',
                     poll_subject: c.poll_subject || 'Pony Poll',
                     active_quiz_id: c.active_quiz_id || '',
+                    default_view: c.default_view || 'poll',
                 });
                 setIndexes(idxList);
                 setQuizzes(qList);
@@ -163,6 +164,36 @@ export default function SettingsPage() {
                         This is the quiz participants see when they open the Poll tab. Switch quizzes
                         here without affecting what the editor is currently browsing.
                     </Hint>
+                </Section>
+
+                <Section>
+                    <Label>Default view when opening the app</Label>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                        {[
+                            { value: 'poll', label: '✏ Poll (full app)', hint: 'Editor, Analytics and Settings visible' },
+                            { value: 'play', label: '▶ Play (participant only)', hint: 'Quiz only — no editor or admin tabs' },
+                        ].map(({ value, label, hint }) => (
+                            <label key={value} style={{
+                                flex: 1, display: 'flex', flexDirection: 'column', gap: 4,
+                                padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
+                                border: `2px solid ${cfg.default_view === value ? C.blue : C.border}`,
+                                background: cfg.default_view === value ? C.blue + '18' : 'transparent',
+                            }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: cfg.default_view === value ? '#fff' : C.text, fontWeight: 600, fontSize: 13 }}>
+                                    <input
+                                        type="radio"
+                                        name="default_view"
+                                        value={value}
+                                        checked={cfg.default_view === value}
+                                        onChange={() => setCfg({ ...cfg, default_view: value })}
+                                        style={{ accentColor: C.blue }}
+                                    />
+                                    {label}
+                                </span>
+                                <span style={{ fontSize: 11, color: C.muted, paddingLeft: 20 }}>{hint}</span>
+                            </label>
+                        ))}
+                    </div>
                 </Section>
 
                 <Section>

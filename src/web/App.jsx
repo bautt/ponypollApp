@@ -73,6 +73,19 @@ function PlayApp() {
 /** Full app: admin view with all tabs. */
 function FullApp() {
     useSeedOnFirstInstall();
+
+    // Redirect to /play if admin set it as the default entry point.
+    useEffect(() => {
+        if (!window.location.pathname.endsWith('/poll')) return;
+        loadConfig().then((cfg) => {
+            if (cfg.default_view === 'play') {
+                window.location.replace(
+                    window.location.href.replace(/\/poll(\?.*)?$/, '/play')
+                );
+            }
+        }).catch(() => {});
+    }, []);
+
     const [tab, setTab] = useState('poll');
     return (
         <>
