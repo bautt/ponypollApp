@@ -1,0 +1,208 @@
+{
+  "quiz_name": "Splunk AI — DSDL, MCP & Hosted Models",
+  "description": "Questions covering the Splunk App for Data Science and Deep Learning (DSDL), the Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
+  "questions": [
+    {
+      "text": "What does DSDL stand for in Splunk's app portfolio?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Data Science and Deep Learning",       "correct": true  },
+        { "id": "B", "text": "Deep Search and Data Learning",         "correct": false },
+        { "id": "C", "text": "Distributed Search and Data Layer",     "correct": false },
+        { "id": "D", "text": "Data Streaming and Deployment Layer",   "correct": false }
+      ]
+    },
+    {
+      "text": "Where can you download the Splunk App for Data Science and Deep Learning for free?",
+      "type": "single",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "Splunkbase",  "correct": true  },
+        { "id": "B", "text": "GitHub",      "correct": false },
+        { "id": "C", "text": "Docker Hub",  "correct": false },
+        { "id": "D", "text": "PyPI",        "correct": false }
+      ]
+    },
+    {
+      "text": "Which container environments does DSDL support? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 35,
+      "options": [
+        { "id": "A", "text": "Docker",           "correct": true  },
+        { "id": "B", "text": "Kubernetes",        "correct": true  },
+        { "id": "C", "text": "OpenShift",         "correct": true  },
+        { "id": "D", "text": "VMware vSphere",    "correct": false }
+      ]
+    },
+    {
+      "text": "Which ML/DL libraries ship in DSDL's prebuilt Docker containers? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 35,
+      "options": [
+        { "id": "A", "text": "TensorFlow",    "correct": true  },
+        { "id": "B", "text": "PyTorch",       "correct": true  },
+        { "id": "C", "text": "NLP tools",     "correct": true  },
+        { "id": "D", "text": "Apache Spark",  "correct": false }
+      ]
+    },
+    {
+      "text": "Does DSDL support GPU-accelerated containers?",
+      "type": "yesno",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "Yes", "correct": true  },
+        { "id": "B", "text": "No",  "correct": false }
+      ]
+    },
+    {
+      "text": "Which DSDL role can access the setup page and make configuration changes?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "mltk_container_admin",  "correct": true  },
+        { "id": "B", "text": "mltk_container_user",   "correct": false },
+        { "id": "C", "text": "sc_admin",               "correct": false },
+        { "id": "D", "text": "power",                  "correct": false }
+      ]
+    },
+    {
+      "text": "In DSDL, model names must not contain what? (one word)",
+      "type": "freetext",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "spaces",       "correct": true },
+        { "id": "B", "text": "white spaces", "correct": true },
+        { "id": "C", "text": "whitespace",   "correct": true },
+        { "id": "D", "text": "whitespaces",  "correct": true }
+      ]
+    },
+    {
+      "text": "What does MCP stand for in Splunk's AI integration stack?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Model Context Protocol",  "correct": true  },
+        { "id": "B", "text": "Machine Control Platform","correct": false },
+        { "id": "C", "text": "Multi-Cloud Pipeline",    "correct": false },
+        { "id": "D", "text": "Managed Compute Proxy",   "correct": false }
+      ]
+    },
+    {
+      "text": "As of version 1.0.0, is the Splunk MCP Server generally available (GA)?",
+      "type": "yesno",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "Yes", "correct": true  },
+        { "id": "B", "text": "No",  "correct": false }
+      ]
+    },
+    {
+      "text": "What prefix do core Splunk platform tools use in the MCP Server namespace?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "splunk_",  "correct": true  },
+        { "id": "B", "text": "saia_",    "correct": false },
+        { "id": "C", "text": "mcp_",     "correct": false },
+        { "id": "D", "text": "core_",    "correct": false }
+      ]
+    },
+    {
+      "text": "Which core capabilities does the Splunk MCP Server offer? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 35,
+      "options": [
+        { "id": "A", "text": "Explore Data (saved searches, lookups)", "correct": true  },
+        { "id": "B", "text": "Run SPL searches",                       "correct": true  },
+        { "id": "C", "text": "AI Integration (generate/explain SPL)",  "correct": true  },
+        { "id": "D", "text": "Deploy and manage Docker containers",     "correct": false }
+      ]
+    },
+    {
+      "text": "Splunk Hosted AI Models (GA) are currently available for which customers?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Splunk Cloud Platform customers",   "correct": true  },
+        { "id": "B", "text": "Splunk Enterprise customers only",  "correct": false },
+        { "id": "C", "text": "All Splunk customers",              "correct": false },
+        { "id": "D", "text": "Splunk ITSI customers only",        "correct": false }
+      ]
+    },
+    {
+      "text": "How many purpose-built hosted AI models did Splunk launch at GA?",
+      "type": "single",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "2", "correct": false },
+        { "id": "B", "text": "3", "correct": false },
+        { "id": "C", "text": "4", "correct": true  },
+        { "id": "D", "text": "6", "correct": false }
+      ]
+    },
+    {
+      "text": "Which Splunk hosted AI model is purpose-built for security analytics and alert triage?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "Foundation AI Security Model (foundation-sec-1.1-8b-instruct)", "correct": true  },
+        { "id": "B", "text": "GPT-OSS 120B",                                                  "correct": false },
+        { "id": "C", "text": "Cisco Deep Time Series Model",                                   "correct": false },
+        { "id": "D", "text": "GPT-OSS 20B",                                                   "correct": false }
+      ]
+    },
+    {
+      "text": "What capability does the Cisco Deep Time Series Model bring to Splunk?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "Zero-shot forecasting for operational metrics without training", "correct": true  },
+        { "id": "B", "text": "Natural language alert triage for SOC teams",                    "correct": false },
+        { "id": "C", "text": "Automatic Python code generation from SPL",                      "correct": false },
+        { "id": "D", "text": "Real-time streaming log parsing at ingest",                      "correct": false }
+      ]
+    },
+    {
+      "text": "Do Splunk Hosted AI Models require external API keys or third-party AI providers?",
+      "type": "yesno",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "Yes", "correct": false },
+        { "id": "B", "text": "No",  "correct": true  }
+      ]
+    },
+    {
+      "text": "What SPL command lets you pipe search results directly into Splunk Hosted AI Models?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "| ai",       "correct": true  },
+        { "id": "B", "text": "| predict",  "correct": false },
+        { "id": "C", "text": "| mlsend",   "correct": false },
+        { "id": "D", "text": "| genai",    "correct": false }
+      ]
+    },
+    {
+      "text": "Which organisation integrated their LLM-chat interface into Splunk DSDL, showcased at .conf25 in Boston?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "DSTA — Singapore's Defence Science and Technology Agency", "correct": true  },
+        { "id": "B", "text": "NIST — National Institute of Standards and Technology",    "correct": false },
+        { "id": "C", "text": "CISA — Cybersecurity and Infrastructure Security Agency", "correct": false },
+        { "id": "D", "text": "Cisco CX Advanced Services",                               "correct": false }
+      ]
+    },
+    {
+      "text": "On a scale of 1–5, how familiar were you with Splunk AI features before this quiz?",
+      "type": "slider",
+      "timeLimit": 20,
+      "options": [],
+      "sliderMin": 1,
+      "sliderMax": 5,
+      "sliderStep": 1,
+      "sliderUnit": "/5"
+    }
+  ]
+}

@@ -16,6 +16,14 @@
     "file": "splunk-basics.json"
   },
   {
+    "id": "splunk-ai",
+    "name": "Splunk AI — DSDL, MCP & Hosted Models",
+    "description": "19 questions covering the Splunk App for Data Science and Deep Learning (DSDL), Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
+    "questionCount": 19,
+    "difficulty": "Intermediate",
+    "file": "splunk-ai.json"
+  },
+  {
     "id": "sample-all-types",
     "name": "Sample — All Question Types",
     "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
