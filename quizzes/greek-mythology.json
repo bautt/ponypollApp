@@ -1,0 +1,472 @@
+[
+  {
+    "text": "Which goddess is known as the goddess of wisdom, strategy, and crafts?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Hera",      "correct": false },
+      { "id": "B", "text": "Aphrodite", "correct": false },
+      { "id": "C", "text": "Artemis",   "correct": false },
+      { "id": "D", "text": "Athena",    "correct": true  }
+    ]
+  },
+  {
+    "text": "Who is the Greek god of the sea, earthquakes, and horses?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Zeus",      "correct": false },
+      { "id": "B", "text": "Poseidon",  "correct": true  },
+      { "id": "C", "text": "Hades",     "correct": false },
+      { "id": "D", "text": "Triton",    "correct": false }
+    ]
+  },
+  {
+    "text": "Who is the goddess of love and beauty?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Hera",      "correct": false },
+      { "id": "B", "text": "Athena",    "correct": false },
+      { "id": "C", "text": "Aphrodite", "correct": true  },
+      { "id": "D", "text": "Persephone","correct": false }
+    ]
+  },
+  {
+    "text": "Who is the messenger of the gods, also god of travellers, thieves, and trade?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Apollo",  "correct": false },
+      { "id": "B", "text": "Ares",    "correct": false },
+      { "id": "C", "text": "Hermes",  "correct": true  },
+      { "id": "D", "text": "Hephaestus","correct": false }
+    ]
+  },
+  {
+    "text": "Who is the god of war, known for his fierce and violent nature?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Ares",    "correct": true  },
+      { "id": "B", "text": "Zeus",    "correct": false },
+      { "id": "C", "text": "Hermes",  "correct": false },
+      { "id": "D", "text": "Hephaestus","correct": false }
+    ]
+  },
+  {
+    "text": "Who is the god of the sun, music, poetry, and prophecy, with an oracle at Delphi?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Helios",  "correct": false },
+      { "id": "B", "text": "Hermes",  "correct": false },
+      { "id": "C", "text": "Dionysus","correct": false },
+      { "id": "D", "text": "Apollo",  "correct": true  }
+    ]
+  },
+  {
+    "text": "Who is the goddess of the hunt and the moon, twin sister of Apollo?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Artemis",    "correct": true  },
+      { "id": "B", "text": "Athena",     "correct": false },
+      { "id": "C", "text": "Persephone", "correct": false },
+      { "id": "D", "text": "Hestia",     "correct": false }
+    ]
+  },
+  {
+    "text": "Who is the god of wine, theatre, and ecstasy — who granted King Midas his golden touch?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Apollo",   "correct": false },
+      { "id": "B", "text": "Dionysus", "correct": true  },
+      { "id": "C", "text": "Hermes",   "correct": false },
+      { "id": "D", "text": "Pan",      "correct": false }
+    ]
+  },
+  {
+    "text": "Which hero was tasked with completing the famous Twelve Labours as punishment for a terrible crime?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Achilles",         "correct": false },
+      { "id": "B", "text": "Perseus",           "correct": false },
+      { "id": "C", "text": "Heracles (Hercules)","correct": true  },
+      { "id": "D", "text": "Theseus",           "correct": false }
+    ]
+  },
+  {
+    "text": "Which hero spent ten years trying to sail home after the Trojan War, battling monsters, gods, and temptation along the way?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Achilles",  "correct": false },
+      { "id": "B", "text": "Odysseus",  "correct": true  },
+      { "id": "C", "text": "Ajax",      "correct": false },
+      { "id": "D", "text": "Diomedes",  "correct": false }
+    ]
+  },
+  {
+    "text": "Which Greek hero is known for killing the Gorgon Medusa and rescuing Andromeda from a sea monster?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Theseus",   "correct": false },
+      { "id": "B", "text": "Bellerophon","correct": false },
+      { "id": "C", "text": "Heracles",  "correct": false },
+      { "id": "D", "text": "Perseus",   "correct": true  }
+    ]
+  },
+  {
+    "text": "Achilles was dipped in the River Styx as a baby, making him invulnerable everywhere except his heel — true or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "Which of these mythical creatures are half-human? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Centaur (half horse)",    "correct": true  },
+      { "id": "B", "text": "Minotaur (half bull)",    "correct": true  },
+      { "id": "C", "text": "Harpy (half bird)",       "correct": true  },
+      { "id": "D", "text": "Cerberus (three-headed dog)","correct": false }
+    ]
+  },
+  {
+    "text": "What is the name of the three-headed dog that guards the entrance to the Underworld?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Orthrus",  "correct": false },
+      { "id": "B", "text": "Cerberus", "correct": true  },
+      { "id": "C", "text": "Scylla",   "correct": false },
+      { "id": "D", "text": "Hydra",    "correct": false }
+    ]
+  },
+  {
+    "text": "The Minotaur — half-man, half-bull — was kept in a labyrinth on which island?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Rhodes",  "correct": false },
+      { "id": "B", "text": "Corfu",   "correct": false },
+      { "id": "C", "text": "Crete",   "correct": true  },
+      { "id": "D", "text": "Lesbos",  "correct": false }
+    ]
+  },
+  {
+    "text": "Which hero slew the Minotaur in the labyrinth?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Perseus",   "correct": false },
+      { "id": "B", "text": "Heracles",  "correct": false },
+      { "id": "C", "text": "Odysseus",  "correct": false },
+      { "id": "D", "text": "Theseus",   "correct": true  }
+    ]
+  },
+  {
+    "text": "What winged horse was born when Perseus beheaded Medusa?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Arion",    "correct": false },
+      { "id": "B", "text": "Pegasus",  "correct": true  },
+      { "id": "C", "text": "Sleipnir", "correct": false },
+      { "id": "D", "text": "Bucephalus","correct": false }
+    ]
+  },
+  {
+    "text": "The Sphinx terrorised the city of Thebes, devouring anyone who could not answer her riddle. Who solved it and broke the curse?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Hercules",  "correct": false },
+      { "id": "B", "text": "Odysseus",  "correct": false },
+      { "id": "C", "text": "Oedipus",   "correct": true  },
+      { "id": "D", "text": "Cadmus",    "correct": false }
+    ]
+  },
+  {
+    "text": "The Sphinx's riddle: 'What walks on four legs in the morning, two at noon, and three in the evening?' The answer is:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "A god",  "correct": false },
+      { "id": "B", "text": "A horse","correct": false },
+      { "id": "C", "text": "A man",  "correct": true  },
+      { "id": "D", "text": "Time",   "correct": false }
+    ]
+  },
+  {
+    "text": "Who was condemned by the gods to roll a boulder up a hill for eternity, only to watch it roll back down every time?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Tantalus",  "correct": false },
+      { "id": "B", "text": "Ixion",     "correct": false },
+      { "id": "C", "text": "Sisyphus",  "correct": true  },
+      { "id": "D", "text": "Prometheus","correct": false }
+    ]
+  },
+  {
+    "text": "King Midas was granted a wish by Dionysus. What did he wish for, quickly regretting it?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Eternal life",               "correct": false },
+      { "id": "B", "text": "Everything he touched turned to gold","correct": true  },
+      { "id": "C", "text": "The power to fly",           "correct": false },
+      { "id": "D", "text": "Infinite wisdom",            "correct": false }
+    ]
+  },
+  {
+    "text": "Who fell in love with his own reflection in a pool of water and wasted away gazing at it?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Adonis",    "correct": false },
+      { "id": "B", "text": "Hyacinth",  "correct": false },
+      { "id": "C", "text": "Narcissus", "correct": true  },
+      { "id": "D", "text": "Ganymede",  "correct": false }
+    ]
+  },
+  {
+    "text": "Which mortal weaver was transformed into a spider after daring to challenge Athena to a weaving contest?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Medusa",    "correct": false },
+      { "id": "B", "text": "Arachne",   "correct": true  },
+      { "id": "C", "text": "Ariadne",   "correct": false },
+      { "id": "D", "text": "Circe",     "correct": false }
+    ]
+  },
+  {
+    "text": "Who was the first woman created by the gods, given a container holding all the world's evils and one last gift — hope?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Persephone", "correct": false },
+      { "id": "B", "text": "Danaë",      "correct": false },
+      { "id": "C", "text": "Circe",      "correct": false },
+      { "id": "D", "text": "Pandora",    "correct": true  }
+    ]
+  },
+  {
+    "text": "Which Titan stole fire from the gods and gave it to humanity — and was punished by being chained to a rock where an eagle ate his liver every day?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Atlas",      "correct": false },
+      { "id": "B", "text": "Prometheus", "correct": true  },
+      { "id": "C", "text": "Cronos",     "correct": false },
+      { "id": "D", "text": "Epimetheus", "correct": false }
+    ]
+  },
+  {
+    "text": "Which Titan was condemned to hold up the sky (sometimes depicted as the Earth) for eternity?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Cronos",    "correct": false },
+      { "id": "B", "text": "Hyperion",  "correct": false },
+      { "id": "C", "text": "Atlas",     "correct": true  },
+      { "id": "D", "text": "Iapetus",   "correct": false }
+    ]
+  },
+  {
+    "text": "Who is the queen of the Underworld, spending half the year below with Hades — explaining why we have winter?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Hecate",     "correct": false },
+      { "id": "B", "text": "Persephone", "correct": true  },
+      { "id": "C", "text": "Nyx",        "correct": false },
+      { "id": "D", "text": "Nemesis",    "correct": false }
+    ]
+  },
+  {
+    "text": "What is the name of the river that the souls of the dead must cross to enter the Underworld?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Lethe",   "correct": false },
+      { "id": "B", "text": "Acheron", "correct": false },
+      { "id": "C", "text": "Phlegethon","correct": false },
+      { "id": "D", "text": "Styx",    "correct": true  }
+    ]
+  },
+  {
+    "text": "What is the name of the river of forgetfulness in the Underworld — souls drank from it to forget their past lives before reincarnation?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Styx",    "correct": false },
+      { "id": "B", "text": "Lethe",   "correct": true  },
+      { "id": "C", "text": "Elysium", "correct": false },
+      { "id": "D", "text": "Eridanus","correct": false }
+    ]
+  },
+  {
+    "text": "Who was the cloaked ferryman who rowed the souls of the dead across the River Styx — for a coin placed on their lips?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Thanatos","correct": false },
+      { "id": "B", "text": "Morpheus","correct": false },
+      { "id": "C", "text": "Charon",  "correct": true  },
+      { "id": "D", "text": "Hypnos",  "correct": false }
+    ]
+  },
+  {
+    "text": "Who is the goddess of the harvest and the mother of Persephone, whose grief over her daughter causes winter?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Hera",    "correct": false },
+      { "id": "B", "text": "Rhea",    "correct": false },
+      { "id": "C", "text": "Demeter", "correct": true  },
+      { "id": "D", "text": "Gaia",    "correct": false }
+    ]
+  },
+  {
+    "text": "Who was the god of the forge, fire, and craftsmen — the only Olympian said to be physically ugly, and husband of Aphrodite?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Ares",       "correct": false },
+      { "id": "B", "text": "Hephaestus", "correct": true  },
+      { "id": "C", "text": "Hermes",     "correct": false },
+      { "id": "D", "text": "Poseidon",   "correct": false }
+    ]
+  },
+  {
+    "text": "The Trojan War began because of the abduction (or elopement) of which legendary beauty?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Clytemnestra","correct": false },
+      { "id": "B", "text": "Cassandra",   "correct": false },
+      { "id": "C", "text": "Andromache",  "correct": false },
+      { "id": "D", "text": "Helen",        "correct": true  }
+    ]
+  },
+  {
+    "text": "What was the famous trick — a hollow wooden gift — that the Greeks used to finally enter the city of Troy after a 10-year siege?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Trojan Catapult","correct": false },
+      { "id": "B", "text": "Trojan Tunnel",  "correct": false },
+      { "id": "C", "text": "Trojan Shield",  "correct": false },
+      { "id": "D", "text": "Trojan Horse",   "correct": true  }
+    ]
+  },
+  {
+    "text": "Who was the tragic musician who descended into the Underworld to rescue his beloved Eurydice — but looked back too soon?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Orpheus",   "correct": true  },
+      { "id": "B", "text": "Amphion",   "correct": false },
+      { "id": "C", "text": "Arion",     "correct": false },
+      { "id": "D", "text": "Linus",     "correct": false }
+    ]
+  },
+  {
+    "text": "What is the name of the nymph who fell in love with Narcissus, cursed by Hera to only repeat the last words spoken to her?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Syrinx",  "correct": false },
+      { "id": "B", "text": "Echo",    "correct": true  },
+      { "id": "C", "text": "Calypso", "correct": false },
+      { "id": "D", "text": "Circe",   "correct": false }
+    ]
+  },
+  {
+    "text": "How many gods make up the Twelve Olympians — the principal deities of the Greek pantheon?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "10", "correct": false },
+      { "id": "B", "text": "12", "correct": true  },
+      { "id": "C", "text": "14", "correct": false },
+      { "id": "D", "text": "16", "correct": false }
+    ]
+  },
+  {
+    "text": "Zeus is the king of the Olympian gods — who is his queen and wife, goddess of marriage and family?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Demeter",  "correct": false },
+      { "id": "B", "text": "Athena",   "correct": false },
+      { "id": "C", "text": "Aphrodite","correct": false },
+      { "id": "D", "text": "Hera",     "correct": true  }
+    ]
+  },
+  {
+    "text": "Which goddess was born fully formed and already in armour, springing from the head of Zeus?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Artemis",  "correct": false },
+      { "id": "B", "text": "Aphrodite","correct": false },
+      { "id": "C", "text": "Athena",   "correct": true  },
+      { "id": "D", "text": "Hestia",   "correct": false }
+    ]
+  },
+  {
+    "text": "Nike, the winged Greek goddess, gave her name to a modern sportswear giant. What was Nike the goddess of?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Speed",   "correct": false },
+      { "id": "B", "text": "Victory", "correct": true  },
+      { "id": "C", "text": "Youth",   "correct": false },
+      { "id": "D", "text": "Fortune", "correct": false }
+    ]
+  },
+  {
+    "text": "Which of the following god-and-domain pairings are CORRECT? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "Hades — god of the Underworld",     "correct": true  },
+      { "id": "B", "text": "Ares — god of wisdom",              "correct": false },
+      { "id": "C", "text": "Hephaestus — god of fire and forge","correct": true  },
+      { "id": "D", "text": "Poseidon — god of the sea",         "correct": true  }
+    ]
+  },
+  {
+    "text": "Eris, the goddess of discord, threw the Apple of Discord inscribed 'for the fairest' — sparking the chain of events that led to the Trojan War. Which three goddesses competed for it? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "Hera",      "correct": true  },
+      { "id": "B", "text": "Athena",    "correct": true  },
+      { "id": "C", "text": "Aphrodite", "correct": true  },
+      { "id": "D", "text": "Artemis",   "correct": false }
+    ]
+  },
+  {
+    "text": "On a scale of 1–10, how much do you know about Greek mythology?",
+    "type": "slider",
+    "timeLimit": 20,
+    "options": [],
+    "sliderMin": 1,
+    "sliderMax": 10,
+    "sliderStep": 1,
+    "sliderUnit": "/10"
+  }
+]

@@ -6,6 +6,7 @@ This folder contains ready-to-use quiz JSON files that can be imported directly 
 
 | File | Name | Questions | Difficulty | Topics |
 |---|---|---|---|---|
+| [`greek-mythology.json`](greek-mythology.json) | Greek Mythology Trivia | 42 | Intermediate | Olympian gods, heroes, monsters, Underworld, Trojan War, famous myths & the Sphinx's riddle |
 | [`european-history.json`](european-history.json) | European History & Geography Trivia | 42 | Intermediate | Ukraine, Baltic States, Lithuania, Poland, Germany, France, Britain, European fun facts |
 | [`splunk-ai.json`](splunk-ai.json) | Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models | 34 | Intermediate | AI Toolkit (MLTK), DSDL, Splunk MCP Server, Hosted AI Models, `\|ai` command, LLM providers |
 | [`splunk4champions.json`](splunk4champions.json) | Splunk4Champions — Advanced Topics | 22 | Advanced | tstats, buckets, bloom filters, Dashboard Studio, SmartStore, search performance, metrics |

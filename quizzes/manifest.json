@@ -1,5 +1,13 @@
 [
   {
+    "id": "greek-mythology",
+    "name": "Greek Mythology Trivia",
+    "description": "42 questions spanning the Olympian gods, legendary heroes, monsters, the Underworld, the Trojan War, and famous myths — from Sisyphus to the Sphinx's riddle.",
+    "questionCount": 42,
+    "difficulty": "Intermediate",
+    "file": "greek-mythology.json"
+  },
+  {
     "id": "european-history",
     "name": "European History & Geography Trivia",
     "description": "42 questions spanning Ukraine, the Baltic States, Lithuania, Poland, Germany, France, and Britain — capitals, key dates, famous firsts, and fun facts. Ends with a self-rating slider.",
