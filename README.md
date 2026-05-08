@@ -636,12 +636,46 @@ Settings are stored in the `ponypoll_config` KV Store collection under the key `
 
 ---
 
-## Permissions
+## Roles & Permissions
 
-The `metadata/default.meta` file grants:
+The app ships two custom Splunk roles defined in `authorize.conf`:
 
-- **Read** — all roles (participants can load questions and quizzes)
-- **Write** — `admin` and `power` roles only (editing questions, quizzes, and config)
+| Role | Inherits from | Purpose |
+|---|---|---|
+| `ponypoll_admin` | `admin` | Edit questions, quizzes, config; view analytics |
+| `ponypoll_user` | `user` | Take the quiz and submit answers only |
+
+### Default access without role assignment
+
+All built-in Splunk roles already work out of the box:
+
+| Splunk role | Effective access |
+|---|---|
+| `admin` / `sc_admin` | Full quiz administration |
+| `power` | Full quiz administration |
+| `user` | Take the quiz (read questions, submit answers) |
+| Any authenticated user | Take the quiz |
+
+### When to assign the custom roles
+
+- Assign **`ponypoll_admin`** to a `power` or `user` account that should be able to manage quizzes without being a full Splunk admin.
+- Assign **`ponypoll_user`** to any account that should only be able to take the quiz, even if that account has broader Splunk rights.
+
+### Assign a role in Splunk Web
+
+**Settings → Users and authentication → Roles → Edit role → Assign to users**  
+or via REST:
+```bash
+curl -k -u admin:password https://splunk-host:8089/services/authentication/users/alice \
+  -d "roles=ponypoll_admin"
+```
+
+### Permission matrix
+
+| Object | Read | Write |
+|---|---|---|
+| KV Store — questions, config, quizzes | Everyone | `ponypoll_admin`, `admin`, `sc_admin`, `power` |
+| `ponypoll` index (submit answers) | Admins | Everyone (authenticated) |
 
 ---
 

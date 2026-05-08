@@ -1,23 +1,32 @@
-[]
-access = read : [ * ], write : [ admin, sc_admin, power ]
+# ponypoll_admin : manage questions, quizzes, config (editor + settings tabs)
+# ponypoll_user  : take quiz, submit answers (poll tab only)
+# admin/sc_admin : always have full access (existing Splunk admins)
 
+[]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
+
+# KV Store schema (collection definitions)
 [storage/collections/config/ponypoll_questions]
-access = read : [ * ], write : [ admin, sc_admin, power ]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
 [storage/collections/config/ponypoll_config]
-access = read : [ * ], write : [ admin, sc_admin, power ]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
 [storage/collections/config/ponypoll_quizzes]
-access = read : [ * ], write : [ admin, sc_admin, power ]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
+# KV Store data — questions: participants need read; admins need write
 [storage/collections/data/ponypoll_questions]
-access = read : [ * ], write : [ * ]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
+# KV Store data — config: participants read active quiz; admins write
 [storage/collections/data/ponypoll_config]
-access = read : [ * ], write : [ admin, sc_admin, power ]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
+# KV Store data — quizzes catalogue: participants read; admins write
 [storage/collections/data/ponypoll_quizzes]
-access = read : [ * ], write : [ admin, sc_admin, power ]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
+# Splunk index — all authenticated users can write (submit answers)
 [indexes/ponypoll]
-access = read : [ * ], write : [ * ]
+access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]
