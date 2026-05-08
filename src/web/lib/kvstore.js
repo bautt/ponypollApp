@@ -167,6 +167,8 @@ export async function getCurrentUser() {
 
 // ── Bundled quiz library ──────────────────────────────────────────────────────
 
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bautt/ponypollApp/main/quizzes';
+
 /** Fetch the manifest of quizzes bundled with the app's static files. */
 export async function fetchLibraryManifest() {
     const res = await fetch(`/static/app/${APP}/quizzes/manifest.json`, { credentials: 'include' });
@@ -178,6 +180,20 @@ export async function fetchLibraryManifest() {
 export async function fetchLibraryQuiz(filename) {
     const res = await fetch(`/static/app/${APP}/quizzes/${filename}`, { credentials: 'include' });
     if (!res.ok) throw new Error(`Could not load quiz file "${filename}" (${res.status})`);
+    return res.json();
+}
+
+/** Fetch the live manifest directly from GitHub (requires internet access). */
+export async function fetchGitHubManifest() {
+    const res = await fetch(`${GITHUB_RAW_BASE}/manifest.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`GitHub returned ${res.status} — check internet access`);
+    return res.json();
+}
+
+/** Fetch a specific quiz JSON directly from GitHub by filename. */
+export async function fetchGitHubQuiz(filename) {
+    const res = await fetch(`${GITHUB_RAW_BASE}/${filename}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`GitHub returned ${res.status} for "${filename}"`);
     return res.json();
 }
 

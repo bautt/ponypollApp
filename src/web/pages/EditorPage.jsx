@@ -5,6 +5,7 @@ import {
     listQuizzes, createQuiz, renameQuiz, deleteQuiz,
     loadConfig, saveConfig,
     fetchLibraryManifest, fetchLibraryQuiz,
+    fetchGitHubManifest, fetchGitHubQuiz,
 } from '../lib/kvstore';
 import {
     fromKvDoc, toKvDoc, newQuestion, defaultOptions, QUESTION_TYPES, SEED_QUESTIONS,
@@ -330,6 +331,27 @@ const DiffBadge = styled.span`
     margin-left: 8px;
 `;
 
+const SourceToggle = styled.div`
+    display: flex;
+    border: 1px solid ${C.border};
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 18px;
+`;
+
+const SourceBtn = styled.button`
+    flex: 1;
+    padding: 7px 12px;
+    border: none;
+    background: ${({ active }) => active ? C.blue : 'transparent'};
+    color: ${({ active }) => active ? '#fff' : C.muted};
+    font-size: 13px;
+    font-weight: ${({ active }) => active ? 700 : 400};
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: ${({ active }) => active ? C.blue : C.blue + '22'}; color: #fff; }
+`;
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function EditorPage() {
@@ -351,7 +373,8 @@ export default function EditorPage() {
 
     // Library modal
     const [showLibrary, setShowLibrary] = useState(false);
-    const [libraryItems, setLibraryItems] = useState([]);
+    const [librarySource, setLibrarySource] = useState('bundled'); // 'bundled' | 'github'
+    const [libraryItems, setLibraryItems] = useState({ bundled: null, github: null });
     const [libraryLoading, setLibraryLoading] = useState(false);
     const [libraryError, setLibraryError] = useState(null);
 
@@ -612,14 +635,15 @@ export default function EditorPage() {
 
     // ── Library ─────────────────────────────────────────────────────────────────
 
-    const openLibrary = async () => {
-        setShowLibrary(true);
-        if (libraryItems.length > 0) return;
+    const loadLibrarySource = async (source) => {
+        if (libraryItems[source]) return; // already cached
         setLibraryLoading(true);
         setLibraryError(null);
         try {
-            const manifest = await fetchLibraryManifest();
-            setLibraryItems(manifest);
+            const manifest = source === 'github'
+                ? await fetchGitHubManifest()
+                : await fetchLibraryManifest();
+            setLibraryItems((prev) => ({ ...prev, [source]: manifest }));
         } catch (e) {
             setLibraryError(e.message);
         } finally {
@@ -627,15 +651,37 @@ export default function EditorPage() {
         }
     };
 
+    const openLibrary = (source = 'bundled') => {
+        setLibrarySource(source);
+        setLibraryError(null);
+        setShowLibrary(true);
+        loadLibrarySource(source);
+    };
+
+    const switchLibrarySource = (source) => {
+        setLibrarySource(source);
+        setLibraryError(null);
+        loadLibrarySource(source);
+    };
+
+    const refreshGitHub = () => {
+        // Force re-fetch from GitHub by clearing the cache
+        setLibraryItems((prev) => ({ ...prev, github: null }));
+        setLibraryError(null);
+        loadLibrarySource('github');
+    };
+
     const handleLibraryImport = async (item) => {
         setShowLibrary(false);
         try {
-            const qs = await fetchLibraryQuiz(item.file);
+            const qs = librarySource === 'github'
+                ? await fetchGitHubQuiz(item.file)
+                : await fetchLibraryQuiz(item.file);
             const valid = qs.filter((q) => q.text && q.type);
             if (valid.length === 0) throw new Error('No valid questions found.');
             setImportData({ quizName: item.name, questions: valid });
         } catch (e) {
-            setStatus({ error: true, msg: `Library import failed: ${e.message}` });
+            setStatus({ error: true, msg: `Import failed: ${e.message}` });
         }
     };
 
@@ -725,8 +771,11 @@ export default function EditorPage() {
                     <TBtn onClick={() => importInputRef.current.click()} disabled={!activeQuizId}>
                         ⬆ Import
                     </TBtn>
-                    <TBtn onClick={openLibrary} disabled={!activeQuizId} title="Import a pre-built quiz from the app library">
+                    <TBtn onClick={() => openLibrary('bundled')} disabled={!activeQuizId} title="Import a pre-built quiz bundled with the app">
                         📚 Library
+                    </TBtn>
+                    <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub">
+                        🔄 GitHub
                     </TBtn>
                     <TBtn primary onClick={saveAll} disabled={saving || !activeQuizId}>
                         {saving ? 'Saving…' : '💾 Save All'}
@@ -875,16 +924,41 @@ export default function EditorPage() {
                     <ModalBox onClick={(e) => e.stopPropagation()}>
                         <ModalTitle>📚 Quiz Library</ModalTitle>
                         <ModalSub>
-                            Pre-built quizzes bundled with the app. Click Import to load questions into the current quiz.
+                            Click Import next to any quiz to load it into the current quiz (Replace or Append).
                         </ModalSub>
 
+                        {/* Source toggle */}
+                        <SourceToggle>
+                            <SourceBtn
+                                active={librarySource === 'bundled'}
+                                onClick={() => switchLibrarySource('bundled')}
+                            >
+                                📦 Bundled with app
+                            </SourceBtn>
+                            <SourceBtn
+                                active={librarySource === 'github'}
+                                onClick={() => switchLibrarySource('github')}
+                            >
+                                🔄 Live from GitHub
+                            </SourceBtn>
+                        </SourceToggle>
+
+                        {librarySource === 'github' && (
+                            <div style={{ fontSize: 12, color: C.muted, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span>Fetching from <code style={{ color: C.blue }}>github.com/bautt/ponypollApp</code> — requires internet access.</span>
+                                <SmallBtn onClick={refreshGitHub} disabled={libraryLoading} style={{ flexShrink: 0 }}>↺ Refresh</SmallBtn>
+                            </div>
+                        )}
+
                         {libraryLoading && (
-                            <div style={{ color: C.muted, fontSize: 14 }}>Loading library…</div>
+                            <div style={{ color: C.muted, fontSize: 14, padding: '12px 0' }}>
+                                {librarySource === 'github' ? '🔄 Fetching from GitHub…' : 'Loading library…'}
+                            </div>
                         )}
                         {libraryError && (
-                            <div style={{ color: C.red, fontSize: 14 }}>Error: {libraryError}</div>
+                            <div style={{ color: C.red, fontSize: 14, padding: '8px 0' }}>✗ {libraryError}</div>
                         )}
-                        {!libraryLoading && !libraryError && libraryItems.map((item) => (
+                        {!libraryLoading && !libraryError && (libraryItems[librarySource] || []).map((item) => (
                             <LibCard key={item.id}>
                                 <LibCardBody>
                                     <LibCardName>
