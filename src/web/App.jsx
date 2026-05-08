@@ -43,9 +43,14 @@ const TABS = [
     { id: 'settings',  label: '⚙ Settings' },
 ];
 
-export default function App() {
-    const [tab, setTab] = useState('poll');
+/** Play mode: participant-only view, no nav, no admin tabs. */
+function PlayApp() {
+    return <PollPage />;
+}
 
+/** Full app: admin view with all tabs. */
+function FullApp() {
+    const [tab, setTab] = useState('poll');
     return (
         <>
             <NavBar>
@@ -62,4 +67,9 @@ export default function App() {
             {tab === 'settings'  && <SettingsPage />}
         </>
     );
+}
+
+export default function App() {
+    const isPlay = window.PONYPOLL_MODE === 'play';
+    return isPlay ? <PlayApp /> : <FullApp />;
 }
