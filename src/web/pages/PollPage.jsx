@@ -366,6 +366,7 @@ export default function PollPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nickname, setNickname] = useState('');
+    const splunkUser = useRef(''); // original Splunk username, independent of nickname edits
 
     const [qIndex, setQIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -382,7 +383,7 @@ export default function PollPage() {
         Promise.all([loadConfig(), getCurrentUser()])
             .then(async ([cfg, user]) => {
                 setConfig(cfg);
-                if (user) setNickname(user);
+                if (user) { setNickname(user); splunkUser.current = user; }
                 const quizId = cfg.active_quiz_id || null;
                 const docs = await listQuestions(quizId);
                 const qs = docs.length > 0
@@ -409,6 +410,7 @@ export default function PollPage() {
         submitQuizAttempt({
             session_id: sessionId.current,
             nickname: nickname || 'anonymous',
+            splunk_user: splunkUser.current || '',
             quiz_id: config.active_quiz_id || 'default',
             question_count: questions.length,
             event: 'quiz_start',
@@ -480,6 +482,7 @@ export default function PollPage() {
         const payload = {
             session_id: sessionId.current,
             nickname: nickname || 'anonymous',
+            splunk_user: splunkUser.current || '',
             question_index: qIndex,
             question: currentQ.text,
             type: currentQ.type,
@@ -517,6 +520,7 @@ export default function PollPage() {
             submitQuizAttempt({
                 session_id: sessionId.current,
                 nickname: nickname || 'anonymous',
+                splunk_user: splunkUser.current || '',
                 quiz_id: config.active_quiz_id || 'default',
                 total_score: score,
                 question_count: questions.length,
