@@ -5,6 +5,43 @@ import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentU
 import { fromKvDoc, SEED_QUESTIONS, toKvDoc } from '../lib/questions';
 import { calcPoints, uid } from '../lib/utils';
 
+// ── Taglines ────────────────────────────────────────────────────────────────────
+const TAGLINES = [
+    'Back in the saddle for modern Splunk',
+    'A modern revival of a Splunk classic',
+    'The next generation of polling for Splunk',
+    'Classic polling, rebuilt for today',
+    'A trusted favorite, refreshed for now',
+    'Bringing a Splunk classic up to speed',
+    'The poll app returns, reworked for today',
+    'Familiar polling, newly refined',
+    'A classic app with a modern stride',
+    'Revived for the way Splunk works today',
+    'A proven idea, thoughtfully rebuilt',
+    'Polling, polished for a new era',
+    'The return of a well-loved Splunk tool',
+    'Updated for modern teams and modern Splunk',
+    'A fresh take on a familiar favorite',
+    'Built again for faster, simpler polling',
+    'Where classic utility meets modern design',
+    'A reliable classic, ready for today\'s workloads',
+    'Reintroduced with a more modern gait',
+    'Back with a cleaner look and sharper focus',
+    'Designed for today, inspired by a classic',
+    'The familiar poll app, refined and renewed',
+    'Modern polling with classic roots',
+    'Renewed for a new generation of users',
+    'An established favorite, thoughtfully updated',
+    'Built for current Splunk, grounded in experience',
+    'A classic concept, modernized with care',
+    'Back to help teams vote, decide, and move',
+    'The return of polling, streamlined for today',
+    'A smarter stride for a familiar app',
+    'Refreshed for modern use, true to its roots',
+    'A steady classic, reimagined for now',
+];
+const TAGLINE = 'Pony Poll NG — ' + TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+
 // ── Colour palette (Splunk brand) ──────────────────────────────────────────────
 const C = {
     bg: '#1B1D22',
@@ -562,6 +599,9 @@ export default function PollPage() {
             <SetupCard>
                 <img src="/static/app/ponypollapp/buttercup.png" alt="Buttercup" style={{ width: 140 }} />
                 <SetupTitle>{config.poll_subject || 'Pony Poll'}</SetupTitle>
+                <p style={{ margin: '0 0 6px', fontSize: 12, color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
+                    {TAGLINE}
+                </p>
                 <SetupSubtitle>
                     {questions.length} question{questions.length !== 1 ? 's' : ''} — answer as fast
                     as you can to maximise your score!
