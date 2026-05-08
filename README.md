@@ -1,16 +1,41 @@
 # Pony Poll — Interactive Quiz App for Splunk
 
-**Pony Poll** is a self-contained Splunk app that turns any Splunk instance into a live quiz and polling platform. Participants answer questions in real time through a React-powered web UI embedded directly inside Splunk. All responses are stored as Splunk events, so you can build search-driven leaderboards and dashboards on top of the data immediately.
-
 ![Pony Poll mascot](src/package/appserver/static/appIcon_128.png)
+
+> **v0.9.1** · Splunk Enterprise / Cloud ≥ 8.x · React 16 · KV Store · Python 3
+
+---
+
+## TL;DR
+
+**Pony Poll** turns any Splunk instance into a live Kahoot-style quiz — no extra infrastructure needed.
+
+```
+Install app → create questions in the Editor → share the Poll URL → watch answers flow into Splunk
+```
+
+| What | How |
+|---|---|
+| **Run a quiz** | Open the **Poll** tab, enter your nickname, hit Start |
+| **Build questions** | **Editor** tab — 5 types, drag to reorder, set time limits |
+| **Use ready-made quizzes** | **📚 Library** (bundled) or **🔄 GitHub** (live sync from this repo) |
+| **Share a quiz** | **Export** → JSON file; anyone can **Import** on another instance |
+| **Analyse results** | Every answer is a Splunk event: `index=ponypoll | stats sum(points) by nickname` |
+| **Install** | Upload `ponypollapp.tar.gz` in Splunk UI — done |
+
+**Requires:** Splunk Enterprise with a valid license (KV Store must be enabled).
 
 ---
 
 ## Screenshots
 
-| Poll view | Question editor |
-|---|---|
-| ![Poll view — question with answer options and live timer](docs/screenshots/poll.png) | ![Editor — WYSIWYG question editor with type selector](docs/screenshots/editor.png) |
+| Start screen | Live question | Answer revealed |
+|---|---|---|
+| ![Start — Buttercup mascot and nickname input](docs/screenshots/start.png) | ![Question — 4 choices and countdown timer](docs/screenshots/question.png) | ![Reveal — correct answer highlighted, points awarded](docs/screenshots/reveal.png) |
+
+**Editor**
+
+![Editor — quiz selector, question list, WYSIWYG form with type buttons and answer options](docs/screenshots/editor.png)
 
 ---
 
