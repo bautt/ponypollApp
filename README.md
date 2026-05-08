@@ -21,6 +21,7 @@
 | **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
 | **Export / Import** | Download any quiz as a JSON file; import to replace or append questions — great for sharing question sets between Splunk instances |
+| **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via the 📚 Library button |
 | **Live timer** | Per-question countdown with speed-bonus scoring |
 | **Nickname** | Pre-filled from the Splunk username, editable before starting |
 | **WYSIWYG editor** | Built-in question editor with reorder, delete, and type switching |
@@ -235,6 +236,25 @@ The **Editor** tab has a quiz selector bar at the top of the sidebar. From there
 The **Settings** tab has an **Active quiz** selector that controls which quiz is shown to participants in the **Poll** tab.
 
 The **LIVE** badge appears next to the quiz name in the editor when that quiz is currently set as the active (live) one.
+
+---
+
+## Quiz library
+
+The app ships with a set of pre-built quiz JSON files stored in `appserver/static/quizzes/`. These are served directly by Splunk's static file server — no internet access required.
+
+### Using the library
+
+In the **Editor** tab, click **📚 Library** in the toolbar. A modal appears listing all bundled quizzes with their difficulty, question count, and description. Click **Import** next to any quiz, then choose **Replace** or **Append**.
+
+### Bundled quizzes
+
+| File | Name | Questions | Difficulty |
+|---|---|---|---|
+| `splunk4champions.json` | Splunk4Champions — Advanced Topics | 22 | Advanced |
+| `splunk-basics.json` | Splunk Basics | 15 | Beginner |
+
+The source JSON files (and a `README.md` explaining the format) live in the [`quizzes/`](quizzes/) folder of the repository. To add your own quiz to the library, add a JSON file there, update `manifest.json`, and rebuild the app.
 
 ---
 

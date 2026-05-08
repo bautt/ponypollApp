@@ -1,0 +1,159 @@
+[
+  {
+    "text": "What is the default port for Splunk Web?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "80", "correct": false },
+      { "id": "B", "text": "443", "correct": false },
+      { "id": "C", "text": "8000", "correct": true },
+      { "id": "D", "text": "8089", "correct": false }
+    ]
+  },
+  {
+    "text": "What is the default port for Splunk's management/REST API?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "8000", "correct": false },
+      { "id": "B", "text": "8089", "correct": true },
+      { "id": "C", "text": "9997", "correct": false },
+      { "id": "D", "text": "514", "correct": false }
+    ]
+  },
+  {
+    "text": "What does SPL stand for?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Splunk Processing Language", "correct": false },
+      { "id": "B", "text": "Search and Processing Library", "correct": false },
+      { "id": "C", "text": "Structured Pipeline Language", "correct": false },
+      { "id": "D", "text": "Search Processing Language", "correct": true }
+    ]
+  },
+  {
+    "text": "Which Splunk component forwards data to an indexer?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Search Head", "correct": false },
+      { "id": "B", "text": "Deployment Server", "correct": false },
+      { "id": "C", "text": "Universal Forwarder", "correct": true },
+      { "id": "D", "text": "License Manager", "correct": false }
+    ]
+  },
+  {
+    "text": "HEC stands for:",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "High Event Count", "correct": false },
+      { "id": "B", "text": "HTTP Event Collector", "correct": true },
+      { "id": "C", "text": "Hybrid Enterprise Cluster", "correct": false },
+      { "id": "D", "text": "Hot Event Cache", "correct": false }
+    ]
+  },
+  {
+    "text": "Which of the following are valid Splunk index types? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "Event index", "correct": true },
+      { "id": "B", "text": "Metric index", "correct": true },
+      { "id": "C", "text": "Summary index", "correct": true },
+      { "id": "D", "text": "Relational index", "correct": false }
+    ]
+  },
+  {
+    "text": "A Splunk Search Head is responsible for:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Receiving and indexing data from forwarders", "correct": false },
+      { "id": "B", "text": "Managing license usage across the deployment", "correct": false },
+      { "id": "C", "text": "Coordinating searches and presenting results to users", "correct": true },
+      { "id": "D", "text": "Storing compressed raw event data in buckets", "correct": false }
+    ]
+  },
+  {
+    "text": "The default data retention policy in Splunk moves data through these stages:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Hot → Warm → Cold → Frozen", "correct": true },
+      { "id": "B", "text": "Active → Archive → Deleted", "correct": false },
+      { "id": "C", "text": "Live → Warm → Cold → Deleted", "correct": false },
+      { "id": "D", "text": "Current → Historical → Archived → Purged", "correct": false }
+    ]
+  },
+  {
+    "text": "Splunk's KV Store is based on which database engine?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "SQLite", "correct": false },
+      { "id": "B", "text": "Redis", "correct": false },
+      { "id": "C", "text": "MongoDB", "correct": true },
+      { "id": "D", "text": "Elasticsearch", "correct": false }
+    ]
+  },
+  {
+    "text": "Which SPL command would you use to count events grouped by a field?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "| group count by fieldname", "correct": false },
+      { "id": "B", "text": "| stats count by fieldname", "correct": true },
+      { "id": "C", "text": "| count group=fieldname", "correct": false },
+      { "id": "D", "text": "| aggregate count fieldname", "correct": false }
+    ]
+  },
+  {
+    "text": "Splunk Universal Forwarder (UF) can index data locally",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No — UF only forwards, indexing is for Heavy Forwarders and Indexers", "correct": true }
+    ]
+  },
+  {
+    "text": "What does the `rex` command do in Splunk?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Removes events matching a pattern", "correct": false },
+      { "id": "B", "text": "Extracts fields using regular expressions", "correct": true },
+      { "id": "C", "text": "Replaces field values with a constant", "correct": false },
+      { "id": "D", "text": "Re-indexes events from a file", "correct": false }
+    ]
+  },
+  {
+    "text": "How long have you been using Splunk?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Less than 1 year", "correct": false },
+      { "id": "B", "text": "1–3 years", "correct": false },
+      { "id": "C", "text": "3–5 years", "correct": false },
+      { "id": "D", "text": "More than 5 years", "correct": false }
+    ]
+  },
+  {
+    "text": "Rate your overall Splunk knowledge (1 = just started, 10 = certified architect)",
+    "type": "slider",
+    "timeLimit": 20,
+    "options": [],
+    "sliderMin": 1,
+    "sliderMax": 10,
+    "sliderStep": 1,
+    "sliderUnit": "/10"
+  },
+  {
+    "text": "What would you most like to improve in your Splunk skills?",
+    "type": "freetext",
+    "timeLimit": 60,
+    "options": []
+  }
+]

@@ -4,6 +4,7 @@ import {
     listQuestions, deleteQuestion, saveAllQuestions,
     listQuizzes, createQuiz, renameQuiz, deleteQuiz,
     loadConfig, saveConfig,
+    fetchLibraryManifest, fetchLibraryQuiz,
 } from '../lib/kvstore';
 import {
     fromKvDoc, toKvDoc, newQuestion, defaultOptions, QUESTION_TYPES, SEED_QUESTIONS,
@@ -265,6 +266,70 @@ const ImportBanner = styled.div`
     flex-wrap: wrap;
 `;
 
+// Library modal overlay
+const ModalOverlay = styled.div`
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+`;
+
+const ModalBox = styled.div`
+    background: ${C.surface};
+    border: 1px solid ${C.border};
+    border-radius: 10px;
+    padding: 28px 32px;
+    width: 560px;
+    max-width: 95vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+`;
+
+const ModalTitle = styled.h3`
+    margin: 0 0 6px;
+    font-size: 18px;
+    color: #fff;
+`;
+
+const ModalSub = styled.p`
+    margin: 0 0 20px;
+    font-size: 13px;
+    color: ${C.muted};
+`;
+
+const LibCard = styled.div`
+    border: 1px solid ${C.border};
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+`;
+
+const LibCardBody = styled.div`flex: 1;`;
+const LibCardName = styled.div`font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px;`;
+const LibCardMeta = styled.div`font-size: 12px; color: ${C.muted}; margin-bottom: 6px;`;
+const LibCardDesc = styled.div`font-size: 13px; color: ${C.text};`;
+
+const DiffBadge = styled.span`
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: ${({ diff }) =>
+        diff === 'Beginner' ? '#1a6b3a' :
+        diff === 'Advanced' ? '#6b3a1a' : '#1a3a6b'};
+    color: ${({ diff }) =>
+        diff === 'Beginner' ? '#5CC05C' :
+        diff === 'Advanced' ? '#ED8B00' : '#009CDE'};
+    margin-left: 8px;
+`;
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function EditorPage() {
@@ -283,6 +348,12 @@ export default function EditorPage() {
     // Import
     const [importData, setImportData] = useState(null); // { quizName, questions }
     const importInputRef = useRef(null);
+
+    // Library modal
+    const [showLibrary, setShowLibrary] = useState(false);
+    const [libraryItems, setLibraryItems] = useState([]);
+    const [libraryLoading, setLibraryLoading] = useState(false);
+    const [libraryError, setLibraryError] = useState(null);
 
     // ── Init ────────────────────────────────────────────────────────────────────
 
@@ -539,6 +610,35 @@ export default function EditorPage() {
         }
     };
 
+    // ── Library ─────────────────────────────────────────────────────────────────
+
+    const openLibrary = async () => {
+        setShowLibrary(true);
+        if (libraryItems.length > 0) return;
+        setLibraryLoading(true);
+        setLibraryError(null);
+        try {
+            const manifest = await fetchLibraryManifest();
+            setLibraryItems(manifest);
+        } catch (e) {
+            setLibraryError(e.message);
+        } finally {
+            setLibraryLoading(false);
+        }
+    };
+
+    const handleLibraryImport = async (item) => {
+        setShowLibrary(false);
+        try {
+            const qs = await fetchLibraryQuiz(item.file);
+            const valid = qs.filter((q) => q.text && q.type);
+            if (valid.length === 0) throw new Error('No valid questions found.');
+            setImportData({ quizName: item.name, questions: valid });
+        } catch (e) {
+            setStatus({ error: true, msg: `Library import failed: ${e.message}` });
+        }
+    };
+
     // ── Render ──────────────────────────────────────────────────────────────────
 
     const currentQuizIsLive = activeQuizId && activeQuizId === liveQuizId;
@@ -624,6 +724,9 @@ export default function EditorPage() {
                     />
                     <TBtn onClick={() => importInputRef.current.click()} disabled={!activeQuizId}>
                         ⬆ Import
+                    </TBtn>
+                    <TBtn onClick={openLibrary} disabled={!activeQuizId} title="Import a pre-built quiz from the app library">
+                        📚 Library
                     </TBtn>
                     <TBtn primary onClick={saveAll} disabled={saving || !activeQuizId}>
                         {saving ? 'Saving…' : '💾 Save All'}
@@ -765,6 +868,48 @@ export default function EditorPage() {
                     </StatusBar>
                 )}
             </Main>
+
+            {/* Library modal */}
+            {showLibrary && (
+                <ModalOverlay onClick={() => setShowLibrary(false)}>
+                    <ModalBox onClick={(e) => e.stopPropagation()}>
+                        <ModalTitle>📚 Quiz Library</ModalTitle>
+                        <ModalSub>
+                            Pre-built quizzes bundled with the app. Click Import to load questions into the current quiz.
+                        </ModalSub>
+
+                        {libraryLoading && (
+                            <div style={{ color: C.muted, fontSize: 14 }}>Loading library…</div>
+                        )}
+                        {libraryError && (
+                            <div style={{ color: C.red, fontSize: 14 }}>Error: {libraryError}</div>
+                        )}
+                        {!libraryLoading && !libraryError && libraryItems.map((item) => (
+                            <LibCard key={item.id}>
+                                <LibCardBody>
+                                    <LibCardName>
+                                        {item.name}
+                                        <DiffBadge diff={item.difficulty}>{item.difficulty}</DiffBadge>
+                                    </LibCardName>
+                                    <LibCardMeta>{item.questionCount} questions</LibCardMeta>
+                                    <LibCardDesc>{item.description}</LibCardDesc>
+                                </LibCardBody>
+                                <TBtn
+                                    primary
+                                    onClick={() => handleLibraryImport(item)}
+                                    style={{ flexShrink: 0, alignSelf: 'center' }}
+                                >
+                                    Import
+                                </TBtn>
+                            </LibCard>
+                        ))}
+
+                        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+                            <TBtn onClick={() => setShowLibrary(false)}>Close</TBtn>
+                        </div>
+                    </ModalBox>
+                </ModalOverlay>
+            )}
         </Root>
     );
 }

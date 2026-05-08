@@ -165,6 +165,22 @@ export async function getCurrentUser() {
     }
 }
 
+// ── Bundled quiz library ──────────────────────────────────────────────────────
+
+/** Fetch the manifest of quizzes bundled with the app's static files. */
+export async function fetchLibraryManifest() {
+    const res = await fetch(`/static/app/${APP}/quizzes/manifest.json`, { credentials: 'include' });
+    if (!res.ok) throw new Error(`Could not load quiz library manifest (${res.status})`);
+    return res.json();
+}
+
+/** Fetch a specific bundled quiz JSON by filename. */
+export async function fetchLibraryQuiz(filename) {
+    const res = await fetch(`/static/app/${APP}/quizzes/${filename}`, { credentials: 'include' });
+    if (!res.ok) throw new Error(`Could not load quiz file "${filename}" (${res.status})`);
+    return res.json();
+}
+
 // ── Available Splunk indexes ──────────────────────────────────────────────────
 
 export async function listIndexes() {

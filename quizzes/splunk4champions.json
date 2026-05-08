@@ -1,0 +1,232 @@
+[
+  {
+    "text": "What is stored inside a Splunk Enterprise index bucket?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "KV Store, index files and NoSQL database files", "correct": false },
+      { "id": "B", "text": "Bloom filter, tsidx and compressed raw data (and some other stuff)", "correct": true },
+      { "id": "C", "text": "Inverted indices and BKD trees", "correct": false },
+      { "id": "D", "text": "B-tree, data pages and SQL indices", "correct": false }
+    ]
+  },
+  {
+    "text": "A Bloom filter is:",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "A new cartoon filter on Instagram", "correct": false },
+      { "id": "B", "text": "A filter for ActiveX objects or Java applets", "correct": false },
+      { "id": "C", "text": "A probabilistic data structure based on hashing", "correct": true },
+      { "id": "D", "text": "Car oil filter for electric cars", "correct": false }
+    ]
+  },
+  {
+    "text": "What is the correct order of Splunk data lifecycle stages?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Hot → Cold → Warm → Frozen", "correct": false },
+      { "id": "B", "text": "Warm → Hot → Cold → Frozen", "correct": false },
+      { "id": "C", "text": "Hot → Warm → Cold → Frozen", "correct": true },
+      { "id": "D", "text": "Hot → Warm → Frozen → Cold", "correct": false }
+    ]
+  },
+  {
+    "text": "TERM() directive can be used across major breakers (whitespace, commas, etc.)",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No", "correct": true }
+    ]
+  },
+  {
+    "text": "Streaming commands should be used BEFORE transforming commands in the pipeline",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true },
+      { "id": "B", "text": "No", "correct": false }
+    ]
+  },
+  {
+    "text": "Which search is faster and why?",
+    "type": "single",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "index=s4c_weather | stats avg(main.temp) by name", "correct": false },
+      { "id": "B", "text": "| tstats avg(main.temp) WHERE index=s4c_weather by name", "correct": true },
+      { "id": "C", "text": "They are exactly the same speed", "correct": false },
+      { "id": "D", "text": "The first — tstats only works on datamodels", "correct": false }
+    ]
+  },
+  {
+    "text": "tstats is best used at the END of a search pipeline, after streaming commands",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No — tstats is a generating command and must be FIRST", "correct": true }
+    ]
+  },
+  {
+    "text": "What are the 'apocalyptic horsemen' of bad searches? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 40,
+    "options": [
+      { "id": "A", "text": "index=* or missing index filter", "correct": true },
+      { "id": "B", "text": "All Time search range", "correct": true },
+      { "id": "C", "text": "Wildcards at the beginning or in the middle of a term", "correct": true },
+      { "id": "D", "text": "Using JOIN to combine different data sources", "correct": true }
+    ]
+  },
+  {
+    "text": "Which search mode is tuned for the fastest results and skips non-essential field processing?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Verbose mode", "correct": false },
+      { "id": "B", "text": "Smart mode — always the fastest choice", "correct": false },
+      { "id": "C", "text": "Night mode", "correct": false },
+      { "id": "D", "text": "Fast mode", "correct": true }
+    ]
+  },
+  {
+    "text": "Your best helper for diagnosing slow searches is called:",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Monitoring Console", "correct": false },
+      { "id": "B", "text": "Job Inspector", "correct": true },
+      { "id": "C", "text": "Christoph", "correct": false },
+      { "id": "D", "text": "SPL Profiler", "correct": false }
+    ]
+  },
+  {
+    "text": "What is NOT true about Splunk Metrics?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Metrics are great for performance", "correct": false },
+      { "id": "B", "text": "Metrics work well in the Analytics Workspace", "correct": false },
+      { "id": "C", "text": "Metrics require additional software to use in Splunk Enterprise", "correct": true },
+      { "id": "D", "text": "Context information can be stored as a dimension", "correct": false }
+    ]
+  },
+  {
+    "text": "Dashboard Studio source code is written in:",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "XML", "correct": false },
+      { "id": "B", "text": "YAML", "correct": false },
+      { "id": "C", "text": "Estonian", "correct": false },
+      { "id": "D", "text": "JSON", "correct": true }
+    ]
+  },
+  {
+    "text": "A Chain Search in Dashboard Studio is:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "A very slow search that triggers a chain reaction", "correct": false },
+      { "id": "B", "text": "The new name for a post-processing search in Dashboard Studio", "correct": true },
+      { "id": "C", "text": "A search across supply chain data", "correct": false },
+      { "id": "D", "text": "An AI-based search combining Google and Bing", "correct": false }
+    ]
+  },
+  {
+    "text": "In SmartStore, the cache manager mainly:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Fetches warm buckets from the remote store into local cache and evicts them by policy", "correct": true },
+      { "id": "B", "text": "Runs all user searches so search heads stay idle", "correct": false },
+      { "id": "C", "text": "Replaces the license manager", "correct": false },
+      { "id": "D", "text": "Only moves frozen archives to object storage", "correct": false }
+    ]
+  },
+  {
+    "text": "A generating command is special because it:",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Runs only on the search head captain", "correct": false },
+      { "id": "B", "text": "Must always be followed immediately by stats", "correct": false },
+      { "id": "C", "text": "Cannot run in distributed search environments", "correct": false },
+      { "id": "D", "text": "Starts a new result set and is often required as the first command", "correct": true }
+    ]
+  },
+  {
+    "text": "Dashboard Studio images uploaded only through the UI (stored in KV Store) are a problem when you move the dashboard because:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "They auto-sync to your Git repository and cause conflicts", "correct": false },
+      { "id": "B", "text": "They may not come along when you package or install the app elsewhere", "correct": true },
+      { "id": "C", "text": "They always live as files under etc/apps", "correct": false },
+      { "id": "D", "text": "They delete the dashboard JSON for security reasons", "correct": false }
+    ]
+  },
+  {
+    "text": "In Splunk Metrics, dimensions are:",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Numeric measurement values at a timestamp", "correct": false },
+      { "id": "B", "text": "Dot-separated metric name segments", "correct": false },
+      { "id": "C", "text": "Key-value pairs that add contextual metadata to measurements", "correct": true },
+      { "id": "D", "text": "Index configuration parameters", "correct": false }
+    ]
+  },
+  {
+    "text": "Which of the following are valid Splunk search tips? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 40,
+    "options": [
+      { "id": "A", "text": "Always specify the index you need", "correct": true },
+      { "id": "B", "text": "Restrict the time range as much as possible", "correct": true },
+      { "id": "C", "text": "Use wildcards as prefixes for flexible matching", "correct": false },
+      { "id": "D", "text": "Place streaming commands earlier in the pipeline", "correct": true }
+    ]
+  },
+  {
+    "text": "PREFIX() in tstats allows you to:",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Add a custom prefix to every event field name", "correct": false },
+      { "id": "B", "text": "Treat indexed terms as key-value pairs without requiring an indexed field", "correct": true },
+      { "id": "C", "text": "Filter searches to a specific index prefix", "correct": false },
+      { "id": "D", "text": "Pre-sort events before aggregation", "correct": false }
+    ]
+  },
+  {
+    "text": "The Splunk data pipeline processes data in which order?",
+    "type": "single",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "Index Pipeline → Parsing Pipeline → Index Queue → Parsing Queue", "correct": false },
+      { "id": "B", "text": "Parsing Queue → Index Queue → Parsing Pipeline → Index Pipeline", "correct": false },
+      { "id": "C", "text": "Parsing Queue → Parsing Pipeline → Index Queue → Index Pipeline", "correct": true },
+      { "id": "D", "text": "Index Queue → Parsing Queue → Index Pipeline → Parsing Pipeline", "correct": false }
+    ]
+  },
+  {
+    "text": "Rate your overall confidence with Splunk search performance topics",
+    "type": "slider",
+    "timeLimit": 30,
+    "options": [],
+    "sliderMin": 1,
+    "sliderMax": 10,
+    "sliderStep": 1,
+    "sliderUnit": "/10"
+  },
+  {
+    "text": "What topic from Splunk4Champions would you like to learn more about?",
+    "type": "freetext",
+    "timeLimit": 60,
+    "options": []
+  }
+]
