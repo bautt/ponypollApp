@@ -211,6 +211,20 @@ export default function SettingsPage() {
                     </StatusMsg>
                 )}
 
+                <div style={{ marginTop: 16 }}>
+                    <a
+                        href={`/app/search/search?q=search%20index%3D${encodeURIComponent(cfg.poll_index || 'ponypoll')}&earliest=-7d&latest=now`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            color: C.blue, fontSize: 13, textDecoration: 'none',
+                        }}
+                    >
+                        🔍 Search <code style={{ color: C.accent }}>index={cfg.poll_index || 'ponypoll'}</code> in Splunk
+                    </a>
+                </div>
+
                 <IndexNote>
                     <strong style={{ color: C.text }}>How it works</strong><br />
                     Poll answer events are written directly to Splunk via the app's REST handler — no
