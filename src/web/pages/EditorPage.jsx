@@ -370,8 +370,8 @@ export default function EditorPage() {
                 setLiveQuizId(cfg.active_quiz_id || '');
 
                 if (qs.length === 0) {
-                    // First install — create Default Quiz, seed it
-                    const created = await createQuiz('Default Quiz');
+                    // First install — seed the sample quiz (one question per type)
+                    const created = await createQuiz('Sample Quiz');
                     const newId = created._key || created.key;
                     const seeded = SEED_QUESTIONS.map((q, i) => ({ ...q, _key: '', sort_order: i, quiz_id: newId }));
                     await saveAllQuestions(seeded.map((q, i) => ({ ...toKvDoc(q), sort_order: i })), newId);

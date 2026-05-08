@@ -105,75 +105,53 @@ export function newQuestion(overrides = {}) {
     };
 }
 
-/** Seed questions shown on first install. */
+/** Seed questions shown on first install — one of every question type. */
 export const SEED_QUESTIONS = [
     {
-        text: 'What is the default Splunk search language called?',
+        text: 'Which port does Splunk Web use by default?',
         type: 'single',
         timeLimit: 30,
         options: [
-            { id: 'A', text: 'SPL (Search Processing Language)', correct: true },
-            { id: 'B', text: 'SQL (Structured Query Language)', correct: false },
-            { id: 'C', text: 'XQL (Extended Query Language)', correct: false },
-            { id: 'D', text: 'SQL+', correct: false },
+            { id: 'A', text: '8000', correct: true  },
+            { id: 'B', text: '8080', correct: false },
+            { id: 'C', text: '8089', correct: false },
+            { id: 'D', text: '9997', correct: false },
         ],
     },
     {
-        text: 'Which Splunk component forwards data to an indexer?',
-        type: 'single',
-        timeLimit: 30,
+        text: 'Which of the following are valid Splunk search commands? (select all that apply)',
+        type: 'multi',
+        timeLimit: 40,
         options: [
-            { id: 'A', text: 'Search Head', correct: false },
-            { id: 'B', text: 'Deployment Server', correct: false },
-            { id: 'C', text: 'Universal Forwarder', correct: true },
-            { id: 'D', text: 'License Manager', correct: false },
+            { id: 'A', text: 'stats',     correct: true  },
+            { id: 'B', text: 'timechart', correct: true  },
+            { id: 'C', text: 'pivot',     correct: true  },
+            { id: 'D', text: 'cronjob',   correct: false },
         ],
     },
     {
-        text: 'Was the installation easy?',
+        text: "Is Splunk's default index called 'main'?",
         type: 'yesno',
         timeLimit: 20,
         options: [
-            { id: 'A', text: 'Yes', correct: true },
+            { id: 'A', text: 'Yes', correct: true  },
             { id: 'B', text: 'No',  correct: false },
         ],
     },
     {
-        text: 'Which of the following are Splunk search commands? (Select all that apply)',
-        type: 'multi',
-        timeLimit: 40,
-        options: [
-            { id: 'A', text: 'stats',      correct: true },
-            { id: 'B', text: 'timechart',  correct: true },
-            { id: 'C', text: 'WHERE',      correct: false },
-            { id: 'D', text: 'table',      correct: true },
-        ],
+        text: 'Name one Splunk search command that summarises results by a field.',
+        type: 'freetext',
+        timeLimit: 45,
+        options: [],
     },
     {
-        text: 'What port does Splunk Web use by default?',
-        type: 'single',
-        timeLimit: 25,
-        options: [
-            { id: 'A', text: '80',   correct: false },
-            { id: 'B', text: '443',  correct: false },
-            { id: 'C', text: '8000', correct: true },
-            { id: 'D', text: '8089', correct: false },
-        ],
-    },
-    {
-        text: 'Rate your overall confidence with Splunk (1 = beginner, 10 = expert)',
+        text: 'On a scale of 1–10, how confident are you with Splunk SPL?',
         type: 'slider',
         timeLimit: 30,
         options: [],
         sliderMin: 1,
         sliderMax: 10,
         sliderStep: 1,
-        sliderUnit: '/10',
-    },
-    {
-        text: 'What is your favourite Splunk feature?',
-        type: 'freetext',
-        timeLimit: 60,
-        options: [],
+        sliderUnit: '',
     },
 ];
