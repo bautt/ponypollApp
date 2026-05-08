@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import {
     listQuestions, deleteQuestion, saveAllQuestions,
-    listQuizzes, createQuiz, renameQuiz, deleteQuiz,
+    listQuizzes, createQuiz, renameQuiz, deleteQuiz, updateQuiz,
     loadConfig, saveConfig,
     fetchLibraryManifest, fetchLibraryQuiz,
     fetchGitHubManifest, fetchGitHubQuiz,
@@ -369,6 +369,7 @@ export default function EditorPage() {
     const [activeQuizId, setActiveQuizId] = useState(null); // currently editing
     const [liveQuizId, setLiveQuizId] = useState('');       // what participants see
     const [quizLoading, setQuizLoading] = useState(true);
+    const [questionLimit, setQuestionLimit] = useState(null); // null = all questions
 
     const importInputRef = useRef(null);
     const configRef = useRef({});
@@ -404,6 +405,8 @@ export default function EditorPage() {
                     setQuizzes(qs);
                     const targetId = cfg.active_quiz_id || qs[0]._key;
                     setActiveQuizId(targetId);
+                    const targetQuiz = qs.find((q) => q._key === targetId);
+                    setQuestionLimit(targetQuiz?.question_limit ? Number(targetQuiz.question_limit) : null);
                     await loadQuestionsForQuiz(targetId);
                 }
             })
@@ -428,6 +431,8 @@ export default function EditorPage() {
 
     const handleQuizSwitch = async (quizId) => {
         setActiveQuizId(quizId);
+        const quiz = quizzes.find((q) => q._key === quizId);
+        setQuestionLimit(quiz?.question_limit ? Number(quiz.question_limit) : null);
         await loadQuestionsForQuiz(quizId);
     };
 
@@ -450,11 +455,12 @@ export default function EditorPage() {
 
     const handleRenameQuiz = async () => {
         if (!activeQuizId) return;
-        const current = quizzes.find((q) => q._key === activeQuizId)?.name || '';
+        const currentQuiz = quizzes.find((q) => q._key === activeQuizId);
+        const current = currentQuiz?.name || '';
         const name = window.prompt('Rename quiz:', current);
         if (!name?.trim() || name.trim() === current) return;
         try {
-            await renameQuiz(activeQuizId, name.trim());
+            await updateQuiz(activeQuizId, { ...currentQuiz, name: name.trim() });
             const freshQuizzes = await listQuizzes();
             setQuizzes(freshQuizzes);
             setStatus({ error: false, msg: 'Quiz renamed.' });
@@ -495,6 +501,25 @@ export default function EditorPage() {
             setStatus({ error: false, msg: `"${name}" is now active — participants will see this quiz.` });
         } catch (e) {
             setStatus({ error: true, msg: `Activate failed: ${e.message}` });
+        }
+    };
+
+    const handleLimitChange = async (newLimit) => {
+        setQuestionLimit(newLimit);
+        const currentQuiz = quizzes.find((q) => q._key === activeQuizId);
+        if (!currentQuiz) return;
+        try {
+            await updateQuiz(activeQuizId, { ...currentQuiz, question_limit: newLimit || null });
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            setStatus({
+                error: false,
+                msg: newLimit
+                    ? `Quiz will play ${newLimit} random questions (of ${questions.length} total).`
+                    : 'Quiz will play all questions in order.',
+            });
+        } catch (e) {
+            setStatus({ error: true, msg: `Failed to save limit: ${e.message}` });
         }
     };
 
@@ -755,6 +780,22 @@ export default function EditorPage() {
                                 ▶ Activate this quiz
                             </ActivateBtn>
                         )}
+                    </QuizRow>
+                    <QuizRow>
+                        <span style={{ fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>🎲 Play:</span>
+                        <QuizSelect
+                            value={questionLimit || ''}
+                            onChange={(e) => handleLimitChange(e.target.value ? Number(e.target.value) : null)}
+                            disabled={!activeQuizId}
+                            title="Randomly pick a subset of questions when the quiz runs"
+                        >
+                            <option value="">All {questions.length} questions</option>
+                            {[3, 5, 6, 8, 10, 12, 15, 20, 25, 30]
+                                .filter((n) => n < questions.length)
+                                .map((n) => (
+                                    <option key={n} value={n}>Random {n} of {questions.length}</option>
+                                ))}
+                        </QuizSelect>
                     </QuizRow>
                     <QuizRow>
                         <SmallBtn primary onClick={handleNewQuiz}>+ New</SmallBtn>

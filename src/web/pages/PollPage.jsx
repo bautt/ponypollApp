@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import Timer from '../components/Timer';
-import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentUser } from '../lib/kvstore';
+import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentUser, getQuiz } from '../lib/kvstore';
 import { fromKvDoc, SEED_QUESTIONS, toKvDoc } from '../lib/questions';
 import { calcPoints, uid } from '../lib/utils';
 
@@ -41,6 +41,15 @@ const TAGLINES = [
     'A steady classic, reimagined for now',
 ];
 const TAGLINE = 'Pony Poll NG — ' + TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+
+// ── Helpers ─────────────────────────────────────────────────────────────────────
+function fisherYatesShuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
 
 // ── Colour palette (Splunk brand) ──────────────────────────────────────────────
 const C = {
@@ -440,10 +449,18 @@ export default function PollPage() {
                 setConfig(cfg);
                 if (user) { setNickname(user); splunkUser.current = user; }
                 const quizId = cfg.active_quiz_id || null;
-                const docs = await listQuestions(quizId);
-                const qs = docs.length > 0
+                const [docs, quizMeta] = await Promise.all([
+                    listQuestions(quizId),
+                    quizId ? getQuiz(quizId) : Promise.resolve(null),
+                ]);
+                let qs = docs.length > 0
                     ? docs.map(fromKvDoc)
                     : SEED_QUESTIONS.map((q, i) => ({ ...q, _key: `seed_${i}`, sort_order: i }));
+                // Apply random subset if a question_limit is configured
+                const limit = quizMeta?.question_limit ? Number(quizMeta.question_limit) : null;
+                if (limit && limit > 0 && limit < qs.length) {
+                    qs = fisherYatesShuffle([...qs]).slice(0, limit);
+                }
                 setQuestions(qs);
             })
             .catch((e) => setError(e.message))

@@ -77,6 +77,26 @@ export async function renameQuiz(key, name) {
     });
 }
 
+export async function getQuiz(key) {
+    if (!key) return null;
+    try {
+        return await kvFetch(
+            `${kvBase()}/ponypoll_quizzes/${encodeURIComponent(key)}?output_mode=json`
+        );
+    } catch (_) {
+        return null;
+    }
+}
+
+export async function updateQuiz(key, doc) {
+    const body = { ...doc };
+    delete body._key;
+    return kvFetch(`${kvBase()}/ponypoll_quizzes/${encodeURIComponent(key)}?output_mode=json`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+}
+
 export async function deleteQuiz(key) {
     // Delete all questions for this quiz first
     const query = encodeURIComponent(JSON.stringify({ quiz_id: key }));
