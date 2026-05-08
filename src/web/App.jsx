@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import PollPage from './pages/PollPage';
 import EditorPage from './pages/EditorPage';
 import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig } from './lib/kvstore';
+import { SEED_QUESTIONS, toKvDoc } from './lib/questions';
 
 const C = {
     surface: '#23262F',
@@ -43,13 +45,34 @@ const TABS = [
     { id: 'settings',  label: '⚙ Settings' },
 ];
 
+/** Seed sample quiz on first install (runs once, app-wide). */
+function useSeedOnFirstInstall() {
+    useEffect(() => {
+        (async () => {
+            try {
+                const [quizzes, cfg] = await Promise.all([listQuizzes(), loadConfig()]);
+                if (quizzes.length > 0) return; // already seeded
+                const created = await createQuiz('Sample Quiz');
+                const newId = created._key || created.key;
+                const docs = SEED_QUESTIONS.map((q, i) => ({ ...toKvDoc(q), sort_order: i, quiz_id: newId }));
+                await saveAllQuestions(docs, newId);
+                await saveConfig({ ...cfg, active_quiz_id: newId });
+            } catch (_) {
+                // silent — seeding is best-effort; Editor will retry if needed
+            }
+        })();
+    }, []);
+}
+
 /** Play mode: participant-only view, no nav, no admin tabs. */
 function PlayApp() {
+    useSeedOnFirstInstall();
     return <PollPage />;
 }
 
 /** Full app: admin view with all tabs. */
 function FullApp() {
+    useSeedOnFirstInstall();
     const [tab, setTab] = useState('poll');
     return (
         <>
