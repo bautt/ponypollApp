@@ -273,6 +273,20 @@ export default function SettingsPage() {
                     (<code style={{ color: C.accent }}>ponypoll_questions</code>) — no external
                     storage needed.
                 </IndexNote>
+
+                <div style={{
+                    marginTop: 32, padding: '14px 18px',
+                    borderTop: `1px solid ${C.border}`,
+                    fontSize: 12, color: C.muted, lineHeight: 1.6,
+                }}>
+                    💬 Have a suggestion or found a bug?{' '}
+                    <a
+                        href="mailto:tbaublys@splunk.com"
+                        style={{ color: C.blue, textDecoration: 'none' }}
+                    >
+                        tbaublys@splunk.com
+                    </a>
+                </div>
             </Card>
         </Root>
     );
