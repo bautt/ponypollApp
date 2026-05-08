@@ -78,7 +78,7 @@ def _request_tail(req):
 
 class PonyPollRest(PersistentServerConnectionApplication):
     def __init__(self, command_line=None, command_arg=None):
-        super().__init__(command_line, command_arg)
+        super().__init__()
 
     def handle(self, in_string):
         try:
