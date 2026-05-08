@@ -7,10 +7,16 @@ access = read : [ * ], write : [ admin, power ]
 [storage/collections/config/ponypoll_config]
 access = read : [ * ], write : [ admin, power ]
 
+[storage/collections/config/ponypoll_quizzes]
+access = read : [ * ], write : [ admin, power ]
+
 [storage/collections/data/ponypoll_questions]
 access = read : [ * ], write : [ * ]
 
 [storage/collections/data/ponypoll_config]
+access = read : [ * ], write : [ admin, power ]
+
+[storage/collections/data/ponypoll_quizzes]
 access = read : [ * ], write : [ admin, power ]
 
 [indexes/ponypoll]
