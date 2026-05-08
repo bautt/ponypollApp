@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { loadConfig, saveConfig, listIndexes, listQuizzes } from '../lib/kvstore';
+import { loadConfig, saveConfig, listIndexes, listQuizzes, updateQuiz } from '../lib/kvstore';
 
 const C = {
     bg: '#1B1D22', surface: '#23262F', border: '#3C3F4A',
@@ -112,22 +112,51 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
     const [loadingIdx, setLoadingIdx] = useState(true);
+    const [questionLimit, setQuestionLimit] = useState(null);
 
     useEffect(() => {
         Promise.all([loadConfig(), listIndexes(), listQuizzes()])
             .then(([c, idxList, qList]) => {
+                const activeId = c.active_quiz_id || '';
                 setCfg({
                     poll_index: c.poll_index || 'ponypoll',
                     poll_subject: c.poll_subject || 'Pony Poll',
-                    active_quiz_id: c.active_quiz_id || '',
+                    active_quiz_id: activeId,
                     default_view: c.default_view || 'poll',
                 });
                 setIndexes(idxList);
                 setQuizzes(qList);
+                const activeQuiz = qList.find((q) => q._key === activeId);
+                setQuestionLimit(activeQuiz?.question_limit ? Number(activeQuiz.question_limit) : null);
             })
             .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }))
             .finally(() => setLoadingIdx(false));
     }, []);
+
+    const handleQuizChange = (newId) => {
+        setCfg((prev) => ({ ...prev, active_quiz_id: newId }));
+        const quiz = quizzes.find((q) => q._key === newId);
+        setQuestionLimit(quiz?.question_limit ? Number(quiz.question_limit) : null);
+    };
+
+    const handleLimitChange = async (newLimit) => {
+        setQuestionLimit(newLimit);
+        const quiz = quizzes.find((q) => q._key === cfg.active_quiz_id);
+        if (!quiz) return;
+        try {
+            await updateQuiz(cfg.active_quiz_id, { ...quiz, question_limit: newLimit || null });
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            setStatus({
+                error: false,
+                msg: newLimit
+                    ? `Quiz will play ${newLimit} random questions per session.`
+                    : 'Quiz will play all questions in order.',
+            });
+        } catch (e) {
+            setStatus({ error: true, msg: `Failed to save limit: ${e.message}` });
+        }
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -151,7 +180,7 @@ export default function SettingsPage() {
                     {quizzes.length > 0 ? (
                         <Select
                             value={cfg.active_quiz_id}
-                            onChange={(e) => setCfg({ ...cfg, active_quiz_id: e.target.value })}
+                            onChange={(e) => handleQuizChange(e.target.value)}
                         >
                             {quizzes.map((q) => (
                                 <option key={q._key} value={q._key}>{q.name}</option>
@@ -163,6 +192,24 @@ export default function SettingsPage() {
                     <Hint>
                         This is the quiz participants see when they open the Poll tab. Switch quizzes
                         here without affecting what the editor is currently browsing.
+                    </Hint>
+                </Section>
+
+                <Section>
+                    <Label>🎲 Random question subset</Label>
+                    <Select
+                        value={questionLimit || ''}
+                        onChange={(e) => handleLimitChange(e.target.value ? Number(e.target.value) : null)}
+                        disabled={!cfg.active_quiz_id}
+                    >
+                        <option value="">All questions (play in saved order)</option>
+                        {[3, 5, 6, 8, 10, 12, 15, 20, 25, 30].map((n) => (
+                            <option key={n} value={n}>Random {n} questions per session</option>
+                        ))}
+                    </Select>
+                    <Hint>
+                        When set, each session draws this many questions at random from the full pool —
+                        every participant gets a different shuffle. Saved immediately to the quiz.
                     </Hint>
                 </Section>
 
