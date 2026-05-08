@@ -2,7 +2,7 @@
 
 ![Pony Poll mascot](src/package/appserver/static/appIcon_128.png)
 
-> **v1.1.3** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.1.6** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports five question types (single choice, multiple choice, yes/no, free text, and slider), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -51,9 +51,8 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 |---|---|
 | **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
-| **Export / Import** | Download any quiz as a JSON file; importing always creates a new quiz — great for sharing question sets between Splunk instances |
-| **Variable options** | Single and multiple-answer questions support **2–6 answer options**; add or remove per-question with one click in the Editor |
-| **Multi-select UX** | Selected answers show a ✓ badge, solid border, stronger fill, and a live “N selected” counter — impossible to miss |
+| **Random question subset** | Set a quiz to play a random N questions from its full pool (e.g. 12 of 34) — each participant gets a different draw |
+| **Export / Import** | Download any quiz as a JSON file; import to replace or append questions — great for sharing question sets between Splunk instances |
 | **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via **📚 Library**; **🔄 GitHub** button syncs the latest quizzes live from the repo |
 | **Live timer** | Per-question countdown with speed-bonus scoring |
 | **Nickname** | Pre-filled from the Splunk username, editable before starting |
@@ -139,7 +138,7 @@ Browser (React)
 | Collection | Purpose |
 |---|---|
 | `ponypoll_questions` | Question list (text, type, options, time limit, sort order, quiz_id) |
-| `ponypoll_quizzes` | Named quiz catalogue (name, created_at) |
+| `ponypoll_quizzes` | Named quiz catalogue (name, created_at, question_limit) |
 | `ponypoll_config` | Poll title, target Splunk index, and active quiz ID |
 
 ### Question event fields (in Splunk)
@@ -290,8 +289,8 @@ sudo cp dist/appserver/static/poll.bundle.js /opt/splunk/etc/apps/ponypollapp/ap
 
 | Type | How it works | Scoring |
 |---|---|---|
-| `single` | One correct answer from **2–6 options** | Speed bonus: 500–1000 pts |
-| `multi` | Multiple correct answers from **2–6 options** — all must match; selected options show a ✓ badge and counter | Speed bonus: 500–1000 pts |
+| `single` | One correct answer from up to 4 options | Speed bonus: 500–1000 pts |
+| `multi` | Multiple correct answers — all must match | Speed bonus: 500–1000 pts |
 | `yesno` | Yes or No | Speed bonus: 500–1000 pts |
 | `freetext` | Open text (up to 100 chars), stored as-is | 100 pts for any non-empty answer |
 | `slider` | Numeric range (configurable min/max/step/unit) | 50 pts for participation |
@@ -312,6 +311,35 @@ The **Editor** tab has a quiz selector bar at the top of the sidebar. From there
 The **Settings** tab has an **Active quiz** selector that controls which quiz is shown to participants in the **Poll** tab.
 
 The **LIVE** badge appears next to the quiz name in the editor when that quiz is currently set as the active (live) one.
+
+---
+
+## Random question subset
+
+When a quiz has many questions (for example a Splunk AI quiz with 34 questions), you can configure it to play only a random selection of them per session.
+
+### Setting a subset
+
+In the **Editor** sidebar, below the Activate button, there is a **🎲 Play:** dropdown:
+
+| Selection | Behaviour |
+|---|---|
+| **All N questions** | Every question plays in the saved order (default) |
+| **Random N of M** | N questions are drawn at random from the full pool each time the quiz starts |
+
+The setting is saved immediately and persists across sessions. Participants who run the same quiz at the same time will each receive a different random draw.
+
+### Why use this?
+
+- **Large question banks** — build a pool of 30–40 questions and serve a shorter, varied quiz (e.g. 10 questions) so repeat participants see different content each time
+- **Timed workshops** — limit the quiz to fit a time slot without removing questions from the bank
+- **Assessment fairness** — each participant gets a unique set, reducing copying
+
+### How it works
+
+When the quiz starts, questions are shuffled using the Fisher-Yates algorithm and the first N are selected. The order within that subset is also randomised, so two participants who happen to draw some of the same questions will still see them in a different order.
+
+> **Tip:** The Analytics tab and Splunk SPL queries still work normally — each logged event includes the full question text, so you can see which questions were answered even when different participants received different subsets.
 
 ---
 
@@ -359,7 +387,10 @@ In the **Editor** tab, click **⬇ Export** in the toolbar. The browser download
 
 ### Importing questions
 
-Click **⬆ Import** and select a `.json` file. The imported questions are always loaded into a **new quiz** named after the file. If a quiz with that name already exists, a number is appended automatically (e.g. "My Quiz 2").
+Click **⬆ Import** and select a `.json` file. A confirmation banner appears offering two options:
+
+- **Replace** — deletes all current questions in the active quiz and replaces them with the imported set
+- **Append** — adds the imported questions after the existing ones
 
 This makes it easy to share question sets between Splunk instances or to maintain a library of question banks.
 
@@ -417,7 +448,7 @@ The exported JSON is an array of question objects. Below is the full schema with
 }
 ```
 
-- `options` is an array of **2–6 choices**
+- `options` is an array of 2–4 choices
 - Exactly **one** option should have `"correct": true`
 - `id` values must be unique within the question; use `"A"`, `"B"`, `"C"`, `"D"`
 
