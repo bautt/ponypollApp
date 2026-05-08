@@ -43,6 +43,13 @@ export function toKvDoc(q) {
     return doc;
 }
 
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+/** Ensure every option object has an `id` field (letter A, B, C…). */
+function withIds(opts) {
+    return opts.map((o, i) => o.id ? o : { ...o, id: LETTERS[i] || String(i + 1) });
+}
+
 /** Convert KV Store document → internal React shape. */
 export function fromKvDoc(doc) {
     let parsed;
@@ -69,7 +76,8 @@ export function fromKvDoc(doc) {
                  sliderStep: cfg.step ?? 1, sliderUnit: cfg.unit ?? '' };
     }
 
-    return { ...base, options: parsed.length ? parsed : defaultOptions(type) };
+    const opts = parsed.length ? withIds(parsed) : defaultOptions(type);
+    return { ...base, options: opts };
 }
 
 export function defaultOptions(type) {

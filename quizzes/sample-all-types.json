@@ -7,10 +7,10 @@
       "type": "single",
       "timeLimit": 30,
       "options": [
-        { "text": "8000",  "correct": true  },
-        { "text": "8080",  "correct": false },
-        { "text": "8089",  "correct": false },
-        { "text": "9997",  "correct": false }
+        { "id": "A", "text": "8000",  "correct": true  },
+        { "id": "B", "text": "8080",  "correct": false },
+        { "id": "C", "text": "8089",  "correct": false },
+        { "id": "D", "text": "9997",  "correct": false }
       ]
     },
     {
@@ -18,10 +18,10 @@
       "type": "multi",
       "timeLimit": 40,
       "options": [
-        { "text": "stats",  "correct": true  },
-        { "text": "timechart", "correct": true  },
-        { "text": "pivot",  "correct": true  },
-        { "text": "cronjob", "correct": false }
+        { "id": "A", "text": "stats",     "correct": true  },
+        { "id": "B", "text": "timechart", "correct": true  },
+        { "id": "C", "text": "pivot",     "correct": true  },
+        { "id": "D", "text": "cronjob",   "correct": false }
       ]
     },
     {
@@ -29,8 +29,8 @@
       "type": "yesno",
       "timeLimit": 20,
       "options": [
-        { "text": "Yes", "correct": true  },
-        { "text": "No",  "correct": false }
+        { "id": "A", "text": "Yes", "correct": true  },
+        { "id": "B", "text": "No",  "correct": false }
       ]
     },
     {
