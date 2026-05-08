@@ -429,8 +429,10 @@ export default function PollPage() {
     const [timeRemaining, setTimeRemaining] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
     const [feedback, setFeedback] = useState(null);
+    const [timedOut, setTimedOut] = useState(false);
 
     const sessionId = useRef(uid());
+    const nextQuestionFn = useRef(null); // always-fresh ref to avoid stale closure in auto-advance
 
     useEffect(() => {
         Promise.all([loadConfig(), getCurrentUser()])
@@ -475,9 +477,17 @@ export default function PollPage() {
     const handleTimerExpire = useCallback(() => {
         setTimerRunning(false);
         if (phase === PHASE.QUESTION) {
+            setTimedOut(true);
             revealAnswer(0); // time ran out — no extra points
         }
-    }, [phase]);
+    }, [phase, revealAnswer]);
+
+    // Auto-advance 3 s after timer expiry — use ref so we always call the latest nextQuestion
+    useEffect(() => {
+        if (!timedOut || phase !== PHASE.REVEAL) return;
+        const t = setTimeout(() => nextQuestionFn.current?.(), 3000);
+        return () => clearTimeout(t);
+    }, [timedOut, phase]);
 
     const hasCorrectAnswers = (q) => q.options.some((o) => o.correct);
 
@@ -567,6 +577,7 @@ export default function PollPage() {
     };
 
     const nextQuestion = () => {
+        setTimedOut(false);
         const next = qIndex + 1;
         if (next >= questions.length) {
             setPhase(PHASE.DONE);
@@ -589,6 +600,9 @@ export default function PollPage() {
         setPhase(PHASE.QUESTION);
         setTimerRunning(true);
     };
+
+    // Keep ref in sync so the auto-advance timeout always calls the latest nextQuestion
+    nextQuestionFn.current = nextQuestion;
 
     // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -637,6 +651,15 @@ export default function PollPage() {
                 <StartBtn onClick={startPoll} disabled={!nickname.trim()} style={{ opacity: nickname.trim() ? 1 : 0.45 }}>
                     Start Poll
                 </StartBtn>
+            </SetupCard>
+        );
+    }
+
+    // Safety guard — prevents white screen if qIndex is momentarily out of bounds
+    if (phase !== PHASE.SETUP && phase !== PHASE.DONE && !currentQ) {
+        return (
+            <SetupCard>
+                <SetupSubtitle style={{ color: '#868A9C' }}>Loading next question…</SetupSubtitle>
             </SetupCard>
         );
     }
@@ -770,6 +793,11 @@ export default function PollPage() {
 
                 {isReveal && feedback && (
                     <>
+                        {timedOut && (
+                            <FeedbackBanner style={{ background: '#2a1f00', borderColor: '#ED8B00', color: '#ED8B00' }}>
+                                ⏱ Time's up!
+                            </FeedbackBanner>
+                        )}
                         {feedback.correct === null && (
                             <FeedbackBanner ok>
                                 Answer recorded! +{feedback.points} pts
@@ -782,12 +810,18 @@ export default function PollPage() {
                         )}
                         {feedback.correct === false && (
                             <FeedbackBanner>
-                                Incorrect — see the highlighted answer
+                                {timedOut ? 'No answer — 0 pts' : 'Incorrect — see the highlighted answer'}
                             </FeedbackBanner>
                         )}
-                        <NextBtn onClick={nextQuestion}>
-                            {qIndex + 1 < questions.length ? 'Next Question →' : 'Finish Poll'}
-                        </NextBtn>
+                        {timedOut ? (
+                            <div style={{ textAlign: 'center', fontSize: 13, color: '#868A9C', marginTop: 16 }}>
+                                Advancing to next question…
+                            </div>
+                        ) : (
+                            <NextBtn onClick={nextQuestion}>
+                                {qIndex + 1 < questions.length ? 'Next Question →' : 'Finish Poll'}
+                            </NextBtn>
+                        )}
                     </>
                 )}
             </Body>
