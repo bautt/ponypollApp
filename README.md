@@ -1,6 +1,6 @@
 # Pony Poll — Interactive Quiz App for Splunk
 
-![Pony Poll mascot](src/package/appserver/static/appIcon_128.png)
+<img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
 > **v1.1.6** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
