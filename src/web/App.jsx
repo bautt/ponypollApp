@@ -70,6 +70,7 @@ function FullApp() {
 }
 
 export default function App() {
-    const isPlay = window.PONYPOLL_MODE === 'play';
+    const isPlay = window.PONYPOLL_MODE === 'play'
+        || window.location.pathname.endsWith('/play');
     return isPlay ? <PlayApp /> : <FullApp />;
 }
