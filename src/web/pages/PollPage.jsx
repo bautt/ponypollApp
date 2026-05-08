@@ -441,7 +441,14 @@ export default function PollPage() {
             const accepted = (currentQ.options || []).filter((o) => o.correct && o.text.trim());
             if (accepted.length > 0) {
                 const input = freetextVal.trim().toLowerCase();
-                correct = accepted.some((o) => o.text.trim().toLowerCase() === input);
+                correct = accepted.some((o) => {
+                    const pattern = o.text.trim().toLowerCase();
+                    // glob → regex: escape special chars, then replace * with .*
+                    const regex = new RegExp(
+                        '^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'
+                    );
+                    return regex.test(input);
+                });
                 points = correct ? calcPoints(currentQ.timeLimit, remainingSecs) : 0;
             } else {
                 // open-ended — any non-empty answer gets participation points
