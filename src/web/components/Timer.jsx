@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
 const pulse = keyframes`
     0%   { opacity: 1; }
@@ -28,7 +28,7 @@ const Fill = styled.div`
     background: ${({ pct }) =>
         pct > 50 ? '#65A637' : pct > 25 ? '#ED8B00' : '#DC4E41'};
     width: ${({ pct }) => pct}%;
-    ${({ pct }) => pct <= 15 && `animation: ${pulse} 0.6s ease-in-out infinite;`}
+    ${({ pct }) => pct <= 15 && css`animation: ${pulse} 0.6s ease-in-out infinite;`}
 `;
 
 const Num = styled.span`
