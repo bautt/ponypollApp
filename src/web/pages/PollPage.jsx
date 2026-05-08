@@ -438,8 +438,16 @@ export default function PollPage() {
             correct = null;
             points = sliderVal !== null ? 50 : 0;
         } else if (currentQ.type === 'freetext') {
-            correct = freetextVal.trim().length > 0;
-            points = correct ? 100 : 0;
+            const accepted = (currentQ.options || []).filter((o) => o.correct && o.text.trim());
+            if (accepted.length > 0) {
+                const input = freetextVal.trim().toLowerCase();
+                correct = accepted.some((o) => o.text.trim().toLowerCase() === input);
+                points = correct ? calcPoints(currentQ.timeLimit, remainingSecs) : 0;
+            } else {
+                // open-ended — any non-empty answer gets participation points
+                correct = null;
+                points = freetextVal.trim().length > 0 ? 50 : 0;
+            }
         } else if (hasCorrectAnswers(currentQ)) {
             const correctIds = currentQ.options.filter((o) => o.correct).map((o) => o.id);
             const selectedSet = new Set(selected);
@@ -625,13 +633,25 @@ export default function PollPage() {
                         disabled={isReveal}
                     />
                 ) : q.type === 'freetext' ? (
-                    <FreetextArea
-                        placeholder="Type your answer… (max 100 characters)"
-                        maxLength={100}
-                        value={freetextVal}
-                        onChange={(e) => !isReveal && setFreetextVal(e.target.value)}
-                        disabled={isReveal}
-                    />
+                    <>
+                        <FreetextArea
+                            placeholder="Type your answer… (max 100 characters)"
+                            maxLength={100}
+                            value={freetextVal}
+                            onChange={(e) => !isReveal && setFreetextVal(e.target.value)}
+                            disabled={isReveal}
+                        />
+                        {isReveal && (q.options || []).filter((o) => o.correct && o.text.trim()).length > 0 && (
+                            <div style={{ marginTop: 12, padding: '10px 14px', background: '#1a2e1a', border: `1px solid ${C.accent}`, borderRadius: 8, fontSize: 13 }}>
+                                <span style={{ color: C.muted, marginRight: 8 }}>Accepted answers:</span>
+                                {(q.options).filter((o) => o.correct && o.text.trim()).map((o) => (
+                                    <span key={o.id} style={{ display: 'inline-block', background: '#2a3e2a', color: C.accent, borderRadius: 4, padding: '2px 8px', marginRight: 6, marginTop: 4 }}>
+                                        {o.text}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <OptionsGrid>
                         {q.options.map((opt, i) => {

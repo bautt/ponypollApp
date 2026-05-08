@@ -879,8 +879,38 @@ export default function EditorPage() {
                         )}
 
                         {active.type === 'freetext' && (
-                            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '12px 16px', color: C.muted, fontSize: 13 }}>
-                                Free-text questions collect open-ended answers (up to 100 characters). Responses are stored in Splunk — no correct answer is marked.
+                            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
+                                <div style={{ fontSize: 12, color: C.muted, marginBottom: 10 }}>
+                                    Accepted answers <span style={{ fontWeight: 400 }}>— leave empty for open-ended (any text gets participation points)</span>
+                                </div>
+                                {(active.options || []).map((opt, oi) => (
+                                    <div key={opt.id} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}>
+                                        <input
+                                            style={{ flex: 1, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 5, color: C.text, fontSize: 13, padding: '5px 10px' }}
+                                            value={opt.text}
+                                            placeholder={`Accepted answer ${oi + 1}`}
+                                            onChange={(e) => {
+                                                const opts = active.options.map((o, i) => i === oi ? { ...o, text: e.target.value } : o);
+                                                setActive({ ...active, options: opts });
+                                            }}
+                                        />
+                                        <button
+                                            onClick={() => setActive({ ...active, options: active.options.filter((_, i) => i !== oi) })}
+                                            style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 16, padding: '0 4px' }}
+                                            title="Remove"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                                <button
+                                    onClick={() => {
+                                        const next = String.fromCharCode(65 + (active.options || []).length);
+                                        setActive({ ...active, options: [...(active.options || []), { id: next, text: '', correct: true }] });
+                                    }}
+                                    style={{ background: C.surface2, border: `1px dashed ${C.border}`, borderRadius: 5, color: C.muted, fontSize: 12, padding: '5px 12px', cursor: 'pointer', marginTop: 2 }}
+                                >+ Add accepted answer</button>
+                                <div style={{ fontSize: 11, color: C.muted, marginTop: 8 }}>
+                                    Matching is case-insensitive. Participant sees all accepted answers on reveal.
+                                </div>
                             </div>
                         )}
                     </EditorArea>

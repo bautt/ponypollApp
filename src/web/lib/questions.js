@@ -73,6 +73,7 @@ export function fromKvDoc(doc) {
 }
 
 export function defaultOptions(type) {
+    if (type === 'freetext') return [];   // accepted answers added by quiz maker
     if (type === 'yesno') {
         return [
             { id: 'A', text: 'Yes', correct: false },
@@ -142,7 +143,11 @@ export const SEED_QUESTIONS = [
         text: 'Name one Splunk search command that summarises results by a field.',
         type: 'freetext',
         timeLimit: 45,
-        options: [],
+        options: [
+            { id: 'A', text: 'stats',      correct: true },
+            { id: 'B', text: 'timechart',  correct: true },
+            { id: 'C', text: 'chart',      correct: true },
+        ],
     },
     {
         text: 'On a scale of 1–10, how confident are you with Splunk SPL?',
