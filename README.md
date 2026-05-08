@@ -194,6 +194,19 @@ Share the `/play` URL with your audience. It shows only the quiz so participants
 
 Both URLs are listed in the app's navigation bar inside Splunk.
 
+#### Making `/play` the default
+
+In **Settings → Default view** you can switch the default entry point to **Play**. When set, anyone opening the app URL is automatically redirected to `/play`.
+
+**Getting back to the full admin app when Play is default:**
+
+| Method | How |
+|---|---|
+| **⚙ Admin link** | Hover the bottom-right corner of the `/play` view — a subtle link appears |
+| **URL bypass** | Navigate to `/app/ponypollapp/poll?admin` — the `?admin` param skips the redirect permanently for that session |
+
+Bookmark `/app/ponypollapp/poll?admin` as your admin shortcut when running workshops in Play-default mode.
+
 ### Requirements
 
 | Requirement | Notes |

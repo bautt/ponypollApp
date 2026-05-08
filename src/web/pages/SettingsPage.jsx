@@ -194,6 +194,13 @@ export default function SettingsPage() {
                             </label>
                         ))}
                     </div>
+                    {cfg.default_view === 'play' && (
+                        <Hint style={{ marginTop: 10, background: C.blue + '12', border: `1px solid ${C.blue}44`, borderRadius: 6, padding: '8px 10px' }}>
+                            <strong style={{ color: C.blue }}>Admin access when Play is default:</strong><br />
+                            • <strong>⚙ Admin</strong> link — hover the bottom-right corner of the Play view<br />
+                            • <strong>URL bypass</strong> — bookmark <code style={{ color: C.accent }}>/app/ponypollapp/poll?admin</code> to always open the full app
+                        </Hint>
+                    )}
                 </Section>
 
                 <Section>
