@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import {
     listQuestions, deleteQuestion, saveAllQuestions,
+    listQuizzes, createQuiz, renameQuiz, deleteQuiz,
+    loadConfig, saveConfig,
 } from '../lib/kvstore';
 import {
     fromKvDoc, toKvDoc, newQuestion, defaultOptions, QUESTION_TYPES, SEED_QUESTIONS,
 } from '../lib/questions';
+import { uid } from '../lib/utils';
 
 const C = {
     bg: '#1B1D22', surface: '#23262F', border: '#3C3F4A',
@@ -13,7 +16,7 @@ const C = {
     blue: '#009CDE', red: '#DC4E41', orange: '#ED8B00',
 };
 
-// ── Shared styled primitives ───────────────────────────────────────────────────
+// ── Styled primitives ──────────────────────────────────────────────────────────
 
 const Root = styled.div`
     display: flex;
@@ -32,8 +35,59 @@ const Sidebar = styled.div`
     flex-direction: column;
 `;
 
+const QuizBar = styled.div`
+    padding: 10px 12px;
+    border-bottom: 1px solid ${C.border};
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+`;
+
+const QuizRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+`;
+
+const QuizSelect = styled.select`
+    flex: 1;
+    background: ${C.bg};
+    border: 1px solid ${C.border};
+    border-radius: 6px;
+    color: ${C.text};
+    font-size: 13px;
+    padding: 5px 8px;
+    min-width: 0;
+    &:focus { outline: none; border-color: ${C.blue}; }
+`;
+
+const SmallBtn = styled.button`
+    padding: 4px 8px;
+    border-radius: 5px;
+    border: 1px solid ${({ danger, primary }) => danger ? C.red : primary ? C.blue : C.border};
+    background: ${({ danger, primary }) => danger ? C.red + '22' : primary ? C.blue + '22' : 'transparent'};
+    color: ${({ danger, primary }) => danger ? C.red : primary ? C.blue : C.muted};
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { opacity: 0.8; }
+    &:disabled { opacity: 0.35; cursor: default; }
+`;
+
+const ActiveBadge = styled.span`
+    font-size: 10px;
+    background: ${C.accent}33;
+    color: ${C.accent};
+    border: 1px solid ${C.accent}55;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-weight: 700;
+    white-space: nowrap;
+`;
+
 const SidebarHeader = styled.div`
-    padding: 14px 16px;
+    padding: 10px 16px;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -56,10 +110,7 @@ const AddBtn = styled.button`
     &:hover { background: ${C.blue}22; }
 `;
 
-const QList = styled.div`
-    flex: 1;
-    overflow-y: auto;
-`;
+const QList = styled.div`flex: 1; overflow-y: auto;`;
 
 const QItem = styled.div`
     padding: 10px 16px;
@@ -71,52 +122,29 @@ const QItem = styled.div`
     color: ${({ active }) => (active ? '#fff' : C.text)};
     &:hover { background: rgba(255,255,255,0.04); }
 `;
+const QItemText = styled.div`white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
+const QItemType = styled.div`font-size: 11px; color: ${C.muted}; margin-top: 2px;`;
 
-const QItemText = styled.div`
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`;
-
-const QItemType = styled.div`
-    font-size: 11px;
-    color: ${C.muted};
-    margin-top: 2px;
-`;
-
-const Main = styled.div`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-`;
+const Main = styled.div`flex: 1; display: flex; flex-direction: column; overflow-y: auto;`;
 
 const Toolbar = styled.div`
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     padding: 12px 20px;
     background: ${C.surface};
     border-bottom: 1px solid ${C.border};
     flex-wrap: wrap;
 `;
 
-const ToolbarTitle = styled.h2`
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    flex: 1;
-`;
+const ToolbarTitle = styled.h2`margin: 0; font-size: 16px; font-weight: 600; flex: 1;`;
 
 const TBtn = styled.button`
-    padding: 7px 16px;
+    padding: 7px 14px;
     border-radius: 6px;
-    border: 1px solid ${({ danger, primary }) =>
-        danger ? C.red : primary ? C.blue : C.border};
-    background: ${({ danger, primary }) =>
-        danger ? C.red + '22' : primary ? C.blue : 'transparent'};
-    color: ${({ danger, primary }) =>
-        danger ? C.red : primary ? '#fff' : C.text};
+    border: 1px solid ${({ danger, primary }) => danger ? C.red : primary ? C.blue : C.border};
+    background: ${({ danger, primary }) => danger ? C.red + '22' : primary ? C.blue : 'transparent'};
+    color: ${({ danger, primary }) => danger ? C.red : primary ? '#fff' : C.text};
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -124,13 +152,7 @@ const TBtn = styled.button`
     &:disabled { opacity: 0.4; cursor: default; }
 `;
 
-const EditorArea = styled.div`
-    padding: 24px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 800px;
-`;
+const EditorArea = styled.div`padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; max-width: 800px;`;
 
 const Label = styled.label`
     display: block;
@@ -178,11 +200,7 @@ const Select = styled.select`
     &:focus { outline: none; border-color: ${C.blue}; }
 `;
 
-const TypeToggle = styled.div`
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-`;
+const TypeToggle = styled.div`display: flex; gap: 8px; flex-wrap: wrap;`;
 
 const TypeBtn = styled.button`
     padding: 7px 14px;
@@ -195,64 +213,28 @@ const TypeBtn = styled.button`
     &:hover { border-color: ${C.blue}; }
 `;
 
-const OptionRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-`;
+const OptionRow = styled.div`display: flex; align-items: center; gap: 8px;`;
 
 const OptionBadge = styled.span`
-    width: 28px;
-    height: 28px;
-    border-radius: 5px;
-    background: ${({ color }) => color};
-    color: #fff;
-    font-weight: 700;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 5px;
+    background: ${({ color }) => color}; color: #fff;
+    font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 `;
-
 const OPTION_COLORS = ['#1F77B4', '#65A637', '#ED8B00', '#AF6DC7'];
 
 const CheckBtn = styled.button`
-    width: 28px;
-    height: 28px;
-    border-radius: 5px;
+    width: 28px; height: 28px; border-radius: 5px;
     border: 2px solid ${({ correct }) => (correct ? C.accent : C.border)};
     background: ${({ correct }) => (correct ? C.accent + '33' : 'transparent')};
     color: ${({ correct }) => (correct ? C.accent : C.muted)};
-    font-size: 16px;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 16px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
     &:hover { border-color: ${C.accent}; }
 `;
 
-const SliderTrack = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 4px;
-`;
-
-const SliderInput = styled.input`
-    flex: 1;
-    accent-color: ${C.blue};
-    height: 4px;
-`;
-
-const SliderValue = styled.span`
-    min-width: 48px;
-    text-align: right;
-    font-size: 20px;
-    font-weight: 700;
-    color: ${C.blue};
-`;
+const SliderTrack = styled.div`display: flex; align-items: center; gap: 12px; margin-top: 4px;`;
+const SliderInput = styled.input`flex: 1; accent-color: ${C.blue}; height: 4px;`;
 
 const StatusBar = styled.div`
     padding: 8px 20px;
@@ -263,14 +245,24 @@ const StatusBar = styled.div`
 `;
 
 const EmptyState = styled.div`
-    flex: 1;
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; color: ${C.muted}; font-size: 15px;
+`;
+
+// Import confirmation banner
+const ImportBanner = styled.div`
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: ${C.surface};
+    border-bottom: 2px solid ${C.blue};
+    padding: 14px 24px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: ${C.muted};
-    font-size: 15px;
+    gap: 14px;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    flex-wrap: wrap;
 `;
 
 // ── Main component ─────────────────────────────────────────────────────────────
@@ -282,20 +274,121 @@ export default function EditorPage() {
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Quiz management
+    const [quizzes, setQuizzes] = useState([]);
+    const [activeQuizId, setActiveQuizId] = useState(null); // currently editing
+    const [liveQuizId, setLiveQuizId] = useState('');       // what participants see
+    const [quizLoading, setQuizLoading] = useState(true);
+
+    // Import
+    const [importData, setImportData] = useState(null); // { quizName, questions }
+    const importInputRef = useRef(null);
+
+    // ── Init ────────────────────────────────────────────────────────────────────
+
     useEffect(() => {
-        listQuestions()
-            .then((docs) => {
-                if (docs.length === 0) {
-                    // Seed with example questions
-                    const seeded = SEED_QUESTIONS.map((q, i) => ({ ...q, _key: '', sort_order: i }));
-                    setQuestions(seeded);
+        Promise.all([listQuizzes(), loadConfig()])
+            .then(async ([qs, cfg]) => {
+                setLiveQuizId(cfg.active_quiz_id || '');
+
+                if (qs.length === 0) {
+                    // First install — create Default Quiz, seed it
+                    const created = await createQuiz('Default Quiz');
+                    const newId = created._key || created.key;
+                    const seeded = SEED_QUESTIONS.map((q, i) => ({ ...q, _key: '', sort_order: i, quiz_id: newId }));
+                    await saveAllQuestions(seeded.map((q, i) => ({ ...toKvDoc(q), sort_order: i })), newId);
+                    await saveConfig({ ...cfg, active_quiz_id: newId });
+                    const freshQuizzes = await listQuizzes();
+                    setQuizzes(freshQuizzes);
+                    setLiveQuizId(newId);
+                    setActiveQuizId(newId);
+                    await loadQuestionsForQuiz(newId);
                 } else {
-                    setQuestions(docs.map(fromKvDoc));
+                    setQuizzes(qs);
+                    const targetId = cfg.active_quiz_id || qs[0]._key;
+                    setActiveQuizId(targetId);
+                    await loadQuestionsForQuiz(targetId);
                 }
             })
             .catch((e) => setStatus({ error: true, msg: e.message }))
-            .finally(() => setLoading(false));
+            .finally(() => { setLoading(false); setQuizLoading(false); });
     }, []);
+
+    const loadQuestionsForQuiz = async (quizId) => {
+        setLoading(true);
+        setActiveIdx(null);
+        try {
+            const docs = await listQuestions(quizId);
+            setQuestions(docs.map(fromKvDoc));
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ── Quiz actions ────────────────────────────────────────────────────────────
+
+    const handleQuizSwitch = async (quizId) => {
+        setActiveQuizId(quizId);
+        await loadQuestionsForQuiz(quizId);
+    };
+
+    const handleNewQuiz = async () => {
+        const name = window.prompt('New quiz name:', 'Untitled Quiz');
+        if (!name?.trim()) return;
+        try {
+            const created = await createQuiz(name.trim());
+            const newId = created._key || created.key;
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            setActiveQuizId(newId);
+            setQuestions([]);
+            setActiveIdx(null);
+            setStatus({ error: false, msg: `Quiz "${name.trim()}" created.` });
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    const handleRenameQuiz = async () => {
+        if (!activeQuizId) return;
+        const current = quizzes.find((q) => q._key === activeQuizId)?.name || '';
+        const name = window.prompt('Rename quiz:', current);
+        if (!name?.trim() || name.trim() === current) return;
+        try {
+            await renameQuiz(activeQuizId, name.trim());
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            setStatus({ error: false, msg: 'Quiz renamed.' });
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    const handleDeleteQuiz = async () => {
+        if (!activeQuizId) return;
+        const name = quizzes.find((q) => q._key === activeQuizId)?.name || 'this quiz';
+        if (!window.confirm(`Delete "${name}" and all its questions? This cannot be undone.`)) return;
+        try {
+            await deleteQuiz(activeQuizId);
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            const nextId = freshQuizzes[0]?._key || null;
+            setActiveQuizId(nextId);
+            if (nextId) {
+                await loadQuestionsForQuiz(nextId);
+            } else {
+                setQuestions([]);
+                setActiveIdx(null);
+            }
+            setStatus({ error: false, msg: `Quiz "${name}" deleted.` });
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    // ── Question editing ────────────────────────────────────────────────────────
 
     const active = activeIdx !== null ? questions[activeIdx] : null;
 
@@ -308,9 +401,8 @@ export default function EditorPage() {
     };
 
     const handleTypeChange = (type) => {
-        const opts = defaultOptions(type);
         setActive('type', type);
-        setActive('options', opts);
+        setActive('options', defaultOptions(type));
     };
 
     const handleOptionText = (optIdx, text) => {
@@ -329,7 +421,7 @@ export default function EditorPage() {
     };
 
     const addQuestion = () => {
-        const q = newQuestion({ sort_order: questions.length });
+        const q = newQuestion({ sort_order: questions.length, quiz_id: activeQuizId });
         setQuestions((prev) => [...prev, q]);
         setActiveIdx(questions.length);
     };
@@ -349,13 +441,16 @@ export default function EditorPage() {
     };
 
     const saveAll = async () => {
+        if (!activeQuizId) return;
         setSaving(true);
         try {
-            await saveAllQuestions(questions.map((q, i) => ({ ...toKvDoc(q), sort_order: i })));
-            // Reload to get _keys from Splunk
-            const docs = await listQuestions();
+            await saveAllQuestions(
+                questions.map((q, i) => ({ ...toKvDoc(q), sort_order: i })),
+                activeQuizId
+            );
+            const docs = await listQuestions(activeQuizId);
             setQuestions(docs.map(fromKvDoc));
-            setStatus({ error: false, msg: 'All questions saved to KV Store.' });
+            setStatus({ error: false, msg: 'All questions saved.' });
         } catch (e) {
             setStatus({ error: true, msg: e.message });
         } finally {
@@ -379,14 +474,119 @@ export default function EditorPage() {
         setActiveIdx(activeIdx + 1);
     };
 
+    // ── Export ──────────────────────────────────────────────────────────────────
+
+    const handleExport = () => {
+        const quizName = quizzes.find((q) => q._key === activeQuizId)?.name || 'Quiz';
+        const exportable = questions.map(({ _key, sort_order, quiz_id, ...rest }) => rest);
+        const payload = {
+            quiz_name: quizName,
+            exported_at: new Date().toISOString(),
+            questions: exportable,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${quizName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // ── Import ──────────────────────────────────────────────────────────────────
+
+    const handleImportFile = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                const qs = Array.isArray(parsed) ? parsed : parsed.questions;
+                if (!Array.isArray(qs) || qs.length === 0) throw new Error('No questions found.');
+                const valid = qs.filter((q) => q.text && q.type);
+                if (valid.length === 0) throw new Error('No valid questions (need text + type).');
+                setImportData({ quizName: parsed.quiz_name || file.name, questions: valid });
+            } catch (err) {
+                setStatus({ error: true, msg: `Import failed: ${err.message}` });
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
+
+    const applyImport = async (mode) => {
+        if (!importData || !activeQuizId) return;
+        const incoming = importData.questions.map((q, i) => ({
+            ...newQuestion(),
+            ...q,
+            _key: '',
+            sort_order: i,
+            quiz_id: activeQuizId,
+        }));
+        const merged = mode === 'replace'
+            ? incoming
+            : [...questions, ...incoming].map((q, i) => ({ ...q, sort_order: i }));
+        try {
+            await saveAllQuestions(merged.map((q, i) => ({ ...toKvDoc(q), sort_order: i })), activeQuizId);
+            const docs = await listQuestions(activeQuizId);
+            setQuestions(docs.map(fromKvDoc));
+            setStatus({ error: false, msg: `Imported ${incoming.length} questions (${mode}).` });
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        } finally {
+            setImportData(null);
+        }
+    };
+
+    // ── Render ──────────────────────────────────────────────────────────────────
+
+    const currentQuizIsLive = activeQuizId && activeQuizId === liveQuizId;
+
     return (
         <Root>
+            {/* Import confirmation banner */}
+            {importData && (
+                <ImportBanner>
+                    <span style={{ color: C.text, flex: 1 }}>
+                        Found <strong style={{ color: '#fff' }}>{importData.questions.length} questions</strong>
+                        {' '}from <em>"{importData.quizName}"</em> — what would you like to do?
+                    </span>
+                    <TBtn primary onClick={() => applyImport('replace')}>Replace all</TBtn>
+                    <TBtn onClick={() => applyImport('append')}>Append</TBtn>
+                    <TBtn danger onClick={() => setImportData(null)}>Cancel</TBtn>
+                </ImportBanner>
+            )}
+
             {/* Sidebar */}
             <Sidebar>
+                <QuizBar>
+                    <QuizRow>
+                        <QuizSelect
+                            value={activeQuizId || ''}
+                            onChange={(e) => handleQuizSwitch(e.target.value)}
+                            disabled={quizLoading}
+                        >
+                            {quizzes.map((q) => (
+                                <option key={q._key} value={q._key}>{q.name}</option>
+                            ))}
+                        </QuizSelect>
+                        {currentQuizIsLive && <ActiveBadge>LIVE</ActiveBadge>}
+                    </QuizRow>
+                    <QuizRow>
+                        <SmallBtn primary onClick={handleNewQuiz}>+ New</SmallBtn>
+                        <SmallBtn onClick={handleRenameQuiz} disabled={!activeQuizId}>Rename</SmallBtn>
+                        <SmallBtn danger onClick={handleDeleteQuiz} disabled={!activeQuizId || quizzes.length <= 1}>
+                            Delete
+                        </SmallBtn>
+                    </QuizRow>
+                </QuizBar>
+
                 <SidebarHeader>
                     Questions ({questions.length})
-                    <AddBtn onClick={addQuestion}>+ Add</AddBtn>
+                    <AddBtn onClick={addQuestion} disabled={!activeQuizId}>+ Add</AddBtn>
                 </SidebarHeader>
+
                 <QList>
                     {loading && (
                         <QItem style={{ cursor: 'default', color: C.muted }}>Loading…</QItem>
@@ -412,7 +612,20 @@ export default function EditorPage() {
                     <TBtn onClick={moveUp} disabled={activeIdx === null || activeIdx === 0}>↑ Up</TBtn>
                     <TBtn onClick={moveDown} disabled={activeIdx === null || activeIdx >= questions.length - 1}>↓ Down</TBtn>
                     <TBtn danger onClick={deleteActive} disabled={active === null}>Delete</TBtn>
-                    <TBtn primary onClick={saveAll} disabled={saving}>
+                    <TBtn onClick={handleExport} disabled={questions.length === 0} title="Download questions as JSON">
+                        ⬇ Export
+                    </TBtn>
+                    <input
+                        ref={importInputRef}
+                        type="file"
+                        accept=".json,application/json"
+                        style={{ display: 'none' }}
+                        onChange={handleImportFile}
+                    />
+                    <TBtn onClick={() => importInputRef.current.click()} disabled={!activeQuizId}>
+                        ⬆ Import
+                    </TBtn>
+                    <TBtn primary onClick={saveAll} disabled={saving || !activeQuizId}>
                         {saving ? 'Saving…' : '💾 Save All'}
                     </TBtn>
                 </Toolbar>
@@ -467,30 +680,16 @@ export default function EditorPage() {
                             <div>
                                 <Label>Slider configuration</Label>
                                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
-                                    <div style={{ flex: 1, minWidth: 80 }}>
-                                        <Label>Min</Label>
-                                        <Input
-                                            type="number"
-                                            value={active.sliderMin ?? 1}
-                                            onChange={(e) => setActive('sliderMin', Number(e.target.value))}
-                                        />
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 80 }}>
-                                        <Label>Max</Label>
-                                        <Input
-                                            type="number"
-                                            value={active.sliderMax ?? 10}
-                                            onChange={(e) => setActive('sliderMax', Number(e.target.value))}
-                                        />
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 80 }}>
-                                        <Label>Step</Label>
-                                        <Input
-                                            type="number"
-                                            value={active.sliderStep ?? 1}
-                                            onChange={(e) => setActive('sliderStep', Number(e.target.value))}
-                                        />
-                                    </div>
+                                    {[['Min', 'sliderMin', 1], ['Max', 'sliderMax', 10], ['Step', 'sliderStep', 1]].map(([lbl, fld, def]) => (
+                                        <div key={fld} style={{ flex: 1, minWidth: 80 }}>
+                                            <Label>{lbl}</Label>
+                                            <Input
+                                                type="number"
+                                                value={active[fld] ?? def}
+                                                onChange={(e) => setActive(fld, Number(e.target.value))}
+                                            />
+                                        </div>
+                                    ))}
                                     <div style={{ flex: 1, minWidth: 80 }}>
                                         <Label>Unit label</Label>
                                         <Input
@@ -514,12 +713,12 @@ export default function EditorPage() {
                                     <span style={{ fontSize: 12, color: C.muted }}>{active.sliderMax ?? 10}</span>
                                 </SliderTrack>
                                 <div style={{ marginTop: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', color: C.muted, fontSize: 13 }}>
-                                    Slider questions collect a numeric value — no correct answer. Responses are stored in Splunk.
+                                    Slider questions collect a numeric value — no correct answer.
                                 </div>
                             </div>
                         )}
 
-                        {/* Answer options (single / multi / yesno) */}
+                        {/* Answer options */}
                         {(active.type === 'single' || active.type === 'multi' || active.type === 'yesno') && (
                             <div>
                                 <Label>
@@ -532,9 +731,7 @@ export default function EditorPage() {
                                 </Label>
                                 {active.options.map((opt, i) => (
                                     <OptionRow key={opt.id} style={{ marginBottom: 8 }}>
-                                        <OptionBadge color={OPTION_COLORS[i] || '#666'}>
-                                            {opt.id}
-                                        </OptionBadge>
+                                        <OptionBadge color={OPTION_COLORS[i] || '#666'}>{opt.id}</OptionBadge>
                                         <Input
                                             value={opt.text}
                                             onChange={(e) => handleOptionText(i, e.target.value)}
@@ -568,7 +765,6 @@ export default function EditorPage() {
                     </StatusBar>
                 )}
             </Main>
-
         </Root>
     );
 }

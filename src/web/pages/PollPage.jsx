@@ -379,14 +379,16 @@ export default function PollPage() {
     const sessionId = useRef(uid());
 
     useEffect(() => {
-        Promise.all([listQuestions(), loadConfig(), getCurrentUser()])
-            .then(([docs, cfg, user]) => {
+        Promise.all([loadConfig(), getCurrentUser()])
+            .then(async ([cfg, user]) => {
+                setConfig(cfg);
+                if (user) setNickname(user);
+                const quizId = cfg.active_quiz_id || null;
+                const docs = await listQuestions(quizId);
                 const qs = docs.length > 0
                     ? docs.map(fromKvDoc)
                     : SEED_QUESTIONS.map((q, i) => ({ ...q, _key: `seed_${i}`, sort_order: i }));
                 setQuestions(qs);
-                setConfig(cfg);
-                if (user) setNickname(user);
             })
             .catch((e) => setError(e.message))
             .finally(() => setLoading(false));

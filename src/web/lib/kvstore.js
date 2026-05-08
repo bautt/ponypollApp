@@ -9,7 +9,6 @@ const APP = 'ponypollapp';
 /** Infer the locale prefix from the current page URL (e.g. "/en-US"). */
 function localePrefix() {
     const parts = window.location.pathname.split('/');
-    // Splunk Web paths look like /en-US/app/...
     if (parts.length >= 2 && /^[a-z]{2}(-[A-Z]{2})?$/.test(parts[1])) {
         return '/' + parts[1];
     }
@@ -54,27 +53,53 @@ async function kvFetch(url, opts = {}) {
     return data;
 }
 
-// ── Questions collection ───────────────────────────────────────────────────────
+// ── Quiz catalogue ─────────────────────────────────────────────────────────────
 
-export async function listQuestions() {
+export async function listQuizzes() {
     const data = await kvFetch(
-        `${kvBase()}/ponypoll_questions?output_mode=json&limit=200&sort_key=sort_order&sort_dir=asc`
+        `${kvBase()}/ponypoll_quizzes?output_mode=json&sort_key=created_at&sort_dir=asc&limit=200`
     );
     return Array.isArray(data) ? data : [];
 }
 
-export async function createQuestion(q) {
-    return kvFetch(`${kvBase()}/ponypoll_questions?output_mode=json`, {
+export async function createQuiz(name) {
+    const doc = { name, created_at: new Date().toISOString() };
+    return kvFetch(`${kvBase()}/ponypoll_quizzes?output_mode=json`, {
         method: 'POST',
-        body: JSON.stringify(q),
+        body: JSON.stringify(doc),
     });
 }
 
-export async function updateQuestion(key, q) {
-    return kvFetch(`${kvBase()}/ponypoll_questions/${encodeURIComponent(key)}?output_mode=json`, {
+export async function renameQuiz(key, name) {
+    return kvFetch(`${kvBase()}/ponypoll_quizzes/${encodeURIComponent(key)}?output_mode=json`, {
         method: 'POST',
-        body: JSON.stringify(q),
+        body: JSON.stringify({ name }),
     });
+}
+
+export async function deleteQuiz(key) {
+    // Delete all questions for this quiz first
+    const query = encodeURIComponent(JSON.stringify({ quiz_id: key }));
+    await kvFetch(
+        `${kvBase()}/ponypoll_questions?output_mode=json&query=${query}`,
+        { method: 'DELETE' }
+    );
+    // Then delete the quiz record
+    return kvFetch(`${kvBase()}/ponypoll_quizzes/${encodeURIComponent(key)}?output_mode=json`, {
+        method: 'DELETE',
+    });
+}
+
+// ── Questions collection ───────────────────────────────────────────────────────
+
+export async function listQuestions(quizId) {
+    const query = quizId
+        ? `&query=${encodeURIComponent(JSON.stringify({ quiz_id: quizId }))}`
+        : '';
+    const data = await kvFetch(
+        `${kvBase()}/ponypoll_questions?output_mode=json&limit=500&sort_key=sort_order&sort_dir=asc${query}`
+    );
+    return Array.isArray(data) ? data : [];
 }
 
 export async function deleteQuestion(key) {
@@ -83,14 +108,21 @@ export async function deleteQuestion(key) {
     });
 }
 
-/** Replace entire question list (delete all + batch_save). */
-export async function saveAllQuestions(questions) {
-    // Delete all existing documents in the collection
-    await kvFetch(`${kvBase()}/ponypoll_questions?output_mode=json`, { method: 'DELETE' });
-    // Batch-insert all in one request (Splunk KV Store batch_save endpoint)
-    const docs = questions.map(({ _key, ...rest }, i) => ({ ...rest, sort_order: i }));
-    if (docs.length === 0) return;
-    await kvFetch(`${kvBase()}/ponypoll_questions/batch_save?output_mode=json`, {
+/** Replace all questions for a given quiz (delete + batch_save). */
+export async function saveAllQuestions(questions, quizId) {
+    // Delete existing docs for this quiz
+    const query = encodeURIComponent(JSON.stringify({ quiz_id: quizId }));
+    await kvFetch(
+        `${kvBase()}/ponypoll_questions?output_mode=json&query=${query}`,
+        { method: 'DELETE' }
+    );
+    if (questions.length === 0) return;
+    const docs = questions.map(({ _key, ...rest }, i) => ({
+        ...rest,
+        quiz_id: quizId,
+        sort_order: i,
+    }));
+    return kvFetch(`${kvBase()}/ponypoll_questions/batch_save?output_mode=json`, {
         method: 'POST',
         body: JSON.stringify(docs),
     });
@@ -100,38 +132,24 @@ export async function saveAllQuestions(questions) {
 
 export async function loadConfig() {
     try {
-        const data = await kvFetch(
-            `${kvBase()}/ponypoll_config/default?output_mode=json`
-        );
-        return data;
+        return await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`);
     } catch (_) {
-        return { poll_index: 'ponypoll', poll_subject: 'Pony Poll' };
+        return { poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' };
     }
 }
 
 export async function saveConfig(cfg) {
-    // Upsert by using the fixed key "default"
     try {
         await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`, {
             method: 'POST',
             body: JSON.stringify(cfg),
         });
     } catch (_) {
-        // Key doesn't exist yet — create it with explicit _key
         await kvFetch(`${kvBase()}/ponypoll_config?output_mode=json`, {
             method: 'POST',
             body: JSON.stringify({ _key: 'default', ...cfg }),
         });
     }
-}
-
-// ── Available Splunk indexes ──────────────────────────────────────────────────
-
-export async function listIndexes() {
-    const data = await kvFetch(
-        `${splunkdBase()}/services/data/indexes?output_mode=json&count=200&search=isInternal%3Dfalse`
-    );
-    return (data?.entry || []).map((e) => e.name).sort();
 }
 
 // ── Current Splunk user ───────────────────────────────────────────────────────
@@ -145,6 +163,15 @@ export async function getCurrentUser() {
     } catch (_) {
         return '';
     }
+}
+
+// ── Available Splunk indexes ──────────────────────────────────────────────────
+
+export async function listIndexes() {
+    const data = await kvFetch(
+        `${splunkdBase()}/services/data/indexes?output_mode=json&count=200&search=isInternal%3Dfalse`
+    );
+    return (data?.entry || []).map((e) => e.name).sort();
 }
 
 // ── Write answer event ────────────────────────────────────────────────────────

@@ -21,7 +21,7 @@ export const QUESTION_TYPES = [
 /** Convert internal React shape → KV Store document. */
 export function toKvDoc(q) {
     const { _key, sort_order, text, type, timeLimit, options,
-            sliderMin, sliderMax, sliderStep, sliderUnit } = q;
+            sliderMin, sliderMax, sliderStep, sliderUnit, quiz_id } = q;
 
     let opts;
     if (type === 'slider') {
@@ -38,6 +38,7 @@ export function toKvDoc(q) {
         timeLimit: timeLimit ?? 30,
         options_json: JSON.stringify(opts),
     };
+    if (quiz_id) doc.quiz_id = quiz_id;
     if (_key) doc._key = _key;
     return doc;
 }
@@ -58,6 +59,7 @@ export function fromKvDoc(doc) {
         text: doc.text || '',
         type,
         timeLimit: Number(doc.timeLimit) || 30,
+        quiz_id: doc.quiz_id || '',
     };
 
     if (type === 'slider') {
@@ -98,6 +100,7 @@ export function newQuestion(overrides = {}) {
         sliderMax: 10,
         sliderStep: 1,
         sliderUnit: '',
+        quiz_id: '',
         ...overrides,
     };
 }

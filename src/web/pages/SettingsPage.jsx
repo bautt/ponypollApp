@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { loadConfig, saveConfig, listIndexes } from '../lib/kvstore';
+import { loadConfig, saveConfig, listIndexes, listQuizzes } from '../lib/kvstore';
 
 const C = {
     bg: '#1B1D22', surface: '#23262F', border: '#3C3F4A',
@@ -106,17 +106,23 @@ const IndexNote = styled.div`
 `;
 
 export default function SettingsPage() {
-    const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll' });
+    const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' });
     const [indexes, setIndexes] = useState([]);
+    const [quizzes, setQuizzes] = useState([]);
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
     const [loadingIdx, setLoadingIdx] = useState(true);
 
     useEffect(() => {
-        Promise.all([loadConfig(), listIndexes()])
-            .then(([c, idxList]) => {
-                setCfg({ poll_index: c.poll_index || 'ponypoll', poll_subject: c.poll_subject || 'Pony Poll' });
+        Promise.all([loadConfig(), listIndexes(), listQuizzes()])
+            .then(([c, idxList, qList]) => {
+                setCfg({
+                    poll_index: c.poll_index || 'ponypoll',
+                    poll_subject: c.poll_subject || 'Pony Poll',
+                    active_quiz_id: c.active_quiz_id || '',
+                });
                 setIndexes(idxList);
+                setQuizzes(qList);
             })
             .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }))
             .finally(() => setLoadingIdx(false));
@@ -138,6 +144,26 @@ export default function SettingsPage() {
         <Root>
             <Card>
                 <Title>Poll Settings</Title>
+
+                <Section>
+                    <Label>Active quiz (shown to participants)</Label>
+                    {quizzes.length > 0 ? (
+                        <Select
+                            value={cfg.active_quiz_id}
+                            onChange={(e) => setCfg({ ...cfg, active_quiz_id: e.target.value })}
+                        >
+                            {quizzes.map((q) => (
+                                <option key={q._key} value={q._key}>{q.name}</option>
+                            ))}
+                        </Select>
+                    ) : (
+                        <Input value="No quizzes yet — create one in the Editor" readOnly />
+                    )}
+                    <Hint>
+                        This is the quiz participants see when they open the Poll tab. Switch quizzes
+                        here without affecting what the editor is currently browsing.
+                    </Hint>
+                </Section>
 
                 <Section>
                     <Label>Poll title / subject</Label>
