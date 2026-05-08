@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import PollPage from './pages/PollPage';
 import EditorPage from './pages/EditorPage';
 import SettingsPage from './pages/SettingsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 const C = {
     surface: '#23262F',
@@ -36,9 +37,10 @@ const NavTab = styled.button`
 `;
 
 const TABS = [
-    { id: 'poll',     label: '▶ Poll' },
-    { id: 'editor',   label: '✏ Editor' },
-    { id: 'settings', label: '⚙ Settings' },
+    { id: 'poll',      label: '▶ Poll' },
+    { id: 'analytics', label: '📊 Analytics' },
+    { id: 'editor',    label: '✏ Editor' },
+    { id: 'settings',  label: '⚙ Settings' },
 ];
 
 export default function App() {
@@ -54,9 +56,10 @@ export default function App() {
                 ))}
             </NavBar>
 
-            {tab === 'poll'     && <PollPage />}
-            {tab === 'editor'   && <EditorPage />}
-            {tab === 'settings' && <SettingsPage />}
+            {tab === 'poll'      && <PollPage />}
+            {tab === 'analytics' && <AnalyticsPage />}
+            {tab === 'editor'    && <EditorPage />}
+            {tab === 'settings'  && <SettingsPage />}
         </>
     );
 }

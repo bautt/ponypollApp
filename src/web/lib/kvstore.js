@@ -237,3 +237,34 @@ export async function submitAnswer(eventData) {
 export async function submitQuizAttempt(eventData) {
     return submitEvent(eventData, { sourcetype: 'ponypoll_attempt' });
 }
+
+// ── Splunk search (oneshot) ───────────────────────────────────────────────────
+// Returns an array of result objects from a one-shot Splunk search.
+
+export async function runSearch(spl, { earliest = '-7d', latest = 'now', count = 1000 } = {}) {
+    const body = new URLSearchParams({
+        search: spl.startsWith('search ') ? spl : `search ${spl}`,
+        exec_mode: 'oneshot',
+        output_mode: 'json',
+        earliest_time: earliest,
+        latest_time: latest,
+        count: String(count),
+    });
+    const res = await fetch(
+        `${localePrefix()}/splunkd/__raw/services/search/jobs`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Splunk-Form-Key': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: body.toString(),
+        }
+    );
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Search failed (${res.status}): ${text.slice(0, 300)}`);
+    const json = JSON.parse(text);
+    return json.results || [];
+}
