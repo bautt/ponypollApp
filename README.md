@@ -2,7 +2,7 @@
 
 ![Pony Poll mascot](src/package/appserver/static/appIcon_128.png)
 
-> **v0.9.1** · Splunk Enterprise / Cloud ≥ 8.x · React 16 · KV Store · Python 3
+> **v0.9.6** · Splunk Enterprise / Cloud ≥ 8.x · React 16 · KV Store
 
 ---
 
@@ -20,7 +20,7 @@ Install app → create questions in the Editor → share the Poll URL → watch 
 | **Build questions** | **Editor** tab — 5 types, drag to reorder, set time limits |
 | **Use ready-made quizzes** | **📚 Library** (bundled) or **🔄 GitHub** (live sync from this repo) |
 | **Share a quiz** | **Export** → JSON file; anyone can **Import** on another instance |
-| **Analyse results** | Every answer is a Splunk event: `index=ponypoll | stats sum(points) by nickname` |
+| **Analyse results** | Built-in **Analytics** tab — leaderboard, KPI cards, question difficulty; or raw SPL: `index=ponypoll \| stats sum(points) by nickname` |
 | **Install** | Upload `ponypollapp.tar.gz` in Splunk UI — done |
 
 **Requires:** Splunk Enterprise with a valid license (KV Store must be enabled).
@@ -37,6 +37,10 @@ Install app → create questions in the Editor → share the Poll URL → watch 
 
 ![Editor — quiz selector, question list, WYSIWYG form with type buttons and answer options](docs/screenshots/editor.png)
 
+**Analytics**
+
+![Analytics — KPI scorecards, leaderboard ranked by best score, question difficulty bars, recent sessions](docs/screenshots/analytics.png)
+
 ---
 
 ## Features
@@ -51,7 +55,8 @@ Install app → create questions in the Editor → share the Poll URL → watch 
 | **Nickname** | Pre-filled from the Splunk username, editable before starting |
 | **WYSIWYG editor** | Built-in question editor with reorder, delete, and type switching |
 | **KV Store backed** | Questions, quizzes, and config stored in Splunk KV Store — no external database needed |
-| **Splunk index** | Every answer written as a Splunk event (index configurable) |
+| **Analytics dashboard** | Built-in **📊 Analytics** tab — KPI scorecards, leaderboard, per-question difficulty bars, recent sessions; filterable by time range, quiz, and nickname |
+| **Splunk index** | Every answer and quiz lifecycle event written directly via `receivers/simple` — no custom Python required |
 | **Splunk brand** | Splunk dark theme, Splunk UI colours, Buttercup mascot |
 | **Lazy-loaded JS** | Main bundle is ~220 KB; large dependencies loaded on demand |
 
@@ -71,14 +76,11 @@ ponypollApp/
     │   │   ├── static/             # JS bundle, app icons, Buttercup image
     │   │   └── templates/
     │   │       └── poll.html       # Mako template — React mount point
-    │   ├── bin/
-    │   │   └── ponypoll_rest.py    # Python REST handler — writes answer events
     │   ├── default/
     │   │   ├── app.conf            # App identity & metadata
     │   │   ├── collections.conf    # KV Store collection definitions
     │   │   ├── indexes.conf        # Dedicated `ponypoll` index
-    │   │   ├── restmap.conf        # REST endpoint registration
-    │   │   ├── web.conf            # Splunk Web proxy stanzas
+    │   │   ├── web.conf            # Splunk Web proxy stanzas (KV Store, receivers/simple, search/jobs)
     │   │   └── data/ui/
     │   │       ├── nav/default.xml # Navigation bar (Poll as default view)
     │   │       └── views/poll.xml  # View definition pointing to poll.html
@@ -86,15 +88,16 @@ ponypollApp/
     │   └── metadata/default.meta   # KV Store access permissions
     └── web/                        # React frontend source
         ├── index.js                # Entry point (ReactDOM.render)
-        ├── App.jsx                 # Top-level navigation (Poll / Editor / Settings)
+        ├── App.jsx                 # Top-level navigation (Poll / Analytics / Editor / Settings)
         ├── components/
         │   └── Timer.jsx           # Countdown timer component
         ├── lib/
-        │   ├── kvstore.js          # KV Store REST helpers + answer submission
+        │   ├── kvstore.js          # KV Store REST helpers, answer submission, runSearch()
         │   ├── questions.js        # Question model, types, serialisation, seed data
         │   └── utils.js            # uid(), formatTime(), calcPoints()
         └── pages/
             ├── PollPage.jsx        # Quiz runner — setup, questions, reveal, done
+            ├── AnalyticsPage.jsx   # Analytics dashboard — KPI cards, leaderboard, question analysis
             ├── EditorPage.jsx      # Question WYSIWYG editor + quiz management
             └── SettingsPage.jsx    # Poll title, Splunk index, active quiz selector
 ```
@@ -103,21 +106,27 @@ ponypollApp/
 
 ```
 Browser (React)
-    │  GET  /en-GB/splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_quizzes
+    │  GET  /splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_quizzes
     │       → load quiz catalogue
     │
-    │  GET  /en-GB/splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_config
-    │       → load config (active quiz ID, poll title, index)
+    │  GET  /splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_config
+    │       → load config (active quiz ID, poll title)
     │
-    │  GET  /en-GB/splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_questions?query=...
+    │  GET  /splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_questions?query=...
     │       → load questions for the active quiz
     │
-    │  POST /en-GB/splunkd/__raw/services/ponypoll/v1/answer
-    │       → ponypoll_rest.py → splunk.client → event written to `ponypoll` index
+    │  POST /splunkd/__raw/services/receivers/simple?index=ponypoll&sourcetype=ponypoll_answer
+    │       → event written directly to Splunk index (no custom Python)
     │
-    │  POST /en-GB/splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_questions/batch_save
+    │  POST /splunkd/__raw/services/receivers/simple?index=ponypoll&sourcetype=ponypoll_attempt
+    │       → quiz_start / quiz_complete lifecycle events
+    │
+    │  POST /splunkd/__raw/services/search/jobs  (exec_mode=oneshot)
+    │       → Analytics tab runs SPL against ponypoll index, renders results in React
+    │
+    │  POST /splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_questions/batch_save
     │       → save edited questions to KV Store
-    └───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    └──────────────────────────────────────────────────────────────────────────────────────
 ```
 
 ### KV Store collections
@@ -526,6 +535,39 @@ The exported JSON is an array of question objects. Below is the full schema with
 
 ---
 
+## Analytics dashboard
+
+The built-in **📊 Analytics** tab gives you a live view of quiz results without writing any SPL.
+
+![Analytics — KPI scorecards, leaderboard, question difficulty bars](docs/screenshots/analytics.png)
+
+### Filters
+
+| Filter | Options |
+|---|---|
+| **Time range** | Last 15 min / 1h / 4h / 24h / 7 days / 30 days / All time |
+| **Quiz** | Any named quiz from the KV Store catalogue, or *All quizzes* |
+| **Nickname** | Any individual player (auto-populated from the index), or *All players* |
+
+### Panels
+
+| Panel | What it shows |
+|---|---|
+| **Quiz completions** | Count of `quiz_complete` events in the selected window |
+| **Unique players** | Distinct `dc(nickname)` across completed quizzes |
+| **Avg score** | Mean `total_score` across all completions |
+| **Top score** | Single highest score achieved |
+| **Answers submitted** | Total `ponypoll_answer` event count |
+| **🏆 Leaderboard** | Top 20 players ranked by best score, with 🥇🥈🥉 medals and proportional score bars |
+| **📊 Question difficulty** | Each question's % correct and avg points, colour-coded: 🟢 ≥70% / 🟡 ≥40% / 🔴 <40% |
+| **🕒 Recent sessions** | Last 50 `quiz_start` / `quiz_complete` events with timestamp, player, score |
+
+### How it works
+
+The Analytics tab uses Splunk's `search/jobs` REST endpoint in **oneshot mode** — it posts SPL directly from the browser and renders results in React. No custom Python required.
+
+---
+
 ## Splunk search examples
 
 **All answers for a session:**
@@ -533,9 +575,11 @@ The exported JSON is an array of question objects. Below is the full schema with
 index=ponypoll session_id="<id>" | table _time nickname question answer correct points
 ```
 
-**Leaderboard:**
+**Leaderboard (best score per player):**
 ```spl
-index=ponypoll | stats sum(points) as total_points by nickname | sort -total_points
+index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+| stats max(total_score) as best_score, count as runs by nickname
+| sort -best_score
 ```
 
 **Correct answer rate by question:**
