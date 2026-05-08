@@ -1,21 +1,5 @@
 [
   {
-    "id": "splunk4champions",
-    "name": "Splunk4Champions — Advanced Topics",
-    "description": "20 questions covering search performance, tstats, bucket lifecycle, Dashboard Studio, Metrics, and SmartStore. Based on the Splunk4Champions workshop.",
-    "questionCount": 22,
-    "difficulty": "Advanced",
-    "file": "splunk4champions.json"
-  },
-  {
-    "id": "splunk-basics",
-    "name": "Splunk Basics",
-    "description": "15 questions covering Splunk fundamentals: components, ports, SPL commands, data lifecycle, and forwarder types. Great for onboarding.",
-    "questionCount": 15,
-    "difficulty": "Beginner",
-    "file": "splunk-basics.json"
-  },
-  {
     "id": "splunk-ai",
     "name": "Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models",
     "description": "34 questions covering the Splunk AI Toolkit (formerly MLTK), DSDL, Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
@@ -30,5 +14,21 @@
     "questionCount": 5,
     "difficulty": "Sample",
     "file": "sample-all-types.json"
+  },
+  {
+    "id": "splunk-basics",
+    "name": "Splunk Basics",
+    "description": "15 questions covering Splunk fundamentals: components, ports, SPL commands, data lifecycle, and forwarder types. Great for onboarding.",
+    "questionCount": 15,
+    "difficulty": "Beginner",
+    "file": "splunk-basics.json"
+  },
+  {
+    "id": "splunk4champions",
+    "name": "Splunk4Champions — Advanced Topics",
+    "description": "20 questions covering search performance, tstats, bucket lifecycle, Dashboard Studio, Metrics, and SmartStore. Based on the Splunk4Champions workshop.",
+    "questionCount": 22,
+    "difficulty": "Advanced",
+    "file": "splunk4champions.json"
   }
 ]

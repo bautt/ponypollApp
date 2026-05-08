@@ -1,11 +1,11 @@
 [
   {
-    "id": "splunk4champions",
-    "name": "Splunk4Champions — Advanced Topics",
-    "description": "20 questions covering search performance, tstats, bucket lifecycle, Dashboard Studio, Metrics, and SmartStore. Based on the Splunk4Champions workshop.",
-    "questionCount": 22,
-    "difficulty": "Advanced",
-    "file": "splunk4champions.json"
+    "id": "sample-all-types",
+    "name": "Sample — All Question Types",
+    "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
+    "questionCount": 5,
+    "difficulty": "Sample",
+    "file": "sample-all-types.json"
   },
   {
     "id": "splunk-basics",
@@ -16,19 +16,11 @@
     "file": "splunk-basics.json"
   },
   {
-    "id": "splunk-ai",
-    "name": "Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models",
-    "description": "34 questions covering the Splunk AI Toolkit (formerly MLTK), DSDL, Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
-    "questionCount": 34,
-    "difficulty": "Intermediate",
-    "file": "splunk-ai.json"
-  },
-  {
-    "id": "sample-all-types",
-    "name": "Sample — All Question Types",
-    "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
-    "questionCount": 5,
-    "difficulty": "Sample",
-    "file": "sample-all-types.json"
+    "id": "splunk4champions",
+    "name": "Splunk4Champions — Advanced Topics",
+    "description": "20 questions covering search performance, tstats, bucket lifecycle, Dashboard Studio, Metrics, and SmartStore. Based on the Splunk4Champions workshop.",
+    "questionCount": 22,
+    "difficulty": "Advanced",
+    "file": "splunk4champions.json"
   }
 ]
