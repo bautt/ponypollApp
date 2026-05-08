@@ -1,0 +1,462 @@
+[
+  {
+    "text": "What is the capital of Ukraine?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Lviv",    "correct": false },
+      { "id": "B", "text": "Kyiv",    "correct": true  },
+      { "id": "C", "text": "Kharkiv", "correct": false },
+      { "id": "D", "text": "Odessa",  "correct": false }
+    ]
+  },
+  {
+    "text": "In which year did the Chernobyl nuclear disaster occur?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1982", "correct": false },
+      { "id": "B", "text": "1984", "correct": false },
+      { "id": "C", "text": "1986", "correct": true  },
+      { "id": "D", "text": "1989", "correct": false }
+    ]
+  },
+  {
+    "text": "Ukraine is the largest country located entirely within Europe — true or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "In which year did Ukraine declare independence from the Soviet Union?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1989", "correct": false },
+      { "id": "B", "text": "1990", "correct": false },
+      { "id": "C", "text": "1991", "correct": true  },
+      { "id": "D", "text": "1993", "correct": false }
+    ]
+  },
+  {
+    "text": "The national flower of Ukraine is the sunflower — true or false?",
+    "type": "yesno",
+    "timeLimit": 15,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "Kyiv (Ukraine's capital) was founded centuries before Moscow — true or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "Which three countries make up the Baltic States? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Estonia",   "correct": true  },
+      { "id": "B", "text": "Latvia",    "correct": true  },
+      { "id": "C", "text": "Lithuania", "correct": true  },
+      { "id": "D", "text": "Belarus",   "correct": false }
+    ]
+  },
+  {
+    "text": "What is the capital of Estonia?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Riga",     "correct": false },
+      { "id": "B", "text": "Helsinki", "correct": false },
+      { "id": "C", "text": "Tallinn",  "correct": true  },
+      { "id": "D", "text": "Vilnius",  "correct": false }
+    ]
+  },
+  {
+    "text": "What is the capital of Latvia?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Vilnius", "correct": false },
+      { "id": "B", "text": "Tallinn", "correct": false },
+      { "id": "C", "text": "Kaunas",  "correct": false },
+      { "id": "D", "text": "Riga",    "correct": true  }
+    ]
+  },
+  {
+    "text": "All three Baltic States joined NATO in the same year. Which year?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "1999", "correct": false },
+      { "id": "B", "text": "2002", "correct": false },
+      { "id": "C", "text": "2004", "correct": true  },
+      { "id": "D", "text": "2007", "correct": false }
+    ]
+  },
+  {
+    "text": "Which Baltic State was the FIRST Soviet republic ever to declare independence, in March 1990?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Estonia",   "correct": false },
+      { "id": "B", "text": "Latvia",    "correct": false },
+      { "id": "C", "text": "Lithuania", "correct": true  },
+      { "id": "D", "text": "Ukraine",   "correct": false }
+    ]
+  },
+  {
+    "text": "What is the capital of Lithuania?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Kaunas",   "correct": false },
+      { "id": "B", "text": "Tallinn",  "correct": false },
+      { "id": "C", "text": "Riga",     "correct": false },
+      { "id": "D", "text": "Vilnius",  "correct": true  }
+    ]
+  },
+  {
+    "text": "Lithuania is famous for its passion for which Olympic team sport, which is considered almost a national religion there?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Football",   "correct": false },
+      { "id": "B", "text": "Ice Hockey", "correct": false },
+      { "id": "C", "text": "Basketball", "correct": true  },
+      { "id": "D", "text": "Handball",   "correct": false }
+    ]
+  },
+  {
+    "text": "At its 15th-century peak, the Grand Duchy of Lithuania was one of Europe's largest states. Which of these modern capitals were inside its borders? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "Vilnius (Lithuania)", "correct": true  },
+      { "id": "B", "text": "Minsk (Belarus)",      "correct": true  },
+      { "id": "C", "text": "Kyiv (Ukraine)",       "correct": true  },
+      { "id": "D", "text": "Warsaw (Poland)",       "correct": false }
+    ]
+  },
+  {
+    "text": "What is the capital of Poland?",
+    "type": "single",
+    "timeLimit": 15,
+    "options": [
+      { "id": "A", "text": "Kraków",  "correct": false },
+      { "id": "B", "text": "Gdańsk",  "correct": false },
+      { "id": "C", "text": "Warsaw",  "correct": true  },
+      { "id": "D", "text": "Wrocław", "correct": false }
+    ]
+  },
+  {
+    "text": "In which year did Germany invade Poland, marking the start of World War II?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "1937", "correct": false },
+      { "id": "B", "text": "1938", "correct": false },
+      { "id": "C", "text": "1939", "correct": true  },
+      { "id": "D", "text": "1940", "correct": false }
+    ]
+  },
+  {
+    "text": "Marie Curie, the first woman to win a Nobel Prize, was born in which city?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Paris",  "correct": false },
+      { "id": "B", "text": "Vienna", "correct": false },
+      { "id": "C", "text": "Prague", "correct": false },
+      { "id": "D", "text": "Warsaw", "correct": true  }
+    ]
+  },
+  {
+    "text": "The Polish trade union that played a key role in ending Communist rule in Poland was called what?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Workers' Unity",  "correct": false },
+      { "id": "B", "text": "Solidarity",      "correct": true  },
+      { "id": "C", "text": "Liberation Front","correct": false },
+      { "id": "D", "text": "Free Poland",     "correct": false }
+    ]
+  },
+  {
+    "text": "Poland joined the European Union in which year?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "2000", "correct": false },
+      { "id": "B", "text": "2002", "correct": false },
+      { "id": "C", "text": "2004", "correct": true  },
+      { "id": "D", "text": "2007", "correct": false }
+    ]
+  },
+  {
+    "text": "Pierogi are a beloved traditional Polish dish. What are they?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Grilled sausages",    "correct": false },
+      { "id": "B", "text": "Stuffed dumplings",   "correct": true  },
+      { "id": "C", "text": "Potato pancakes",     "correct": false },
+      { "id": "D", "text": "Pickled cabbage soup","correct": false }
+    ]
+  },
+  {
+    "text": "What is the capital of Germany?",
+    "type": "single",
+    "timeLimit": 15,
+    "options": [
+      { "id": "A", "text": "Munich",    "correct": false },
+      { "id": "B", "text": "Hamburg",   "correct": false },
+      { "id": "C", "text": "Frankfurt", "correct": false },
+      { "id": "D", "text": "Berlin",    "correct": true  }
+    ]
+  },
+  {
+    "text": "In which year did the Berlin Wall fall?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "1987", "correct": false },
+      { "id": "B", "text": "1988", "correct": false },
+      { "id": "C", "text": "1989", "correct": true  },
+      { "id": "D", "text": "1991", "correct": false }
+    ]
+  },
+  {
+    "text": "Germany was officially reunified on 3 October of which year?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "1989", "correct": false },
+      { "id": "B", "text": "1990", "correct": true  },
+      { "id": "C", "text": "1991", "correct": false },
+      { "id": "D", "text": "1992", "correct": false }
+    ]
+  },
+  {
+    "text": "How many federal states (Bundesländer) does Germany have?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "12", "correct": false },
+      { "id": "B", "text": "14", "correct": false },
+      { "id": "C", "text": "16", "correct": true  },
+      { "id": "D", "text": "18", "correct": false }
+    ]
+  },
+  {
+    "text": "Oktoberfest, the world's largest folk festival and beer celebration, is held in which German city?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Berlin",    "correct": false },
+      { "id": "B", "text": "Frankfurt", "correct": false },
+      { "id": "C", "text": "Hamburg",   "correct": false },
+      { "id": "D", "text": "Munich",    "correct": true  }
+    ]
+  },
+  {
+    "text": "Which of these famous composers were born in what is now Germany? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "options": [
+      { "id": "A", "text": "Johann Sebastian Bach",     "correct": true  },
+      { "id": "B", "text": "Ludwig van Beethoven",      "correct": true  },
+      { "id": "C", "text": "George Frideric Handel",    "correct": true  },
+      { "id": "D", "text": "Frédéric Chopin",           "correct": false }
+    ]
+  },
+  {
+    "text": "In which year did the French Revolution begin?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1776", "correct": false },
+      { "id": "B", "text": "1789", "correct": true  },
+      { "id": "C", "text": "1799", "correct": false },
+      { "id": "D", "text": "1804", "correct": false }
+    ]
+  },
+  {
+    "text": "What is the French national motto?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Vive la France",             "correct": false },
+      { "id": "B", "text": "Honneur et Patrie",          "correct": false },
+      { "id": "C", "text": "Paix, Justice, Liberté",    "correct": false },
+      { "id": "D", "text": "Liberté, Égalité, Fraternité", "correct": true }
+    ]
+  },
+  {
+    "text": "In which year was the Eiffel Tower completed?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1878", "correct": false },
+      { "id": "B", "text": "1885", "correct": false },
+      { "id": "C", "text": "1889", "correct": true  },
+      { "id": "D", "text": "1900", "correct": false }
+    ]
+  },
+  {
+    "text": "Napoleon Bonaparte was defeated at the Battle of Waterloo in which year?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1812", "correct": false },
+      { "id": "B", "text": "1813", "correct": false },
+      { "id": "C", "text": "1814", "correct": false },
+      { "id": "D", "text": "1815", "correct": true  }
+    ]
+  },
+  {
+    "text": "France is the world's most visited country by international tourists — true or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "The Louvre in Paris is the world's most visited art museum — true or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "In which year did the Norman Conquest of England take place (Battle of Hastings)?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1042", "correct": false },
+      { "id": "B", "text": "1066", "correct": true  },
+      { "id": "C", "text": "1086", "correct": false },
+      { "id": "D", "text": "1100", "correct": false }
+    ]
+  },
+  {
+    "text": "The Magna Carta, signed in 1215, primarily did what?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Established the Church of England",    "correct": false },
+      { "id": "B", "text": "Declared war on France",               "correct": false },
+      { "id": "C", "text": "Created the first English Parliament", "correct": false },
+      { "id": "D", "text": "Limited the power of the English king","correct": true  }
+    ]
+  },
+  {
+    "text": "In which year did women first gain the right to vote in the United Kingdom (women over 30)?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "1912", "correct": false },
+      { "id": "B", "text": "1918", "correct": true  },
+      { "id": "C", "text": "1928", "correct": false },
+      { "id": "D", "text": "1933", "correct": false }
+    ]
+  },
+  {
+    "text": "At its peak, the British Empire covered roughly what share of Earth's land surface?",
+    "type": "single",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "About 10%", "correct": false },
+      { "id": "B", "text": "About 15%", "correct": false },
+      { "id": "C", "text": "About 20%", "correct": false },
+      { "id": "D", "text": "About 25%", "correct": true  }
+    ]
+  },
+  {
+    "text": "William Shakespeare was born and raised in which English town?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "London",              "correct": false },
+      { "id": "B", "text": "Oxford",              "correct": false },
+      { "id": "C", "text": "Stratford-upon-Avon", "correct": true  },
+      { "id": "D", "text": "Canterbury",          "correct": false }
+    ]
+  },
+  {
+    "text": "In which year did the United Kingdom officially leave the European Union (Brexit completed)?",
+    "type": "single",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "2016", "correct": false },
+      { "id": "B", "text": "2018", "correct": false },
+      { "id": "C", "text": "2019", "correct": false },
+      { "id": "D", "text": "2020", "correct": true  }
+    ]
+  },
+  {
+    "text": "Which of the following are real British monarchs? (Select all that apply)",
+    "type": "multi",
+    "timeLimit": 30,
+    "options": [
+      { "id": "A", "text": "Henry VIII",           "correct": true  },
+      { "id": "B", "text": "George III",           "correct": true  },
+      { "id": "C", "text": "Edward the Confessor", "correct": true  },
+      { "id": "D", "text": "King Arthur",          "correct": false }
+    ]
+  },
+  {
+    "text": "What is the smallest country in Europe by area?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "Monaco",       "correct": false },
+      { "id": "B", "text": "Liechtenstein","correct": false },
+      { "id": "C", "text": "San Marino",   "correct": false },
+      { "id": "D", "text": "Vatican City", "correct": true  }
+    ]
+  },
+  {
+    "text": "San Marino, the tiny republic surrounded by Italy, was founded in AD 301 — making it the world's oldest republic. True or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "The Eurovision Song Contest was first held in which year?",
+    "type": "single",
+    "timeLimit": 25,
+    "options": [
+      { "id": "A", "text": "1948", "correct": false },
+      { "id": "B", "text": "1952", "correct": false },
+      { "id": "C", "text": "1956", "correct": true  },
+      { "id": "D", "text": "1964", "correct": false }
+    ]
+  },
+  {
+    "text": "On a scale of 1–10, how well do you think you know European history?",
+    "type": "slider",
+    "timeLimit": 20,
+    "options": [],
+    "sliderMin": 1,
+    "sliderMax": 10,
+    "sliderStep": 1,
+    "sliderUnit": "/10"
+  }
+]

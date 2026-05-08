@@ -1,5 +1,13 @@
 [
   {
+    "id": "european-history",
+    "name": "European History & Geography Trivia",
+    "description": "42 questions spanning Ukraine, the Baltic States, Lithuania, Poland, Germany, France, and Britain — capitals, key dates, famous firsts, and fun facts. Ends with a self-rating slider.",
+    "questionCount": 42,
+    "difficulty": "Intermediate",
+    "file": "european-history.json"
+  },
+  {
     "id": "splunk-ai",
     "name": "Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models",
     "description": "34 questions covering the Splunk AI Toolkit (formerly MLTK), DSDL, Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
