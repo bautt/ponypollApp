@@ -498,6 +498,19 @@ export default function EditorPage() {
         setActive('options', opts);
     };
 
+    const addOption = () => {
+        if (active.options.length >= 6) return;
+        const id = 'ABCDEF'[active.options.length] || String(active.options.length + 1);
+        setActive('options', [...active.options, { id, text: '', correct: false }]);
+    };
+
+    const removeOption = (optIdx) => {
+        if (active.options.length <= 2) return;
+        const filtered = active.options.filter((_, i) => i !== optIdx);
+        const relabelled = filtered.map((o, i) => ({ ...o, id: 'ABCDEF'[i] || String(i + 1) }));
+        setActive('options', relabelled);
+    };
+
     const addQuestion = () => {
         const q = newQuestion({ sort_order: questions.length, quiz_id: activeQuizId });
         setQuestions((prev) => [...prev, q]);
@@ -873,8 +886,31 @@ export default function EditorPage() {
                                         >
                                             {opt.correct ? '✓' : '○'}
                                         </CheckBtn>
+                                        {(active.type === 'single' || active.type === 'multi') && (
+                                            <button
+                                                onClick={() => removeOption(i)}
+                                                disabled={active.options.length <= 2}
+                                                title={active.options.length <= 2 ? 'Minimum 2 options' : 'Remove option'}
+                                                style={{
+                                                    background: 'none', border: 'none', cursor: active.options.length <= 2 ? 'default' : 'pointer',
+                                                    color: active.options.length <= 2 ? C.border : C.muted,
+                                                    fontSize: 16, padding: '0 2px', lineHeight: 1, flexShrink: 0,
+                                                }}
+                                            >✕</button>
+                                        )}
                                     </OptionRow>
                                 ))}
+                                {(active.type === 'single' || active.type === 'multi') && active.options.length < 6 && (
+                                    <button
+                                        onClick={addOption}
+                                        style={{
+                                            marginTop: 4, background: C.surface2,
+                                            border: `1px dashed ${C.border}`, borderRadius: 5,
+                                            color: C.muted, fontSize: 12, padding: '5px 14px',
+                                            cursor: 'pointer',
+                                        }}
+                                    >+ Add option</button>
+                                )}
                             </div>
                         )}
 
