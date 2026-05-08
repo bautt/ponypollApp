@@ -50,30 +50,51 @@ export default function Timer({ duration, running, onExpire, onTick }) {
     const [remaining, setRemaining] = useState(duration);
     const intervalRef = useRef(null);
 
-    // Reset when question changes
+    // Use a ref to track the authoritative count so the interval callback
+    // never needs to read from stale state — and never mutates state inside
+    // a state updater (which is illegal and causes React to crash).
+    const countRef = useRef(duration);
+
+    // Reset both the ref and display state when the question changes
     useEffect(() => {
+        countRef.current = duration;
         setRemaining(duration);
     }, [duration]);
+
+    // Keep latest callbacks in refs so the interval never needs to be restarted
+    // just because onExpire/onTick changed (avoids resetting the countdown on
+    // every option-click that causes handleTimerExpire to be recreated).
+    const onExpireRef = useRef(onExpire);
+    const onTickRef   = useRef(onTick);
+    useEffect(() => { onExpireRef.current = onExpire; }, [onExpire]);
+    useEffect(() => { onTickRef.current   = onTick;   }, [onTick]);
 
     useEffect(() => {
         if (!running) {
             clearInterval(intervalRef.current);
             return;
         }
+
         intervalRef.current = setInterval(() => {
-            setRemaining((prev) => {
-                const next = prev - 1;
-                if (onTick) onTick(next);
-                if (next <= 0) {
-                    clearInterval(intervalRef.current);
-                    if (onExpire) onExpire();
-                    return 0;
-                }
-                return next;
-            });
+            countRef.current -= 1;
+            const next = countRef.current;
+
+            // Update display — plain value, NOT a functional updater, so no
+            // side-effects inside a React state-updater function.
+            setRemaining(next <= 0 ? 0 : next);
+
+            // Callbacks fired directly in the interval, outside any state updater.
+            if (next > 0 && onTickRef.current) {
+                onTickRef.current(next);
+            }
+            if (next <= 0) {
+                clearInterval(intervalRef.current);
+                if (onExpireRef.current) onExpireRef.current();
+            }
         }, 1000);
+
         return () => clearInterval(intervalRef.current);
-    }, [running, onExpire, onTick]);
+    }, [running]); // only restart if running changes — callbacks always fresh via refs
 
     const pct = duration > 0 ? Math.round((remaining / duration) * 100) : 0;
 
