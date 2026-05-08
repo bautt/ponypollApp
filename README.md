@@ -153,56 +153,67 @@ Browser (React)
 
 ---
 
-## Prerequisites
+## Installation
+
+### Step 1 — Download the latest release
+
+Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/latest) and download **`ponypollapp.tar.gz`** from the Assets section.
+
+### Step 2 — Install via the Splunk UI
+
+1. Log in to Splunk Web as an administrator.
+2. Click the **⚙ gear icon** (top-left) next to "Apps", or navigate to  
+   **Apps → Manage Apps**.
+3. Click **Install app from file** (top-right button).
+4. Click **Choose File**, select the downloaded `ponypollapp.tar.gz`, then click **Upload**.
+5. If prompted to restart Splunk, click **Restart Now** and wait for Splunk to come back up.
+6. After restart, **Pony Poll** appears in the app bar. Click it to open.
+
+> **Splunk Cloud:** Use the Splunk Cloud self-service app install in the Admin Console, or contact your Splunk admin to install via the REST API.
+
+### Step 3 — First run
+
+1. Open the app — you land on the **Poll** tab.
+2. Switch to the **Editor** tab and create your first question, or click **📚 Library** to import a ready-made quiz.
+3. Go to **Settings** and set the **Active quiz** (the quiz participants will see).
+4. Share the app URL with participants — they enter a nickname and click **Start**.
+
+### Requirements
 
 | Requirement | Notes |
 |---|---|
-| Splunk Enterprise or Cloud ≥ 8.x | KV Store must be enabled (requires valid license) |
-| Python 3 | Used by the REST handler |
-| Node.js ≥ 16 + Yarn | For building the frontend locally |
-| `make` | For the convenience build targets |
+| Splunk Enterprise ≥ 8.x | KV Store must be enabled — requires a valid (non-free) license |
+| Splunk Cloud | Supported on Victoria / Classic stacks with KV Store enabled |
+| Browser | Any modern browser (Chrome, Firefox, Edge, Safari) |
+
+> **No Node.js, Python, or build tools are needed** to run the app — the pre-built JavaScript bundle is included in the release tarball.
 
 ---
 
-## Quick start
+## Building from source
 
-### 1. Build
+Only needed if you want to modify the frontend code.
+
+### Prerequisites
+
+| Requirement | Notes |
+|---|---|
+| Node.js ≥ 16 + Yarn | For building the frontend |
+| `make` | For the convenience build targets |
+
+### Build & package
 
 ```bash
 cd src
-yarn install          # install JS dependencies
-yarn build            # compile React → dist/appserver/static/poll.bundle.js
+yarn install   # install JS dependencies
 ```
-
-Or use the Makefile:
 
 ```bash
-make deps   # yarn install
-make build  # webpack production build
+make build     # webpack production build → dist/
+make package   # bundle into ponypollapp.tar.gz
 ```
 
-### 2. Package
-
-```bash
-make package
-# → ponypollapp.tar.gz
-```
-
-The Makefile copies everything from `src/package/` and `dist/` into a clean staging directory, excludes `__pycache__`, `.pyc`, `.DS_Store`, and `local/`, then tars it.
-
-### 3. Install
-
-**Option A — Splunk UI:**  
-Upload `ponypollapp.tar.gz` via *Apps → Manage Apps → Install app from file*.
-
-**Option B — SCP + copy:**
-
-```bash
-scp ponypollapp.tar.gz user@splunk-host:~
-ssh user@splunk-host
-sudo tar -xzf ~/ponypollapp.tar.gz -C /opt/splunk/etc/apps/
-sudo systemctl restart Splunkd
-```
+Install the resulting `ponypollapp.tar.gz` via the Splunk UI as described above.
 
 **Option C — direct file copy (development):**
 
@@ -636,10 +647,9 @@ The `metadata/default.meta` file grants:
 
 | Layer | Technology |
 |---|---|
-| Splunk app | Python 3, Splunk XML views, Mako templates |
+| Splunk app | Splunk XML views, Mako templates, KV Store, `receivers/simple`, `search/jobs` |
 | Frontend | React 16, styled-components v5 |
 | Build | Webpack 5, Babel, Yarn |
-| Splunk Python SDK | Vendored `splunklib` (Splunk SDK for Python) |
 | Content | JSX / ES2020, no TypeScript |
 
 ---
