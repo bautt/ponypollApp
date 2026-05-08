@@ -381,7 +381,7 @@ function computeNicknames(attempts) {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
     const [quizzes, setQuizzes]   = useState([]); // [{quiz_id, label}] from index
-    const [timeIdx, setTimeIdx]   = useState(4);
+    const [timeIdx, setTimeIdx]   = useState(1); // default: Last 1 hour
     const [quizId, setQuizId]     = useState('');
     const [nickname, setNickname] = useState('');
     const [nicknameInput, setNicknameInput] = useState('');
