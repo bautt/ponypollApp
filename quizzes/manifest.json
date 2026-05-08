@@ -17,9 +17,9 @@
   },
   {
     "id": "splunk-ai",
-    "name": "Splunk AI — DSDL, MCP & Hosted Models",
-    "description": "19 questions covering the Splunk App for Data Science and Deep Learning (DSDL), Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
-    "questionCount": 19,
+    "name": "Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models",
+    "description": "27 questions covering the Splunk AI Toolkit (formerly MLTK), DSDL, Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
+    "questionCount": 27,
     "difficulty": "Intermediate",
     "file": "splunk-ai.json"
   },

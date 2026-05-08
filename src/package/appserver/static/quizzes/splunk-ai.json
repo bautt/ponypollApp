@@ -1,6 +1,6 @@
 {
-  "quiz_name": "Splunk AI — DSDL, MCP & Hosted Models",
-  "description": "Questions covering the Splunk App for Data Science and Deep Learning (DSDL), the Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
+  "quiz_name": "Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models",
+  "description": "Questions covering the Splunk AI Toolkit (formerly MLTK), DSDL, the Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
   "questions": [
     {
       "text": "What does DSDL stand for in Splunk's app portfolio?",
@@ -75,6 +75,94 @@
         { "id": "B", "text": "white spaces", "correct": true },
         { "id": "C", "text": "whitespace",   "correct": true },
         { "id": "D", "text": "whitespaces",  "correct": true }
+      ]
+    },
+    {
+      "text": "The Splunk AI Toolkit used to go by a longer, more old-fashioned name. What was it?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Splunk Machine Learning Toolkit (MLTK)",       "correct": true  },
+        { "id": "B", "text": "Splunk Predictive Analytics Suite (SPAS)",      "correct": false },
+        { "id": "C", "text": "Splunk Advanced Analytics Toolkit (AATK)",      "correct": false },
+        { "id": "D", "text": "Splunk Neural Network Toolkit (NNTK)",           "correct": false }
+      ]
+    },
+    {
+      "text": "A suspicious login pattern lands in your index. Before you notice anything, the AI Toolkit flags it. Which ML type just saved your day?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "Anomaly detection",  "correct": true  },
+        { "id": "B", "text": "Clustering",          "correct": false },
+        { "id": "C", "text": "Forecasting",         "correct": false },
+        { "id": "D", "text": "Regression",          "correct": false }
+      ]
+    },
+    {
+      "text": "Your app's checkout page is getting flaky. You want to predict CPU load 30 minutes into the future. That's called...?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Forecasting",          "correct": true  },
+        { "id": "B", "text": "Classification",        "correct": false },
+        { "id": "C", "text": "Anomaly detection",     "correct": false },
+        { "id": "D", "text": "Clustering",            "correct": false }
+      ]
+    },
+    {
+      "text": "Your model has learned from data and is ready to go. Which AI Toolkit SPL command BUILDS (trains) the model?",
+      "type": "single",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "| fit",       "correct": true  },
+        { "id": "B", "text": "| apply",     "correct": false },
+        { "id": "C", "text": "| train",     "correct": false },
+        { "id": "D", "text": "| predict",   "correct": false }
+      ]
+    },
+    {
+      "text": "Model trained, data pipeline in prod, new events rolling in. Which AI Toolkit command USES the model on fresh data?",
+      "type": "single",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "| apply",     "correct": true  },
+        { "id": "B", "text": "| fit",       "correct": false },
+        { "id": "C", "text": "| score",     "correct": false },
+        { "id": "D", "text": "| run",       "correct": false }
+      ]
+    },
+    {
+      "text": "The AI Toolkit ships with step-by-step guided dashboards that walk you through the whole ML process. What are they called?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Assistants",   "correct": true  },
+        { "id": "B", "text": "Wizards",      "correct": false },
+        { "id": "C", "text": "Playbooks",    "correct": false },
+        { "id": "D", "text": "Notebooks",    "correct": false }
+      ]
+    },
+    {
+      "text": "How many standard algorithms does the AI Toolkit include out of the box?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "10+",  "correct": false },
+        { "id": "B", "text": "30+",  "correct": true  },
+        { "id": "C", "text": "100+", "correct": false },
+        { "id": "D", "text": "300+", "correct": false }
+      ]
+    },
+    {
+      "text": "Which types of machine learning does the AI Toolkit support? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 40,
+      "options": [
+        { "id": "A", "text": "Regression",         "correct": true  },
+        { "id": "B", "text": "Classification",     "correct": true  },
+        { "id": "C", "text": "Anomaly detection",  "correct": true  },
+        { "id": "D", "text": "Reinforcement learning", "correct": false }
       ]
     },
     {
