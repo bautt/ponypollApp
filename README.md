@@ -13,7 +13,7 @@ Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Parti
 **Pony Poll** turns any Splunk instance into a live Kahoot-style quiz — no extra infrastructure needed.
 
 ```
-Install app → create questions in the Editor → share the Poll URL → watch answers flow into Splunk
+Install app → create questions in the Editor → share the **`/play`** URL with participants → watch answers flow into Splunk
 ```
 
 | What | How |
@@ -85,7 +85,8 @@ ponypollApp/
     │   │   ├── web.conf            # Splunk Web proxy stanzas (KV Store, receivers/simple, search/jobs)
     │   │   └── data/ui/
     │   │       ├── nav/default.xml # Navigation bar (Poll as default view)
-    │   │       └── views/poll.xml  # View definition pointing to poll.html
+    │   │       ├── views/poll.xml  # Full app view (host/presenter)
+    │   │       └── views/play.xml  # Participant-only view (quiz only)
     │   ├── lib/splunklib/          # Vendored Splunk Python SDK
     │   └── metadata/default.meta   # KV Store access permissions
     └── web/                        # React frontend source
@@ -178,7 +179,20 @@ Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/late
 1. Open the app — you land on the **Poll** tab.
 2. Switch to the **Editor** tab and create your first question, or click **📚 Library** to import a ready-made quiz.
 3. Go to **Settings** and set the **Active quiz** (the quiz participants will see).
-4. Share the app URL with participants — they enter a nickname and click **Start**.
+4. Share the **Play URL** with participants (see below) — they enter a nickname and click **Start**.
+
+### Two entry points
+
+The app exposes two URLs with different audiences:
+
+| URL | Who it's for | What they see |
+|-----|-------------|---------------|
+| `/app/ponypollapp/poll` | **Host / presenter** | Full app — Poll, Editor, Analytics, Settings tabs |
+| `/app/ponypollapp/play` | **Participants** | Quiz only — nickname input, questions, score reveal |
+
+Share the `/play` URL with your audience. It shows only the quiz so participants can't accidentally wander into the editor or analytics.
+
+Both URLs are listed in the app's navigation bar inside Splunk.
 
 ### Requirements
 
