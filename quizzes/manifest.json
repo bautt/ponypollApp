@@ -14,5 +14,13 @@
     "questionCount": 15,
     "difficulty": "Beginner",
     "file": "splunk-basics.json"
+  },
+  {
+    "id": "sample-all-types",
+    "name": "Sample — All Question Types",
+    "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
+    "questionCount": 5,
+    "difficulty": "Sample",
+    "file": "sample-all-types.json"
   }
 ]
