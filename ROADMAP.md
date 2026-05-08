@@ -4,6 +4,82 @@ Ideas and missing features tracked for future development.
 
 ---
 
+## ⭐ Priority 1 — Synchronized host mode
+
+> **Status:** Designed, not yet implemented.
+
+### Concept
+Replace the current self-paced model with an optional "host drives the quiz" mode — all participants see the same question at the same time, the host controls reveal and advancement, and a live leaderboard appears between questions. Think Kahoot.
+
+A **Settings toggle** controls the mode: `quiz_mode: "self_paced" | "synchronized"`. Self-paced stays exactly as is.
+
+### Mechanism — KV Store as broadcast channel
+Splunk has no WebSockets, but the KV Store works as a shared state document. Add a `ponypoll_session` collection with one active document:
+
+```json
+{
+  "_key": "active",
+  "phase": "waiting | question | reveal | done",
+  "question_index": 0,
+  "question_started_at": "2026-05-08T19:00:00.000Z",
+  "quiz_id": "abc123"
+}
+```
+
+- **Host** writes to this document (start, reveal, next, end)
+- **Participants** poll it every 1–2 s via `setInterval` and react to state changes
+- 20 participants × 1 poll/1.5 s ≈ 13 KV reads/s — well within Splunk limits
+
+### Timer strategy (Option B — server-authoritative)
+`question_started_at` is written when the question goes live. Participants compute:
+```
+remaining = timeLimit - (Date.now() - new Date(question_started_at))
+```
+No drift, works for late joiners, fairness guaranteed. Only ~20 extra lines over a decorative timer.
+
+### UX flow
+```
+HOST SCREEN                          PARTICIPANT SCREENS
+──────────────────────────────────   ──────────────────────────────────
+[Quiz: Splunk Basics]                🎉 Waiting for host to start...
+[12 participants connected]          Nickname: alice
+
+[▶ Start Quiz]
+       ↓ host clicks
+──────────────────────────────────   ──────────────────────────────────
+Q1: "What port does Splunk           Q1: "What port does Splunk
+     Web use by default?"                 Web use by default?"
+
+[18 / 12 answered] ← live count     [A] 80    [B] 443
+[⏹ Reveal answers]                  [C] 8000  [D] 8089  ← timer ticking
+       ↓ host clicks or timer expires
+──────────────────────────────────   ──────────────────────────────────
+REVEAL — correct: C (8000)           ✓ Correct! +847 pts
+
+🏆 Top 5 so far:                     🏆 After Q1:
+1. alice    847                      1. alice  847
+2. bob      720                      2. bob    720
+3. carol    650                      3. carol  650
+
+[▶ Next Question]
+```
+
+### What needs building
+
+| Component | Work |
+|---|---|
+| `collections.conf` | Add `ponypoll_session` collection |
+| `kvstore.js` | Add `getSession()`, `updateSession()` |
+| New `HostPage.jsx` | Participant count, live response counter, reveal + next buttons, mini-leaderboard between questions |
+| `PollPage.jsx` (participants) | Replace self-paced state machine with polling loop; timer from `question_started_at` |
+| `SettingsPage.jsx` | Add `quiz_mode` toggle |
+| `App.jsx` | Route to `HostPage` when `quiz_mode = synchronized` and user is on `/poll` |
+
+### Estimated effort
+Medium — 2–3 days of focused work. No new dependencies, no infrastructure changes, no Python. Pure React + KV Store.
+
+---
+
 ## 🎮 Gameplay & Live experience
 
 | Feature | Why it matters |
