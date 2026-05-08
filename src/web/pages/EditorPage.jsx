@@ -78,14 +78,31 @@ const SmallBtn = styled.button`
 `;
 
 const ActiveBadge = styled.span`
-    font-size: 10px;
+    font-size: 11px;
     background: ${C.accent}33;
     color: ${C.accent};
-    border: 1px solid ${C.accent}55;
-    border-radius: 4px;
-    padding: 1px 5px;
+    border: 1px solid ${C.accent}66;
+    border-radius: 5px;
+    padding: 4px 8px;
     font-weight: 700;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+`;
+
+const ActivateBtn = styled.button`
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 1px solid ${C.accent};
+    background: ${C.accent}22;
+    color: ${C.accent};
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { background: ${C.accent}44; }
+    &:disabled { opacity: 0.35; cursor: default; }
 `;
 
 const SidebarHeader = styled.div`
@@ -354,6 +371,7 @@ export default function EditorPage() {
     const [quizLoading, setQuizLoading] = useState(true);
 
     const importInputRef = useRef(null);
+    const configRef = useRef({});
 
     // Library modal
     const [showLibrary, setShowLibrary] = useState(false);
@@ -367,6 +385,7 @@ export default function EditorPage() {
     useEffect(() => {
         Promise.all([listQuizzes(), loadConfig()])
             .then(async ([qs, cfg]) => {
+                configRef.current = cfg;
                 setLiveQuizId(cfg.active_quiz_id || '');
 
                 if (qs.length === 0) {
@@ -463,6 +482,19 @@ export default function EditorPage() {
             setStatus({ error: false, msg: `Quiz "${name}" deleted.` });
         } catch (e) {
             setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    const handleActivate = async () => {
+        if (!activeQuizId) return;
+        try {
+            await saveConfig({ ...configRef.current, active_quiz_id: activeQuizId });
+            configRef.current = { ...configRef.current, active_quiz_id: activeQuizId };
+            setLiveQuizId(activeQuizId);
+            const name = quizzes.find((q) => q._key === activeQuizId)?.name || 'Quiz';
+            setStatus({ error: false, msg: `"${name}" is now active — participants will see this quiz.` });
+        } catch (e) {
+            setStatus({ error: true, msg: `Activate failed: ${e.message}` });
         }
     };
 
@@ -702,10 +734,27 @@ export default function EditorPage() {
                             disabled={quizLoading}
                         >
                             {quizzes.map((q) => (
-                                <option key={q._key} value={q._key}>{q.name}</option>
+                                <option key={q._key} value={q._key}>
+                                    {q._key === liveQuizId ? '▶ ' : ''}{q.name}
+                                </option>
                             ))}
                         </QuizSelect>
-                        {currentQuizIsLive && <ActiveBadge>LIVE</ActiveBadge>}
+                    </QuizRow>
+                    <QuizRow>
+                        {currentQuizIsLive ? (
+                            <ActiveBadge style={{ flex: 1, justifyContent: 'center' }}>
+                                ● Active — participants see this quiz
+                            </ActiveBadge>
+                        ) : (
+                            <ActivateBtn
+                                style={{ flex: 1 }}
+                                onClick={handleActivate}
+                                disabled={!activeQuizId}
+                                title="Make this quiz visible to participants"
+                            >
+                                ▶ Activate this quiz
+                            </ActivateBtn>
+                        )}
                     </QuizRow>
                     <QuizRow>
                         <SmallBtn primary onClick={handleNewQuiz}>+ New</SmallBtn>
