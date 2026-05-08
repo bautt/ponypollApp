@@ -662,9 +662,10 @@ export default function EditorPage() {
     const handleLibraryImport = async (item) => {
         setShowLibrary(false);
         try {
-            const qs = librarySource === 'github'
+            const data = librarySource === 'github'
                 ? await fetchGitHubQuiz(item.file)
                 : await fetchLibraryQuiz(item.file);
+            const qs = Array.isArray(data) ? data : (data.questions || []);
             await importAsNewQuiz(item.name, qs);
         } catch (e) {
             setStatus({ error: true, msg: `Import failed: ${e.message}` });
