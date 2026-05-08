@@ -206,11 +206,13 @@ export async function listIndexes() {
     return (data?.entry || []).map((e) => e.name).sort();
 }
 
-// ── Write answer event ────────────────────────────────────────────────────────
+// ── Write events via Splunk's built-in receivers/simple endpoint ──────────────
+// No custom Python handler required — posts JSON directly to Splunk indexing.
 
-export async function submitAnswer(eventData, index) {
+async function submitEvent(eventData, { index = 'ponypoll', sourcetype = 'ponypoll_answer', source = 'ponypoll_app' } = {}) {
+    const params = new URLSearchParams({ index, sourcetype, source, output_mode: 'json' });
     const res = await fetch(
-        `${localePrefix()}/splunkd/__raw/services/ponypoll/v1/answer?output_mode=json`,
+        `${localePrefix()}/splunkd/__raw/services/receivers/simple?${params}`,
         {
             method: 'POST',
             credentials: 'include',
@@ -219,12 +221,19 @@ export async function submitAnswer(eventData, index) {
                 'X-Splunk-Form-Key': csrfToken(),
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            body: JSON.stringify({ ...eventData, index }),
+            body: JSON.stringify(eventData),
         }
     );
     if (!res.ok) {
         const t = await res.text();
-        throw new Error(`submitAnswer failed (${res.status}): ${t.slice(0, 200)}`);
+        throw new Error(`submitEvent failed (${res.status}): ${t.slice(0, 200)}`);
     }
-    return res.json();
+}
+
+export async function submitAnswer(eventData) {
+    return submitEvent(eventData, { sourcetype: 'ponypoll_answer' });
+}
+
+export async function submitQuizAttempt(eventData) {
+    return submitEvent(eventData, { sourcetype: 'ponypoll_attempt' });
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import Timer from '../components/Timer';
-import { listQuestions, loadConfig, submitAnswer, getCurrentUser } from '../lib/kvstore';
+import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentUser } from '../lib/kvstore';
 import { fromKvDoc, SEED_QUESTIONS, toKvDoc } from '../lib/questions';
 import { calcPoints, uid } from '../lib/utils';
 
@@ -405,6 +405,14 @@ export default function PollPage() {
         setSliderVal(null);
         setFeedback(null);
         setTimerRunning(true);
+        // Log the quiz attempt
+        submitQuizAttempt({
+            session_id: sessionId.current,
+            nickname: nickname || 'anonymous',
+            quiz_id: config.active_quiz_id || 'default',
+            question_count: questions.length,
+            event: 'quiz_start',
+        }).catch(() => {});
     };
 
     const handleTimerTick = useCallback((s) => setTimeRemaining(s), []);
@@ -465,7 +473,7 @@ export default function PollPage() {
             points,
             time_remaining: remainingSecs,
         };
-        submitAnswer(payload, config.poll_index).catch(() => {/* fire and forget */});
+        submitAnswer(payload).catch(() => {/* fire and forget */});
     }, [currentQ, selected, freetextVal, sliderVal, qIndex, nickname, config.poll_index]);
 
     const handleSelect = (optId) => {
@@ -491,6 +499,14 @@ export default function PollPage() {
         const next = qIndex + 1;
         if (next >= questions.length) {
             setPhase(PHASE.DONE);
+            submitQuizAttempt({
+                session_id: sessionId.current,
+                nickname: nickname || 'anonymous',
+                quiz_id: config.active_quiz_id || 'default',
+                total_score: score,
+                question_count: questions.length,
+                event: 'quiz_complete',
+            }).catch(() => {});
             return;
         }
         setQIndex(next);
