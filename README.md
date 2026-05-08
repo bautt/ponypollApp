@@ -2,7 +2,7 @@
 
 ![Pony Poll mascot](src/package/appserver/static/appIcon_128.png)
 
-> **v0.9.8** · Splunk Enterprise / Cloud ≥ 8.x · React 16 · KV Store
+> **v1.0.5** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports five question types (single choice, multiple choice, yes/no, free text, and slider), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -199,7 +199,7 @@ Both URLs are listed in the app's navigation bar inside Splunk.
 | Requirement | Notes |
 |---|---|
 | Splunk Enterprise ≥ 8.x | KV Store must be enabled — requires a valid (non-free) license |
-| Splunk Cloud | Supported on Victoria / Classic stacks with KV Store enabled |
+| Splunk Cloud ✓ | Tested and working on Splunk Cloud — AppInspect approved |
 | Browser | Any modern browser (Chrome, Firefox, Edge, Safari) |
 
 > **No Node.js, Python, or build tools are needed** to run the app — the pre-built JavaScript bundle is included in the release tarball.
