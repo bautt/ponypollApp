@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { runSearch, listQuizzes } from '../lib/kvstore';
+import { runSearch } from '../lib/kvstore';
 
 // ── Colour palette ─────────────────────────────────────────────────────────────
 const C = {
@@ -297,6 +297,15 @@ function fmtTime(isoOrUnix) {
 // Time filter is passed via `opts.earliest`; quiz filter is baked into SPL.
 // All other filtering (nickname) happens in JavaScript after fetch.
 
+// All-time quiz catalogue — reads from the index so deleted quizzes still appear
+function quizListSpl() {
+    return `index=ponypoll sourcetype=ponypoll_attempt
+        | dedup quiz_id
+        | eval label=if(isnotnull(quiz_name) AND quiz_name!="", quiz_name, quiz_id)
+        | fields quiz_id, label
+        | sort label`;
+}
+
 function attemptBaseSpl(quizId) {
     const qf = quizId ? ` quiz_id="${quizId}"` : '';
     return `index=ponypoll sourcetype=ponypoll_attempt${qf}
@@ -371,7 +380,7 @@ function computeNicknames(attempts) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
-    const [quizzes, setQuizzes]   = useState([]);
+    const [quizzes, setQuizzes]   = useState([]); // [{quiz_id, label}] from index
     const [timeIdx, setTimeIdx]   = useState(4);
     const [quizId, setQuizId]     = useState('');
     const [nickname, setNickname] = useState('');
@@ -404,7 +413,12 @@ export default function AnalyticsPage() {
 
     const maxLbPts = Math.max(...leaderboard.map((r) => r.best_score), 1);
 
-    useEffect(() => { listQuizzes().then(setQuizzes).catch(() => {}); }, []);
+    // Load quiz list from the index (all time) so deleted quizzes remain visible
+    useEffect(() => {
+        runSearch(quizListSpl(), { earliest: '0', latest: 'now', count: 200 })
+            .then((rows) => setQuizzes(rows.filter((r) => r.quiz_id)))
+            .catch(() => {});
+    }, []);
 
     // Fetch both base searches; time + quiz filter applied in SPL
     const runAll = useCallback(async () => {
@@ -445,7 +459,7 @@ export default function AnalyticsPage() {
                 <Select value={quizId} onChange={(e) => setQuizId(e.target.value)}>
                     <option value="">All quizzes</option>
                     {quizzes.map((q) => (
-                        <option key={q._key} value={q._key}>{q.name}</option>
+                        <option key={q.quiz_id} value={q.quiz_id}>{q.label}</option>
                     ))}
                 </Select>
 
