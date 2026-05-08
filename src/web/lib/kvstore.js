@@ -128,6 +128,23 @@ export async function deleteQuestion(key) {
     });
 }
 
+/** Save or create a single question document. Returns the saved doc (with _key). */
+export async function saveQuestion(doc) {
+    const { _key, ...body } = doc;
+    if (_key) {
+        // Update existing document in place
+        return kvFetch(`${kvBase()}/ponypoll_questions/${encodeURIComponent(_key)}?output_mode=json`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+        });
+    }
+    // Create new document
+    return kvFetch(`${kvBase()}/ponypoll_questions?output_mode=json`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+}
+
 /** Replace all questions for a given quiz (delete + batch_save). */
 export async function saveAllQuestions(questions, quizId) {
     // Delete existing docs for this quiz

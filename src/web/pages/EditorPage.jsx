@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import {
-    listQuestions, deleteQuestion, saveAllQuestions,
+    listQuestions, deleteQuestion, saveAllQuestions, saveQuestion,
     listQuizzes, createQuiz, renameQuiz, deleteQuiz, updateQuiz,
     loadConfig, saveConfig,
     fetchLibraryManifest, fetchLibraryQuiz,
@@ -361,6 +361,7 @@ export default function EditorPage() {
     const [questions, setQuestions] = useState([]);
     const [activeIdx, setActiveIdx] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [savingOne, setSavingOne] = useState(false);
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -585,6 +586,28 @@ export default function EditorPage() {
             setStatus({ error: false, msg: 'Question deleted.' });
         } catch (e) {
             setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    const handleSaveActive = async () => {
+        if (!active || !activeQuizId) return;
+        setSavingOne(true);
+        try {
+            const doc = { ...toKvDoc(active), sort_order: activeIdx, quiz_id: activeQuizId };
+            const result = await saveQuestion(doc);
+            // If this was a new (unsaved) question, store the KV-assigned _key back in state
+            if (!active._key && result?._key) {
+                setQuestions((prev) => {
+                    const copy = [...prev];
+                    copy[activeIdx] = { ...copy[activeIdx], _key: result._key };
+                    return copy;
+                });
+            }
+            setStatus({ error: false, msg: `Question ${activeIdx + 1} saved.` });
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        } finally {
+            setSavingOne(false);
         }
     };
 
@@ -836,6 +859,14 @@ export default function EditorPage() {
                     <TBtn onClick={moveUp} disabled={activeIdx === null || activeIdx === 0}>↑ Up</TBtn>
                     <TBtn onClick={moveDown} disabled={activeIdx === null || activeIdx >= questions.length - 1}>↓ Down</TBtn>
                     <TBtn danger onClick={deleteActive} disabled={active === null}>Delete</TBtn>
+                    <TBtn
+                        primary
+                        onClick={handleSaveActive}
+                        disabled={active === null || savingOne}
+                        title="Save this question only"
+                    >
+                        {savingOne ? 'Saving…' : '💾 Save'}
+                    </TBtn>
                     <TBtn onClick={handleExport} disabled={questions.length === 0} title="Download questions as JSON">
                         ⬇ Export
                     </TBtn>
@@ -855,7 +886,7 @@ export default function EditorPage() {
                     <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub">
                         🔄 GitHub
                     </TBtn>
-                    <TBtn primary onClick={saveAll} disabled={saving || !activeQuizId}>
+                    <TBtn onClick={saveAll} disabled={saving || !activeQuizId} title="Save all questions in this quiz (reorders and persists every question)">
                         {saving ? 'Saving…' : '💾 Save All'}
                     </TBtn>
                 </Toolbar>
@@ -1003,6 +1034,25 @@ export default function EditorPage() {
                                 )}
                             </div>
                         )}
+
+                        {/* Per-question save — visible inline so users don't miss it */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '14px 0 0',
+                            borderTop: `1px solid ${C.border}`,
+                        }}>
+                            <TBtn
+                                primary
+                                onClick={handleSaveActive}
+                                disabled={savingOne}
+                                style={{ minWidth: 140 }}
+                            >
+                                {savingOne ? 'Saving…' : '💾 Save Question'}
+                            </TBtn>
+                            <span style={{ fontSize: 12, color: C.muted }}>
+                                Saves only this question · Use <strong>Save All</strong> to reorder or bulk-save
+                            </span>
+                        </div>
 
                         {active.type === 'freetext' && (
                             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
