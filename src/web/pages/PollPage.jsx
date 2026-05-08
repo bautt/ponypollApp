@@ -139,42 +139,38 @@ const OptionBtn = styled.button`
     border-radius: 10px;
     text-align: left;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: ${({ $selected, $multi }) => ($selected && $multi) ? 700 : 500};
     cursor: ${({ disabled }) => (disabled ? 'default' : 'pointer')};
     transition: background 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    color: ${C.text};
 
-    /* Border */
-    border: 2px solid ${({ selected, revealed, correct, color, multi }) => {
+    border: 2px solid ${({ $selected, revealed, correct, color }) => {
         if (revealed) {
             if (correct) return C.accent;
-            if (selected) return C.red;
+            if ($selected) return C.red;
             return color + '44';
         }
-        if (selected) return color;
-        return color + '44';
+        return $selected ? color : color + '44';
     }};
 
-    /* Background */
-    background: ${({ selected, revealed, correct, color, multi }) => {
+    background: ${({ $selected, $multi, revealed, correct, color }) => {
         if (revealed) {
             if (correct) return color + '33';
-            if (selected) return C.red + '22';
+            if ($selected) return C.red + '22';
             return 'transparent';
         }
-        if (selected && multi) return color + '44'; /* stronger for multi */
-        if (selected) return color + '33';
+        if ($selected && $multi) return color + '44';
+        if ($selected) return color + '33';
         return 'transparent';
     }};
 
-    /* Extra glow + weight for multi-selected */
-    ${({ selected, multi, color }) => selected && multi && !false && `
-        box-shadow: 0 0 0 1px ${color}88;
-        font-weight: 700;
-    `}
-    color: ${C.text};
+    box-shadow: ${({ $selected, $multi, revealed, correct, color }) => {
+        if (revealed && correct) return `0 0 0 2px ${C.accent}44`;
+        if ($selected && $multi) return `0 0 0 1px ${color}88`;
+        return 'none';
+    }};
 
     ${({ disabled }) => !disabled && `&:hover { background: rgba(255,255,255,0.06); transform: translateY(-1px); }`}
-    ${({ revealed, correct }) => revealed && correct && `box-shadow: 0 0 0 2px ${C.accent}44;`}
 `;
 
 const Badge = styled.span`
@@ -744,14 +740,14 @@ export default function PollPage() {
                                 <OptionBtn
                                     key={opt.id}
                                     color={color}
-                                    selected={sel}
-                                    multi={isMulti}
+                                    $selected={sel}
+                                    $multi={isMulti}
                                     revealed={isReveal}
                                     correct={opt.correct}
                                     disabled={isReveal}
                                     onClick={() => handleSelect(opt.id)}
                                 >
-                                    <Badge color={sel && isMulti && !isReveal ? color : color}>
+                                    <Badge color={color}>
                                         {sel && isMulti && !isReveal ? '✓' : opt.id}
                                     </Badge>
                                     {opt.text}
