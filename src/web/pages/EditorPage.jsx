@@ -252,20 +252,6 @@ const EmptyState = styled.div`
     gap: 12px; color: ${C.muted}; font-size: 15px;
 `;
 
-// Import confirmation banner
-const ImportBanner = styled.div`
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: ${C.surface};
-    border-bottom: 2px solid ${C.blue};
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    flex-wrap: wrap;
-`;
 
 // Library modal overlay
 const ModalOverlay = styled.div`
@@ -367,8 +353,6 @@ export default function EditorPage() {
     const [liveQuizId, setLiveQuizId] = useState('');       // what participants see
     const [quizLoading, setQuizLoading] = useState(true);
 
-    // Import
-    const [importData, setImportData] = useState(null); // { quizName, questions }
     const importInputRef = useRef(null);
 
     // Library modal
@@ -589,48 +573,52 @@ export default function EditorPage() {
 
     // ── Import ──────────────────────────────────────────────────────────────────
 
+    /** Pick a name that doesn't clash with any existing quiz, appending a number if needed. */
+    const uniqueQuizName = (baseName) => {
+        const names = quizzes.map((q) => q.name);
+        if (!names.includes(baseName)) return baseName;
+        let n = 2;
+        while (names.includes(`${baseName} ${n}`)) n++;
+        return `${baseName} ${n}`;
+    };
+
+    /** Create a new quiz from a question array and name, then switch editor to it. */
+    const importAsNewQuiz = async (rawName, rawQuestions) => {
+        const valid = rawQuestions.filter((q) => q.text && q.type);
+        if (valid.length === 0) throw new Error('No valid questions found (each needs text + type).');
+        const name = uniqueQuizName(rawName);
+        const created = await createQuiz(name);
+        const newId = created._key || created.key;
+        const docs = valid.map((q, i) => ({
+            ...toKvDoc({ ...newQuestion(), ...q, _key: '', quiz_id: newId }),
+            sort_order: i,
+            quiz_id: newId,
+        }));
+        await saveAllQuestions(docs, newId);
+        const freshQuizzes = await listQuizzes();
+        setQuizzes(freshQuizzes);
+        setActiveQuizId(newId);
+        await loadQuestionsForQuiz(newId);
+        setStatus({ error: false, msg: `Imported ${valid.length} questions as "${name}".` });
+    };
+
     const handleImportFile = (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (ev) => {
+        reader.onload = async (ev) => {
             try {
                 const parsed = JSON.parse(ev.target.result);
-                const qs = Array.isArray(parsed) ? parsed : parsed.questions;
-                if (!Array.isArray(qs) || qs.length === 0) throw new Error('No questions found.');
-                const valid = qs.filter((q) => q.text && q.type);
-                if (valid.length === 0) throw new Error('No valid questions (need text + type).');
-                setImportData({ quizName: parsed.quiz_name || file.name, questions: valid });
+                const qs = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+                const baseName = parsed.quiz_name
+                    || file.name.replace(/\.json$/i, '').replace(/_/g, ' ');
+                await importAsNewQuiz(baseName, qs);
             } catch (err) {
                 setStatus({ error: true, msg: `Import failed: ${err.message}` });
             }
         };
         reader.readAsText(file);
         e.target.value = '';
-    };
-
-    const applyImport = async (mode) => {
-        if (!importData || !activeQuizId) return;
-        const incoming = importData.questions.map((q, i) => ({
-            ...newQuestion(),
-            ...q,
-            _key: '',
-            sort_order: i,
-            quiz_id: activeQuizId,
-        }));
-        const merged = mode === 'replace'
-            ? incoming
-            : [...questions, ...incoming].map((q, i) => ({ ...q, sort_order: i }));
-        try {
-            await saveAllQuestions(merged.map((q, i) => ({ ...toKvDoc(q), sort_order: i })), activeQuizId);
-            const docs = await listQuestions(activeQuizId);
-            setQuestions(docs.map(fromKvDoc));
-            setStatus({ error: false, msg: `Imported ${incoming.length} questions (${mode}).` });
-        } catch (e) {
-            setStatus({ error: true, msg: e.message });
-        } finally {
-            setImportData(null);
-        }
     };
 
     // ── Library ─────────────────────────────────────────────────────────────────
@@ -677,9 +665,7 @@ export default function EditorPage() {
             const qs = librarySource === 'github'
                 ? await fetchGitHubQuiz(item.file)
                 : await fetchLibraryQuiz(item.file);
-            const valid = qs.filter((q) => q.text && q.type);
-            if (valid.length === 0) throw new Error('No valid questions found.');
-            setImportData({ quizName: item.name, questions: valid });
+            await importAsNewQuiz(item.name, qs);
         } catch (e) {
             setStatus({ error: true, msg: `Import failed: ${e.message}` });
         }
@@ -691,18 +677,6 @@ export default function EditorPage() {
 
     return (
         <Root>
-            {/* Import confirmation banner */}
-            {importData && (
-                <ImportBanner>
-                    <span style={{ color: C.text, flex: 1 }}>
-                        Found <strong style={{ color: '#fff' }}>{importData.questions.length} questions</strong>
-                        {' '}from <em>"{importData.quizName}"</em> — what would you like to do?
-                    </span>
-                    <TBtn primary onClick={() => applyImport('replace')}>Replace all</TBtn>
-                    <TBtn onClick={() => applyImport('append')}>Append</TBtn>
-                    <TBtn danger onClick={() => setImportData(null)}>Cancel</TBtn>
-                </ImportBanner>
-            )}
 
             {/* Sidebar */}
             <Sidebar>
