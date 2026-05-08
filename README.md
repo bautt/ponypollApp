@@ -21,7 +21,7 @@
 | **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
 | **Export / Import** | Download any quiz as a JSON file; import to replace or append questions — great for sharing question sets between Splunk instances |
-| **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via the 📚 Library button |
+| **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via **📚 Library**; **🔄 GitHub** button syncs the latest quizzes live from the repo |
 | **Live timer** | Per-question countdown with speed-bonus scoring |
 | **Nickname** | Pre-filled from the Splunk username, editable before starting |
 | **WYSIWYG editor** | Built-in question editor with reorder, delete, and type switching |
@@ -239,22 +239,39 @@ The **LIVE** badge appears next to the quiz name in the editor when that quiz is
 
 ---
 
-## Quiz library
+## Quiz library & GitHub sync
 
-The app ships with a set of pre-built quiz JSON files stored in `appserver/static/quizzes/`. These are served directly by Splunk's static file server — no internet access required.
+The app ships with a set of pre-built quiz JSON files and can also pull the latest quizzes directly from the GitHub repository.
 
 ### Using the library
 
-In the **Editor** tab, click **📚 Library** in the toolbar. A modal appears listing all bundled quizzes with their difficulty, question count, and description. Click **Import** next to any quiz, then choose **Replace** or **Append**.
+In the **Editor** tab the toolbar has two buttons:
+
+| Button | Source | Internet required |
+|---|---|---|
+| **📚 Library** | Files bundled with the app (`appserver/static/quizzes/`) — always available offline | No |
+| **🔄 GitHub** | Live manifest and quiz files fetched from `github.com/bautt/ponypollApp` | Yes |
+
+Both open the same **Library modal** with a source toggle at the top so you can switch between bundled and live without closing. The GitHub tab shows the repo URL, a **↺ Refresh** button to force a re-fetch, and clear error feedback when internet access is unavailable.
+
+After choosing a quiz, clicking **Import** shows the same Replace / Append confirmation as a file import.
 
 ### Bundled quizzes
 
-| File | Name | Questions | Difficulty |
-|---|---|---|---|
-| `splunk4champions.json` | Splunk4Champions — Advanced Topics | 22 | Advanced |
-| `splunk-basics.json` | Splunk Basics | 15 | Beginner |
+| File | Name | Questions | Difficulty | Topics |
+|---|---|---|---|---|
+| [`splunk4champions.json`](quizzes/splunk4champions.json) | Splunk4Champions — Advanced Topics | 22 | Advanced | tstats, buckets, bloom filters, Dashboard Studio, SmartStore, search performance, metrics |
+| [`splunk-basics.json`](quizzes/splunk-basics.json) | Splunk Basics | 15 | Beginner | Components, ports, SPL commands, data lifecycle, HEC, forwarders, KV Store |
 
-The source JSON files (and a `README.md` explaining the format) live in the [`quizzes/`](quizzes/) folder of the repository. To add your own quiz to the library, add a JSON file there, update `manifest.json`, and rebuild the app.
+The source JSON files live in the [`quizzes/`](quizzes/) folder of the repository. See [`quizzes/README.md`](quizzes/README.md) for the full format reference and instructions for contributing new quizzes.
+
+### Adding quizzes to the library
+
+1. Create a new JSON file in `quizzes/` following the [JSON schema](#importexport-json-format)
+2. Add an entry to `quizzes/manifest.json`
+3. Copy the file to `src/package/appserver/static/quizzes/`
+4. Rebuild the app (`make build`) — webpack copies the static files automatically
+5. Commit and push — the GitHub sync button will immediately serve the new quiz to any instance with internet access, without requiring a new app deployment
 
 ---
 
