@@ -67,7 +67,27 @@ function useSeedOnFirstInstall() {
 /** Play mode: participant-only view, no nav, no admin tabs. */
 function PlayApp() {
     useSeedOnFirstInstall();
-    return <PollPage />;
+    const adminUrl = window.location.href
+        .replace(/\/play(\?.*)?$/, '/poll?admin');
+    return (
+        <>
+            <PollPage />
+            <a
+                href={adminUrl}
+                title="Open full admin app"
+                style={{
+                    position: 'fixed', bottom: 12, right: 14,
+                    fontSize: 11, color: '#555', opacity: 0.4,
+                    textDecoration: 'none', zIndex: 9999,
+                    transition: 'opacity 0.2s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
+            >
+                ⚙ Admin
+            </a>
+        </>
+    );
 }
 
 /** Full app: admin view with all tabs. */
@@ -75,8 +95,10 @@ function FullApp() {
     useSeedOnFirstInstall();
 
     // Redirect to /play if admin set it as the default entry point.
+    // Bypass: add ?admin to the URL to always stay on the full app.
     useEffect(() => {
         if (!window.location.pathname.endsWith('/poll')) return;
+        if (window.location.search.includes('admin')) return; // explicit bypass
         loadConfig().then((cfg) => {
             if (cfg.default_view === 'play') {
                 window.location.replace(
