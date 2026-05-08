@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import styled from 'styled-components';
 import PollPage from './pages/PollPage';
 import EditorPage from './pages/EditorPage';
@@ -6,6 +6,39 @@ import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig } from './lib/kvstore';
 import { SEED_QUESTIONS, toKvDoc } from './lib/questions';
+
+class ErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { error: null };
+    }
+    static getDerivedStateFromError(err) {
+        return { error: err };
+    }
+    render() {
+        if (this.state.error) {
+            const err = this.state.error;
+            return (
+                <div style={{
+                    padding: 32, background: '#1B1D22', color: '#DC4E41',
+                    fontFamily: 'monospace', minHeight: '100vh',
+                }}>
+                    <h2 style={{ margin: '0 0 12px' }}>⚠ Runtime Error (please report)</h2>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#FF8C8C', fontSize: 13 }}>
+                        {err.message}{'\n\n'}{err.stack}
+                    </pre>
+                    <button
+                        onClick={() => this.setState({ error: null })}
+                        style={{ marginTop: 16, padding: '8px 20px', background: '#009CDE', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', fontSize: 14 }}
+                    >
+                        Reload component
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 const C = {
     surface: '#23262F',
@@ -130,5 +163,9 @@ function FullApp() {
 export default function App() {
     const isPlay = window.PONYPOLL_MODE === 'play'
         || window.location.pathname.endsWith('/play');
-    return isPlay ? <PlayApp /> : <FullApp />;
+    return (
+        <ErrorBoundary>
+            {isPlay ? <PlayApp /> : <FullApp />}
+        </ErrorBoundary>
+    );
 }
