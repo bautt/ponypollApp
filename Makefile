@@ -34,5 +34,4 @@ deploy: package
 		cd /opt/splunk/etc/apps && \
 		sudo tar xzf ~/$(APP_NAME).tar.gz && \
 		sudo chown -R splunk:splunk /opt/splunk/etc/apps/$(APP_NAME) && \
-		sudo systemctl restart Splunkd && \
-		echo done"
+		echo done (restart Splunk manually if needed)"

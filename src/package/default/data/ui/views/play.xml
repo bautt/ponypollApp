@@ -1,1 +1,4 @@
-<view template="play.html" type="html"/>
+<?xml version="1.0"?>
+<view template="play.html" type="html">
+  <label>Play</label>
+</view>
