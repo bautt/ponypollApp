@@ -1,10 +1,12 @@
 import React, { useState, useEffect, Component } from 'react';
 import styled from 'styled-components';
 import PollPage from './pages/PollPage';
+import SyncHostPage from './pages/SyncHostPage';
+import SyncPollPage from './pages/SyncPollPage';
 import EditorPage from './pages/EditorPage';
 import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig } from './lib/kvstore';
+import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig, getSession } from './lib/kvstore';
 import { SEED_QUESTIONS, toKvDoc } from './lib/questions';
 
 class ErrorBoundary extends Component {
@@ -83,6 +85,7 @@ const BarChartIcon = () => (
 
 const TABS = [
     { id: 'poll',      label: '▶ Poll' },
+    { id: 'host',      label: '🎙 Host' },
     { id: 'analytics', label: <><BarChartIcon />Analytics</> },
     { id: 'editor',    label: '✏ Editor' },
     { id: 'settings',  label: '⚙ Settings' },
@@ -107,14 +110,37 @@ function useSeedOnFirstInstall() {
     }, []);
 }
 
-/** Play mode: participant-only view, no nav, no admin tabs. */
+/**
+ * Play mode: participant-only view, no nav, no admin tabs.
+ * Polls the session document every 4 s so switching between self-paced and
+ * synchronized mode (in either direction) is detected without a page reload.
+ */
 function PlayApp() {
     useSeedOnFirstInstall();
-    const adminUrl = window.location.href
-        .replace(/\/play(\?.*)?$/, '/poll?admin');
+    const [syncActive, setSyncActive] = useState(null); // null = initial check pending
+    const adminUrl = window.location.href.replace(/\/play(\?.*)?$/, '/poll?admin');
+
+    useEffect(() => {
+        let mounted = true;
+        const check = () => {
+            getSession()
+                .then((sess) => {
+                    if (!mounted) return;
+                    setSyncActive(!!(sess && sess.phase && sess.phase !== 'idle'));
+                })
+                .catch(() => mounted && setSyncActive(false));
+        };
+        check();
+        const id = setInterval(check, 4000);
+        return () => { mounted = false; clearInterval(id); };
+    }, []);
+
+    // Hold render until first check resolves (avoids flash)
+    if (syncActive === null) return null;
+
     return (
         <>
-            <PollPage />
+            {syncActive ? <SyncPollPage /> : <PollPage />}
             <a
                 href={adminUrl}
                 title="Open full admin app"
@@ -133,7 +159,7 @@ function PlayApp() {
     );
 }
 
-/** Full app: admin view with all tabs. */
+/** Full app: admin view with all tabs including dedicated Host tab. */
 function FullApp() {
     useSeedOnFirstInstall();
 
@@ -152,6 +178,7 @@ function FullApp() {
     }, []);
 
     const [tab, setTab] = useState('poll');
+
     return (
         <>
             <NavBar>
@@ -163,6 +190,7 @@ function FullApp() {
             </NavBar>
 
             {tab === 'poll'      && <PollPage />}
+            {tab === 'host'      && <SyncHostPage />}
             {tab === 'analytics' && <AnalyticsPage />}
             {tab === 'editor'    && <EditorPage />}
             {tab === 'settings'  && <SettingsPage />}

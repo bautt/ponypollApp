@@ -275,6 +275,109 @@ export async function submitQuizAttempt(eventData) {
     return submitEvent(eventData, { sourcetype: 'ponypoll_attempt' });
 }
 
+// ── Single question fetch ─────────────────────────────────────────────────
+
+export async function getQuestion(key) {
+    if (!key) return null;
+    try {
+        return await kvFetch(
+            `${kvBase()}/ponypoll_questions/${encodeURIComponent(key)}?output_mode=json`
+        );
+    } catch (_) {
+        return null;
+    }
+}
+
+// ── Synchronized session ──────────────────────────────────────────────────
+// Single "active" document in ponypoll_session used as a broadcast channel.
+// Host writes; participants poll every ~1.5 s and react to phase changes.
+
+export async function getSession() {
+    try {
+        return await kvFetch(`${kvBase()}/ponypoll_session/active?output_mode=json`);
+    } catch (_) {
+        return null;
+    }
+}
+
+/** Write the full session document (host always supplies the complete object). */
+export async function updateSession(doc) {
+    const body = { ...doc };
+    delete body._key;
+    try {
+        return await kvFetch(`${kvBase()}/ponypoll_session/active?output_mode=json`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+        });
+    } catch (_) {
+        // Document doesn't exist yet — create it
+        return kvFetch(`${kvBase()}/ponypoll_session?output_mode=json`, {
+            method: 'POST',
+            body: JSON.stringify({ _key: 'active', ...body }),
+        });
+    }
+}
+
+// ── Participant presence ──────────────────────────────────────────────────
+// One document per participant per session (nickname is the natural key within a session).
+
+function presenceKey(sessionId, nickname) {
+    // Stable, collision-resistant key from session + sanitised nickname
+    return `${sessionId}_${nickname.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'anon'}`;
+}
+
+export async function joinSession(sessionId, nickname) {
+    const key = presenceKey(sessionId, nickname);
+    const doc = {
+        session_id: sessionId,
+        nickname,
+        joined_at: new Date().toISOString(),
+        last_seen: new Date().toISOString(),
+    };
+    try {
+        return await kvFetch(`${kvBase()}/ponypoll_presence/${encodeURIComponent(key)}?output_mode=json`, {
+            method: 'POST',
+            body: JSON.stringify(doc),
+        });
+    } catch (_) {
+        return kvFetch(`${kvBase()}/ponypoll_presence?output_mode=json`, {
+            method: 'POST',
+            body: JSON.stringify({ _key: key, ...doc }),
+        });
+    }
+}
+
+export async function heartbeatPresence(sessionId, nickname) {
+    const key = presenceKey(sessionId, nickname);
+    try {
+        await kvFetch(`${kvBase()}/ponypoll_presence/${encodeURIComponent(key)}?output_mode=json`, {
+            method: 'POST',
+            body: JSON.stringify({ last_seen: new Date().toISOString() }),
+        });
+    } catch (_) { /* best-effort */ }
+}
+
+export async function getPresence(sessionId) {
+    const query = encodeURIComponent(JSON.stringify({ session_id: sessionId }));
+    try {
+        const data = await kvFetch(
+            `${kvBase()}/ponypoll_presence?output_mode=json&query=${query}&limit=200`
+        );
+        return Array.isArray(data) ? data : [];
+    } catch (_) {
+        return [];
+    }
+}
+
+export async function clearPresence(sessionId) {
+    const query = encodeURIComponent(JSON.stringify({ session_id: sessionId }));
+    try {
+        await kvFetch(`${kvBase()}/ponypoll_presence?output_mode=json&query=${query}`, {
+            method: 'DELETE',
+        });
+    } catch (_) { /* best-effort */ }
+}
+
 // ── Splunk search (oneshot) ───────────────────────────────────────────────────
 // Returns an array of result objects from a one-shot Splunk search.
 
