@@ -106,6 +106,33 @@ ponypollApp/
             └── SettingsPage.jsx    # Poll title, Splunk index, active quiz selector
 ```
 
+### How the Splunk chrome is removed
+
+> **Why there are no Splunk menus, navigation bar, or app switcher visible.**
+
+Both views (`poll.xml` and `play.xml`) are declared with `type="html"` and point to a hand-rolled Mako template (`poll.html`) that loads **only** the React bundle — nothing from Splunk's front-end stack:
+
+```xml
+<!-- views/play.xml -->
+<view type="html" isDashboard="False" isVisible="False" onunloadCancelJobs="False">
+```
+
+| Attribute | Effect |
+|---|---|
+| `type="html"` | Splunk renders raw HTML instead of a SimpleXML dashboard — no dashboard chrome injected |
+| `isDashboard="False"` | Suppresses the standard dashboard toolbar |
+| `isVisible="False"` | Hides the view from the Splunk navigation bar |
+
+A standard Splunk view imports the full JS stack via a Mako namespace:
+```html
+<%namespace name="lib" file="//lib/splunkjsstack.html"/>
+```
+This single line is what causes the top navigation bar, app switcher, and footer to appear. The `poll.html` template deliberately omits it and instead mounts React onto a plain `<div id="root">`.
+
+The tabs you see inside the app (Poll · Editor · Analytics · Settings) are **React components**, not Splunk's native tab bar. The app still has full access to the KV Store and REST APIs because Splunk's session cookie is present — it just has none of the surrounding UI.
+
+---
+
 ### Data flow
 
 ```
