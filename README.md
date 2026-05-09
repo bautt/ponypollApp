@@ -2,7 +2,7 @@
 
 <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
-> **v1.2.0** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.3.0** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports five question types (single choice, multiple choice, yes/no, free text, and slider), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -57,6 +57,61 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 
 ![Settings — active quiz selector, random subset control, default view, poll title](docs/screenshots/settings.png)
 
+**Host — synchronized session setup (QR code and URL masked)**
+
+![Host tab — synchronized mode setup with QR code for participants and quiz/question selectors](docs/screenshots/host-idle.png)
+
+**Host — answer reveal with distribution and leaderboard**
+
+![Host tab — answer revealed, answer distribution bars per option, leaderboard after first question](docs/screenshots/host-reveal.png)
+
+---
+
+## Synchronized Host Mode
+
+In addition to the default **self-paced** mode (every participant runs independently), Pony Poll supports a **Synchronized Host Mode** where the presenter controls the pace for everyone simultaneously — just like Kahoot.
+
+### How it works
+
+```
+Host opens the 🎙 Host tab
+  → picks a quiz + optional question subset
+  → clicks ▶ Start Session   (opens a lobby)
+
+Participants open /play in their browser or scan the QR code
+  → enter their nickname → they appear in the lobby
+
+Host clicks ▶ Launch Quiz
+  → Q1 appears on every participant screen at exactly the same second
+  → timer counts down from a server-authoritative timestamp (no clock drift)
+  → host clicks ⏹ Reveal Answers when ready
+  → answer distribution bars + interim leaderboard shown to everyone
+  → host clicks ▶ Next Question … repeat until done
+  → final leaderboard shown
+```
+
+### Key features
+
+| Feature | Detail |
+|---|---|
+| **QR code** | Shown on the Host tab; white-on-black, always scannable on a projector |
+| **Short URL** | TinyURL auto-generated client-side for easy typing on laptops |
+| **Server-authoritative timer** | All clients compute remaining time from `question_started_at` in KV Store — no clock drift |
+| **Answer distribution** | Horizontal bars per option shown after reveal (both host and participant screens) |
+| **Leaderboard after each question** | Runs a live SPL query against the Splunk index per reveal |
+| **Random question subset** | Choose how many questions to play at session-start (overrides the quiz default) |
+| **Auto-switch on /play** | The `/play` URL detects a live sync session every 4 s — participants are automatically routed without a reload |
+| **Full rollback** | Self-paced `PollPage` is completely untouched; switching back to self-paced is instant |
+
+### Per-quiz mode toggle
+
+In the **Editor** tab, each quiz has a **⚡ Mode** toggle:
+
+- **Self-paced** — each participant runs the quiz independently (default)
+- **🎙 Sync** — host controls the pace via the Host tab
+
+The toggle saves instantly to KV Store (no Save button needed) and shows a **✓ Saved** flash confirmation.
+
 ---
 
 ## Features
@@ -65,6 +120,7 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 |---|---|
 | **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
+| **Synchronized host mode** | Presenter-led quiz: host controls question flow, all participants see the same question simultaneously with server-authoritative timer, answer distribution, and per-question leaderboard |
 | **Random question subset** | Set a quiz to play a random N questions from its full pool (e.g. 12 of 34) — each participant gets a different draw |
 | **Export / Import** | Download any quiz as a JSON file; import to replace or append questions — great for sharing question sets between Splunk instances |
 | **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via **📚 Library**; **🔄 GitHub** button syncs the latest quizzes live from the repo |

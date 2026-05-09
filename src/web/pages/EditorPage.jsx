@@ -105,6 +105,38 @@ const ActivateBtn = styled.button`
     &:disabled { opacity: 0.35; cursor: default; }
 `;
 
+const ModeToggleWrap = styled.div`
+    display: flex;
+    gap: 4px;
+    flex: 1;
+`;
+
+const ModeBtn = styled.button`
+    flex: 1;
+    padding: 5px 6px;
+    border-radius: 5px;
+    border: 1px solid ${({ active }) => (active ? C.blue : C.border)};
+    background: ${({ active }) => (active ? C.blue + '25' : 'transparent')};
+    color: ${({ active }) => (active ? C.blue : C.muted)};
+    font-size: 11px;
+    font-weight: ${({ active }) => (active ? 700 : 500)};
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    &:hover:not(:disabled) { border-color: ${C.blue}88; color: ${C.text}; }
+    &:disabled { opacity: 0.35; cursor: default; }
+`;
+
+const SavedFlash = styled.span`
+    font-size: 10px;
+    color: ${C.accent};
+    font-weight: 600;
+    opacity: ${({ show }) => (show ? 1 : 0)};
+    transition: opacity 0.4s;
+    white-space: nowrap;
+    margin-left: 2px;
+`;
+
 const SidebarHeader = styled.div`
     padding: 10px 16px;
     font-size: 12px;
@@ -371,6 +403,9 @@ export default function EditorPage() {
     const [liveQuizId, setLiveQuizId] = useState('');       // what participants see
     const [quizLoading, setQuizLoading] = useState(true);
     const [questionLimit, setQuestionLimit] = useState(null); // null = all questions
+    const [quizMode, setQuizMode] = useState('self_paced');   // 'self_paced' | 'synchronized'
+    const [modeSaved, setModeSaved] = useState(false);        // brief "✓ Saved" flash
+    const [limitSaved, setLimitSaved] = useState(false);      // brief "✓ Saved" flash
 
     const importInputRef = useRef(null);
     const configRef = useRef({});
@@ -408,6 +443,7 @@ export default function EditorPage() {
                     setActiveQuizId(targetId);
                     const targetQuiz = qs.find((q) => q._key === targetId);
                     setQuestionLimit(targetQuiz?.question_limit ? Number(targetQuiz.question_limit) : null);
+                    setQuizMode(targetQuiz?.quiz_mode || 'self_paced');
                     await loadQuestionsForQuiz(targetId);
                 }
             })
@@ -434,7 +470,23 @@ export default function EditorPage() {
         setActiveQuizId(quizId);
         const quiz = quizzes.find((q) => q._key === quizId);
         setQuestionLimit(quiz?.question_limit ? Number(quiz.question_limit) : null);
+        setQuizMode(quiz?.quiz_mode || 'self_paced');
         await loadQuestionsForQuiz(quizId);
+    };
+
+    const handleModeChange = async (newMode) => {
+        setQuizMode(newMode);
+        const currentQuiz = quizzes.find((q) => q._key === activeQuizId);
+        if (!currentQuiz) return;
+        try {
+            await updateQuiz(activeQuizId, { ...currentQuiz, quiz_mode: newMode });
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            setModeSaved(true);
+            setTimeout(() => setModeSaved(false), 2000);
+        } catch (e) {
+            setStatus({ error: true, msg: `Failed to save mode: ${e.message}` });
+        }
     };
 
     const handleNewQuiz = async () => {
@@ -513,12 +565,8 @@ export default function EditorPage() {
             await updateQuiz(activeQuizId, { ...currentQuiz, question_limit: newLimit || null });
             const freshQuizzes = await listQuizzes();
             setQuizzes(freshQuizzes);
-            setStatus({
-                error: false,
-                msg: newLimit
-                    ? `Quiz will play ${newLimit} random questions (of ${questions.length} total).`
-                    : 'Quiz will play all questions in order.',
-            });
+            setLimitSaved(true);
+            setTimeout(() => setLimitSaved(false), 2000);
         } catch (e) {
             setStatus({ error: true, msg: `Failed to save limit: ${e.message}` });
         }
@@ -804,7 +852,7 @@ export default function EditorPage() {
                             </ActivateBtn>
                         )}
                     </QuizRow>
-                    <QuizRow>
+                    <QuizRow style={{ alignItems: 'center' }}>
                         <span style={{ fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>🎲 Play:</span>
                         <QuizSelect
                             value={questionLimit || ''}
@@ -819,6 +867,29 @@ export default function EditorPage() {
                                     <option key={n} value={n}>Random {n} of {questions.length}</option>
                                 ))}
                         </QuizSelect>
+                        <SavedFlash show={limitSaved}>✓</SavedFlash>
+                    </QuizRow>
+                    <QuizRow style={{ alignItems: 'center' }}>
+                        <span style={{ fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>⚡ Mode:</span>
+                        <ModeToggleWrap>
+                            <ModeBtn
+                                active={quizMode === 'self_paced'}
+                                disabled={!activeQuizId}
+                                onClick={() => quizMode !== 'self_paced' && handleModeChange('self_paced')}
+                                title="Each participant runs the quiz independently at their own pace"
+                            >
+                                Self-paced
+                            </ModeBtn>
+                            <ModeBtn
+                                active={quizMode === 'synchronized'}
+                                disabled={!activeQuizId}
+                                onClick={() => quizMode !== 'synchronized' && handleModeChange('synchronized')}
+                                title="Host controls the pace — all participants see the same question simultaneously"
+                            >
+                                🎙 Sync
+                            </ModeBtn>
+                        </ModeToggleWrap>
+                        <SavedFlash show={modeSaved}>✓ Saved</SavedFlash>
                     </QuizRow>
                     <QuizRow>
                         <SmallBtn primary onClick={handleNewQuiz}>+ New</SmallBtn>
