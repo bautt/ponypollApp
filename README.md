@@ -2,7 +2,7 @@
 
 <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
-> **v1.1.6** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.2.0** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports five question types (single choice, multiple choice, yes/no, free text, and slider), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -31,17 +31,31 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 
 ## Screenshots
 
-| Start screen | Live question | Answer revealed |
-|---|---|---|
-| ![Start — Buttercup mascot and nickname input](docs/screenshots/start.png) | ![Question — 4 choices and countdown timer](docs/screenshots/question.png) | ![Reveal — correct answer highlighted, points awarded](docs/screenshots/reveal.png) |
+**Poll — start screen**
 
-**Editor**
+![Start screen — Buttercup mascot, quiz title, and nickname input](docs/screenshots/start.png)
 
-![Editor — quiz selector, question list, WYSIWYG form with type buttons and answer options](docs/screenshots/editor.png)
+**Poll — live question (slider type)**
+
+![Slider question — numeric range with countdown timer](docs/screenshots/question-slider.png)
+
+**Poll — answer revealed (multi-select)**
+
+![Multi-select answer reveal — correct options highlighted in green, points awarded](docs/screenshots/question-reveal.png)
+
+**Editor — question WYSIWYG**
+
+| Single-answer with options | Active quiz indicator |
+|---|---|
+| ![Editor — AI Toolkit quiz, single-answer question with 4 options](docs/screenshots/editor-options.png) | ![Editor — Greek Mythology quiz active, question list and toolbar](docs/screenshots/editor.png) |
 
 **Analytics**
 
-![Analytics — KPI scorecards, leaderboard ranked by best score, question difficulty bars, recent sessions](docs/screenshots/analytics.png)
+![Analytics — KPI scorecards, leaderboard ranked by best score, question difficulty table](docs/screenshots/analytics.png)
+
+**Settings**
+
+![Settings — active quiz selector, random subset control, default view, poll title](docs/screenshots/settings.png)
 
 ---
 
@@ -636,7 +650,7 @@ The exported JSON is an array of question objects. Below is the full schema with
 
 The built-in **📊 Analytics** tab gives you a live view of quiz results without writing any SPL.
 
-![Analytics — KPI scorecards, leaderboard, question difficulty bars](docs/screenshots/analytics.png)
+![Analytics — KPI scorecards, leaderboard, question difficulty table](docs/screenshots/analytics.png)
 
 ### Filters
 
