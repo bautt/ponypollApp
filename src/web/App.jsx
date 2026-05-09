@@ -71,9 +71,19 @@ const NavTab = styled.button`
     &:hover { color: #fff; }
 `;
 
+const BarChartIcon = () => (
+    <svg viewBox="0 0 16 16" width="14" height="14"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, marginBottom: 1 }}
+        fill="currentColor" aria-hidden="true">
+        <rect x="1"  y="7"  width="3" height="8" rx="0.5" />
+        <rect x="6"  y="4"  width="3" height="11" rx="0.5" />
+        <rect x="11" y="1"  width="3" height="14" rx="0.5" />
+    </svg>
+);
+
 const TABS = [
     { id: 'poll',      label: '▶ Poll' },
-    { id: 'analytics', label: '📊 Analytics' },
+    { id: 'analytics', label: <><BarChartIcon />Analytics</> },
     { id: 'editor',    label: '✏ Editor' },
     { id: 'settings',  label: '⚙ Settings' },
 ];

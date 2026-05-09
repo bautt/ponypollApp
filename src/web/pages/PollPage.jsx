@@ -644,7 +644,7 @@ export default function PollPage() {
     if (phase === PHASE.SETUP) {
         return (
             <SetupCard>
-                <img src="/static/app/ponypollapp/buttercup.png" alt="Buttercup" style={{ width: 140 }} />
+                <img src="/static/app/ponypollapp/buttercup.png" alt="Buttercup" style={{ width: 210 }} />
                 <SetupTitle>{config.poll_subject || 'Pony Poll'}</SetupTitle>
                 <p style={{ margin: '0 0 6px', fontSize: 12, color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
                     {TAGLINE}
@@ -684,7 +684,7 @@ export default function PollPage() {
     if (phase === PHASE.DONE) {
         return (
             <DoneCard>
-                <img src="/static/app/ponypollapp/buttercup.png" alt="Buttercup" style={{ width: 120 }} />
+                <img src="/static/app/ponypollapp/buttercup.png" alt="Buttercup" style={{ width: 180 }} />
                 <SetupTitle>Poll Complete!</SetupTitle>
                 <ScoreCircle>
                     <span>{score}</span>
