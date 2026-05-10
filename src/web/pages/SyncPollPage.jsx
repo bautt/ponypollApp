@@ -273,13 +273,14 @@ function DistBars({ options, dist, total }) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function answerString(type, selected, sliderVal, freetextVal) {
-    if (type === 'freetext') return freetextVal;
+    if (type === 'freetext')  return freetextVal;
+    if (type === 'wordcloud') return freetextVal;
     if (type === 'slider') return String(sliderVal ?? '');
     return selected.join(',');
 }
 
 function isCorrect(type, selected, options) {
-    if (type === 'freetext' || type === 'slider') return null; // no scoring
+    if (type === 'freetext' || type === 'slider' || type === 'wordcloud') return null;
     if (type === 'single' || type === 'yesno') {
         const correct = options.find((o) => o.correct);
         return correct && selected.includes(correct.id);
@@ -488,8 +489,9 @@ export default function SyncPollPage() {
         const tLeft   = Math.max(0, (Number(session.time_limit) || 30) - elapsed);
         const correct = isCorrect(q.type, selected, q.options ?? []);
         const pts     = (() => {
-            if (q.type === 'freetext') return 100;
-            if (q.type === 'slider')   return 50;
+            if (q.type === 'freetext')  return 100;
+            if (q.type === 'wordcloud') return freetextVal.trim() ? 50 : 0;
+            if (q.type === 'slider')    return 50;
             return correct ? calcPoints(Number(session.time_limit) || 30, tLeft) : 0;
         })();
 
@@ -527,7 +529,8 @@ export default function SyncPollPage() {
     const timerPct = timeLim > 0 ? Math.round((timeLeft / timeLim) * 100) : 0;
     const qIdx     = Number(session?.question_index) || 0;
     const total    = session?.question_keys ? JSON.parse(session.question_keys).length : 0;
-    const locked   = submitted || timeLeft <= 0;
+    const locked      = submitted || timeLeft <= 0;
+    const wcEmpty     = question?.type === 'wordcloud' && freetextVal.trim().length === 0;
 
     // ── Render ────────────────────────────────────────────────────────────────
 
@@ -642,6 +645,26 @@ export default function SyncPollPage() {
                         />
                     )}
 
+                    {/* Word cloud */}
+                    {question.type === 'wordcloud' && (() => {
+                        const maxChars = question.wordcloudMaxChars ?? 32;
+                        return (
+                            <div>
+                                <NicknameInput
+                                    placeholder="Type a word or short phrase…"
+                                    maxLength={maxChars}
+                                    value={freetextVal}
+                                    onChange={(e) => !locked && setFreetextVal(e.target.value)}
+                                    disabled={locked}
+                                    style={{ textAlign: 'center', fontSize: 18, letterSpacing: 1 }}
+                                />
+                                <div style={{ textAlign: 'right', fontSize: 11, color: C.muted, marginTop: 4 }}>
+                                    {freetextVal.length} / {maxChars}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Slider */}
                     {question.type === 'slider' && (() => {
                         const min  = question.sliderMin  ?? 1;
@@ -679,7 +702,9 @@ export default function SyncPollPage() {
                         <FeedbackBox correct={wasCorrect !== false}>
                             {wasCorrect === true  && `✓ Correct! +${pointsEarned.toLocaleString()} pts`}
                             {wasCorrect === false && '✗ Wrong answer'}
-                            {wasCorrect === null  && `Recorded +${pointsEarned} pts`}
+                            {wasCorrect === null  && question?.type === 'wordcloud'
+                                ? `"${freetextVal}" added to the cloud ☁`
+                                : `Recorded +${pointsEarned} pts`}
                         </FeedbackBox>
                     )}
 
@@ -687,7 +712,7 @@ export default function SyncPollPage() {
                     {!submitted && timeLeft > 0 && (
                         <SubmitBtn
                             onClick={handleSubmit}
-                            disabled={isMC && selected.length === 0}
+                            disabled={(isMC && selected.length === 0) || wcEmpty}
                         >
                             Submit Answer
                         </SubmitBtn>
@@ -748,11 +773,25 @@ export default function SyncPollPage() {
                         <DistBars options={opts} dist={answerDist} total={distTotal} />
                     )}
 
+                    {/* Word cloud reveal — direct participants to the big screen */}
+                    {question.type === 'wordcloud' && (
+                        <div style={{ textAlign: 'center', padding: '16px 0', color: C.muted, fontSize: 14 }}>
+                            ☁ Word cloud on the host screen
+                            {submitted && freetextVal && (
+                                <div style={{ marginTop: 8, fontSize: 20, fontWeight: 700, color: C.blue }}>
+                                    "{freetextVal}"
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {submitted ? (
                         <FeedbackBox correct={correct !== false}>
                             {correct === true  && `✓ Correct! +${pointsEarned.toLocaleString()} pts`}
                             {correct === false && '✗ Wrong answer'}
-                            {correct === null  && `Recorded +${pointsEarned} pts`}
+                            {correct === null  && question?.type === 'wordcloud'
+                                ? `Your word is in the cloud ☁`
+                                : `Recorded +${pointsEarned} pts`}
                         </FeedbackBox>
                     ) : (
                         <FeedbackBox correct={false} style={{ fontSize: 15 }}>

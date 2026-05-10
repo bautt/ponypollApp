@@ -11,22 +11,26 @@
  */
 
 export const QUESTION_TYPES = [
-    { value: 'single',   label: 'Single answer' },
-    { value: 'multi',    label: 'Multiple answers' },
-    { value: 'yesno',    label: 'Yes / No' },
-    { value: 'freetext', label: 'Free text' },
-    { value: 'slider',   label: 'Slider / Rating' },
+    { value: 'single',    label: 'Single answer' },
+    { value: 'multi',     label: 'Multiple answers' },
+    { value: 'yesno',     label: 'Yes / No' },
+    { value: 'freetext',  label: 'Free text' },
+    { value: 'slider',    label: 'Slider / Rating' },
+    { value: 'wordcloud', label: 'Word cloud' },
 ];
 
 /** Convert internal React shape → KV Store document. */
 export function toKvDoc(q) {
     const { _key, sort_order, text, type, timeLimit, options, explanation,
-            sliderMin, sliderMax, sliderStep, sliderUnit, quiz_id } = q;
+            sliderMin, sliderMax, sliderStep, sliderUnit,
+            wordcloudMaxChars, quiz_id } = q;
 
     let opts;
     if (type === 'slider') {
         opts = [{ min: sliderMin ?? 1, max: sliderMax ?? 10,
                   step: sliderStep ?? 1, unit: sliderUnit ?? '' }];
+    } else if (type === 'wordcloud') {
+        opts = [{ maxChars: wordcloudMaxChars ?? 32 }];
     } else {
         opts = options || defaultOptions(type || 'single');
     }
@@ -78,19 +82,25 @@ export function fromKvDoc(doc) {
                  sliderStep: cfg.step ?? 1, sliderUnit: cfg.unit ?? '' };
     }
 
+    if (type === 'wordcloud') {
+        const cfg = parsed[0] || {};
+        return { ...base, options: [], wordcloudMaxChars: cfg.maxChars ?? 32 };
+    }
+
     const opts = parsed.length ? withIds(parsed) : defaultOptions(type);
     return { ...base, options: opts };
 }
 
 export function defaultOptions(type) {
-    if (type === 'freetext') return [];   // accepted answers added by quiz maker
+    if (type === 'freetext')  return [];   // accepted answers added by quiz maker
+    if (type === 'wordcloud') return [{ maxChars: 32 }];
     if (type === 'yesno') {
         return [
             { id: 'A', text: 'Yes', correct: false },
             { id: 'B', text: 'No',  correct: false },
         ];
     }
-    if (type === 'freetext' || type === 'slider') return [];
+    if (type === 'freetext' || type === 'slider' || type === 'wordcloud') return [];
     return [
         { id: 'A', text: '', correct: false },
         { id: 'B', text: '', correct: false },
@@ -112,6 +122,7 @@ export function newQuestion(overrides = {}) {
         sliderMax: 10,
         sliderStep: 1,
         sliderUnit: '',
+        wordcloudMaxChars: 32,
         quiz_id: '',
         ...overrides,
     };

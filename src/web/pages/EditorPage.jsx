@@ -484,6 +484,7 @@ export default function EditorPage() {
     const handleTypeChange = (type) => {
         setActive('type', type);
         setActive('options', defaultOptions(type));
+        if (type === 'wordcloud') setActive('wordcloudMaxChars', 32);
     };
 
     const handleOptionText = (optIdx, text) => {
@@ -979,6 +980,28 @@ export default function EditorPage() {
                                 Saves this question · ↑ ↓ reordering is saved automatically
                             </span>
                         </div>
+
+                        {active.type === 'wordcloud' && (
+                            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
+                                <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>
+                                    ☁ <strong style={{ color: C.text }}>Word Cloud</strong> — participants type a word or short phrase. All submissions are displayed live as a word cloud on the host screen. Larger = more common.
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <label style={{ fontSize: 12, color: C.muted, whiteSpace: 'nowrap' }}>Max characters</label>
+                                    <input
+                                        type="number"
+                                        min={8} max={64} step={1}
+                                        value={active.wordcloudMaxChars ?? 32}
+                                        onChange={(e) => setActive({ ...active, wordcloudMaxChars: Math.max(8, Math.min(64, Number(e.target.value))) })}
+                                        style={{ width: 64, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 5, color: C.text, fontSize: 13, padding: '5px 10px', textAlign: 'center' }}
+                                    />
+                                    <span style={{ fontSize: 11, color: C.muted }}>8–64</span>
+                                </div>
+                                <div style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>
+                                    No correct answer — every submission earns participation points.
+                                </div>
+                            </div>
+                        )}
 
                         {active.type === 'freetext' && (
                             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>

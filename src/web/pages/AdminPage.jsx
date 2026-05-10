@@ -417,6 +417,99 @@ const MEDALS = ['🥇', '🥈', '🥉'];
 const OPTION_COLORS = ['#009CDE', '#5CC05C', '#ED8B00', '#9B59B6', '#E84545', '#20B2AA'];
 
 /** Horizontal distribution bars shown after answer reveal. */
+// ── WordCloud SVG component ───────────────────────────────────────────────────
+const WC_COLORS = ['#009CDE','#5CC05C','#F5A623','#E84545','#7EC8E3','#FF6D00','#A78BFA','#34D399','#FB923C','#F472B6'];
+
+function seededRand(seed) {
+    let s = seed;
+    return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 4294967296; };
+}
+
+function WordCloud({ words }) {
+    // words = [{ text, count }] sorted desc by count
+    if (!words || words.length === 0) {
+        return (
+            <div style={{ textAlign: 'center', color: C.muted, fontSize: 13, padding: '32px 0' }}>
+                Waiting for submissions…
+            </div>
+        );
+    }
+
+    const W = 680, H = 340;
+    const maxCount = words[0].count;
+    const minCount = words[words.length - 1].count;
+    const range    = Math.max(1, maxCount - minCount);
+
+    // Place words greedily — try random positions until no overlap (or give up)
+    const placed = [];
+    const rects  = [];
+
+    words.forEach((w, wi) => {
+        const t   = (w.count - minCount) / range;       // 0..1
+        const fs  = Math.round(14 + t * 42);            // 14px..56px
+        const rot = [0, -30, 30, -15, 15][wi % 5];
+        const rng = seededRand(wi * 7919 + w.text.charCodeAt(0));
+
+        // Approximate text bounding box (monospace-ish estimate)
+        const tw = w.text.length * fs * 0.58;
+        const th = fs * 1.2;
+
+        let placed_ok = false;
+        for (let attempt = 0; attempt < 80; attempt++) {
+            const cx = tw / 2 + rng() * (W - tw);
+            const cy = th / 2 + rng() * (H - th);
+            const r  = { x: cx - tw / 2, y: cy - th / 2, w: tw, h: th };
+            const overlap = rects.some(
+                (o) => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y
+            );
+            if (!overlap) {
+                rects.push(r);
+                placed.push({ ...w, cx, cy, fs, rot, color: WC_COLORS[wi % WC_COLORS.length] });
+                placed_ok = true;
+                break;
+            }
+        }
+        // If couldn't place without overlap, append at bottom (don't drop it)
+        if (!placed_ok) {
+            const cx = W / 2;
+            const cy = H - th / 2 - placed.filter((p) => p.cy > H * 0.8).length * (th + 4);
+            placed.push({ ...w, cx, cy, fs, rot, color: WC_COLORS[wi % WC_COLORS.length] });
+        }
+    });
+
+    return (
+        <div style={{ margin: '16px 0' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                ☁ Word Cloud &nbsp;
+                <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
+                    ({words.reduce((s, w) => s + w.count, 0)} submissions)
+                </span>
+            </div>
+            <svg
+                viewBox={`0 0 ${W} ${H}`}
+                style={{ width: '100%', height: 'auto', background: C.surface2, borderRadius: 10 }}
+            >
+                {placed.map((p, i) => (
+                    <text
+                        key={i}
+                        x={p.cx}
+                        y={p.cy}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize={p.fs}
+                        fontWeight={p.count === maxCount ? 800 : 600}
+                        fill={p.color}
+                        transform={p.rot !== 0 ? `rotate(${p.rot},${p.cx},${p.cy})` : undefined}
+                        style={{ fontFamily: "'Splunk Platform Sans','Inter',sans-serif", userSelect: 'none' }}
+                    >
+                        {p.text}
+                    </text>
+                ))}
+            </svg>
+        </div>
+    );
+}
+
 function DistBars({ options, dist, total }) {
     if (!options || options.length === 0 || total === 0) return null;
     const countMap = Object.fromEntries((dist || []).map((d) => [d.option, Number(d.count)]));
@@ -469,6 +562,7 @@ export default function AdminPage() {
     const [leaderboard, setLeaderboard]   = useState([]);
     const [answerDist, setAnswerDist]     = useState([]); // [{option, count}]
     const [distTotal, setDistTotal]       = useState(0);  // total respondents
+    const [wordcloudWords, setWordcloudWords] = useState([]); // [{text, count}]
     const [timeLeft, setTimeLeft]         = useState(0);
     const [status, setStatus]             = useState(null); // { error, msg }
     const [busy, setBusy]                 = useState(false);
@@ -583,6 +677,23 @@ export default function AdminPage() {
                         );
                         if (mounted) setParticipants(Number(rows[0]?.n || 0));
                     } catch (_) {}
+
+                    // Live word cloud refresh during question + reveal phases
+                    const qIdx  = sess.question_index ?? 0;
+                    const qType = questionsRef.current[qIdx]?.type;
+                    if (qType === 'wordcloud' && (sess.phase === 'question' || sess.phase === 'reveal')) {
+                        try {
+                            const wcRows = await runSearch(
+                                `index=ponypoll sourcetype=ponypoll_answer session_id="${sess.session_id}" question_index=${qIdx} | stats count by answer | sort -count`,
+                                { earliest: '-1d' }
+                            );
+                            if (mounted) {
+                                setWordcloudWords(
+                                    wcRows.filter((r) => r.answer?.trim()).map((r) => ({ text: r.answer.trim(), count: Number(r.count) }))
+                                );
+                            }
+                        } catch (_) {}
+                    }
                 }
 
                 // Re-hydrate questions if host refreshed mid-session
@@ -712,20 +823,30 @@ export default function AdminPage() {
         finally { setBusy(false); }
     };
 
-    const fetchDist = async (sid, qIdx) => {
+    const fetchDist = async (sid, qIdx, qType) => {
         try {
-            const [distRows, totalRows] = await Promise.all([
-                runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
+            if (qType === 'wordcloud') {
+                const rows = await runSearch(
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | stats count by answer | sort -count`,
                     { earliest: '-1d' }
-                ),
-                runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | stats count as total`,
-                    { earliest: '-1d' }
-                ),
-            ]);
-            setAnswerDist(distRows);
-            setDistTotal(Number(totalRows[0]?.total || 0));
+                );
+                setWordcloudWords(
+                    rows.filter((r) => r.answer?.trim()).map((r) => ({ text: r.answer.trim(), count: Number(r.count) }))
+                );
+            } else {
+                const [distRows, totalRows] = await Promise.all([
+                    runSearch(
+                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
+                        { earliest: '-1d' }
+                    ),
+                    runSearch(
+                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | stats count as total`,
+                        { earliest: '-1d' }
+                    ),
+                ]);
+                setAnswerDist(distRows);
+                setDistTotal(Number(totalRows[0]?.total || 0));
+            }
         } catch (_) {}
     };
 
@@ -735,17 +856,19 @@ export default function AdminPage() {
         setBusy(true);
         try {
             await write({ phase: 'reveal' });
-            const sid  = sessionRef.current?.session_id;
-            const qIdx = sessionRef.current?.question_index ?? 0;
+            const sid   = sessionRef.current?.session_id;
+            const qIdx  = sessionRef.current?.question_index ?? 0;
+            const qType = questionsRef.current[qIdx]?.type;
             if (sid) {
                 setAnswerDist([]);
                 setDistTotal(0);
+                setWordcloudWords([]);
                 const [lbRows] = await Promise.all([
                     runSearch(
                         `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" | stats sum(points) as score by nickname | sort -score | head 10`,
                         { earliest: '-1d' }
                     ),
-                    fetchDist(sid, qIdx),
+                    fetchDist(sid, qIdx, qType),
                 ]);
                 setLeaderboard(lbRows);
             }
@@ -758,6 +881,7 @@ export default function AdminPage() {
         revealedRef.current = false;
         setAnswerDist([]);
         setDistTotal(0);
+        setWordcloudWords([]);
         try {
             const nextIdx = (sessionRef.current?.question_index || 0) + 1;
             const qs      = questionsRef.current;
@@ -1116,6 +1240,8 @@ export default function AdminPage() {
                             <OptionPill><OptionBadge>A</OptionBadge>Yes</OptionPill>
                             <OptionPill><OptionBadge>B</OptionBadge>No</OptionPill>
                         </Grid2>
+                    ) : currQ.type === 'wordcloud' ? (
+                        <WordCloud words={wordcloudWords} />
                     ) : (
                         <div style={{ color: C.muted, fontSize: 13, marginBottom: 20 }}>
                             {currQ.type === 'slider'
@@ -1166,9 +1292,14 @@ export default function AdminPage() {
                         </Grid2>
                     )}
 
-                    {/* Answer distribution — visible for choice-type questions */}
+                    {/* Answer distribution — choice questions */}
                     {(currQ.type === 'single' || currQ.type === 'multi' || currQ.type === 'yesno') && (
                         <DistBars options={currQ.options} dist={answerDist} total={distTotal} />
+                    )}
+
+                    {/* Word cloud — wordcloud questions */}
+                    {currQ.type === 'wordcloud' && (
+                        <WordCloud words={wordcloudWords} />
                     )}
 
                     {/* Explanation — shown to host so they can read it aloud */}
