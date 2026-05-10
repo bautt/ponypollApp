@@ -272,9 +272,9 @@ function DistBars({ options, dist, total }) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function answerString(type, selected, sliderVal, freetextVal) {
+function answerString(type, selected, sliderVal, freetextVal, wcWords) {
     if (type === 'freetext')  return freetextVal;
-    if (type === 'wordcloud') return freetextVal;
+    if (type === 'wordcloud') return wcWords.join(',');
     if (type === 'slider') return String(sliderVal ?? '');
     return selected.join(',');
 }
@@ -308,6 +308,8 @@ export default function SyncPollPage() {
     const [loadedQKey, setLoadedQKey] = useState(null);  // which _key we last fetched
     const [selected, setSelected]     = useState([]);
     const [freetextVal, setFreetextVal] = useState('');
+    const [wcWords, setWcWords]       = useState([]);   // wordcloud: submitted chips
+    const [wcInput, setWcInput]       = useState('');   // wordcloud: current text
     const [sliderVal, setSliderVal]   = useState(null);
     const [submitted, setSubmitted]   = useState(false);
     const [pointsEarned, setPointsEarned] = useState(0);
@@ -395,6 +397,8 @@ export default function SyncPollPage() {
         setQuestion(null);
         setSelected([]);
         setFreetextVal('');
+        setWcWords([]);
+        setWcInput('');
         setSliderVal(null);
         setSubmitted(false);
         setWasCorrect(null);
@@ -490,7 +494,7 @@ export default function SyncPollPage() {
         const correct = isCorrect(q.type, selected, q.options ?? []);
         const pts     = (() => {
             if (q.type === 'freetext')  return 100;
-            if (q.type === 'wordcloud') return freetextVal.trim() ? 50 : 0;
+            if (q.type === 'wordcloud') return wcWords.length > 0 ? 50 : 0;
             if (q.type === 'slider')    return 50;
             return correct ? calcPoints(Number(session.time_limit) || 30, tLeft) : 0;
         })();
@@ -504,7 +508,7 @@ export default function SyncPollPage() {
             return next;
         });
 
-        const ansStr = answerString(q.type, selected, sliderVal, freetextVal);
+        const ansStr = answerString(q.type, selected, sliderVal, freetextVal, wcWords);
         try {
             await submitAnswer({
                 session_id:     session.session_id,
@@ -521,7 +525,7 @@ export default function SyncPollPage() {
                 time_remaining: tLeft,
             });
         } catch (_) { /* best-effort */ }
-    }, [submitted, question, session, selected, sliderVal, freetextVal]);
+    }, [submitted, question, session, selected, sliderVal, freetextVal, wcWords]);
 
     // ── Derived state ─────────────────────────────────────────────────────────
     const phase    = session?.phase || 'idle';
@@ -529,8 +533,8 @@ export default function SyncPollPage() {
     const timerPct = timeLim > 0 ? Math.round((timeLeft / timeLim) * 100) : 0;
     const qIdx     = Number(session?.question_index) || 0;
     const total    = session?.question_keys ? JSON.parse(session.question_keys).length : 0;
-    const locked      = submitted || timeLeft <= 0;
-    const wcEmpty     = question?.type === 'wordcloud' && freetextVal.trim().length === 0;
+    const locked  = submitted || timeLeft <= 0;
+    const wcEmpty = question?.type === 'wordcloud' && wcWords.length === 0;
 
     // ── Render ────────────────────────────────────────────────────────────────
 
@@ -645,21 +649,76 @@ export default function SyncPollPage() {
                         />
                     )}
 
-                    {/* Word cloud */}
+                    {/* Word cloud chip input */}
                     {question.type === 'wordcloud' && (() => {
                         const maxChars = question.wordcloudMaxChars ?? 32;
+                        const maxWords = question.wordcloudMaxWords ?? 7;
+                        const full     = wcWords.length >= maxWords;
                         return (
                             <div>
-                                <NicknameInput
-                                    placeholder="Type a word or short phrase…"
-                                    maxLength={maxChars}
-                                    value={freetextVal}
-                                    onChange={(e) => !locked && setFreetextVal(e.target.value)}
-                                    disabled={locked}
-                                    style={{ textAlign: 'center', fontSize: 18, letterSpacing: 1 }}
-                                />
-                                <div style={{ textAlign: 'right', fontSize: 11, color: C.muted, marginTop: 4 }}>
-                                    {freetextVal.length} / {maxChars}
+                                {/* Chips */}
+                                {wcWords.length > 0 && (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                                        {wcWords.map((w, i) => (
+                                            <span key={i} style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: 5,
+                                                background: C.blue + '33', border: `1px solid ${C.blue}`,
+                                                borderRadius: 20, padding: '3px 10px 3px 12px',
+                                                fontSize: 14, color: C.text,
+                                            }}>
+                                                {w}
+                                                {!locked && (
+                                                    <button
+                                                        onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
+                                                        style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 14, lineHeight: 1 }}
+                                                    >×</button>
+                                                )}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                                {/* Input row */}
+                                {!locked && !full && (
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <NicknameInput
+                                            placeholder="Add a word…"
+                                            maxLength={maxChars}
+                                            value={wcInput}
+                                            onChange={(e) => setWcInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    const w = wcInput.trim();
+                                                    if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
+                                                        setWcWords((prev) => [...prev, w]);
+                                                        setWcInput('');
+                                                    }
+                                                }
+                                            }}
+                                            style={{ flex: 1, margin: 0 }}
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                const w = wcInput.trim();
+                                                if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
+                                                    setWcWords((prev) => [...prev, w]);
+                                                    setWcInput('');
+                                                }
+                                            }}
+                                            disabled={!wcInput.trim()}
+                                            style={{
+                                                padding: '0 18px', borderRadius: 8, border: 'none',
+                                                background: C.blue, color: '#fff', fontWeight: 700,
+                                                fontSize: 18, cursor: wcInput.trim() ? 'pointer' : 'not-allowed',
+                                                opacity: wcInput.trim() ? 1 : 0.4,
+                                            }}
+                                        >+</button>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.muted, marginTop: 6 }}>
+                                    <span>{wcWords.length} / {maxWords} words</span>
+                                    {!locked && !full && <span>{wcInput.length} / {maxChars} chars</span>}
+                                    {full && !locked && <span style={{ color: C.green }}>Word limit reached — submit when ready</span>}
                                 </div>
                             </div>
                         );
@@ -703,7 +762,7 @@ export default function SyncPollPage() {
                             {wasCorrect === true  && `✓ Correct! +${pointsEarned.toLocaleString()} pts`}
                             {wasCorrect === false && '✗ Wrong answer'}
                             {wasCorrect === null  && question?.type === 'wordcloud'
-                                ? `"${freetextVal}" added to the cloud ☁`
+                                ? `${wcWords.length} word${wcWords.length !== 1 ? 's' : ''} added to the cloud ☁`
                                 : `Recorded +${pointsEarned} pts`}
                         </FeedbackBox>
                     )}
@@ -773,13 +832,19 @@ export default function SyncPollPage() {
                         <DistBars options={opts} dist={answerDist} total={distTotal} />
                     )}
 
-                    {/* Word cloud reveal — direct participants to the big screen */}
+                    {/* Word cloud reveal */}
                     {question.type === 'wordcloud' && (
                         <div style={{ textAlign: 'center', padding: '16px 0', color: C.muted, fontSize: 14 }}>
                             ☁ Word cloud on the host screen
-                            {submitted && freetextVal && (
-                                <div style={{ marginTop: 8, fontSize: 20, fontWeight: 700, color: C.blue }}>
-                                    "{freetextVal}"
+                            {submitted && wcWords.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+                                    {wcWords.map((w, i) => (
+                                        <span key={i} style={{
+                                            background: C.blue + '33', border: `1px solid ${C.blue}`,
+                                            borderRadius: 20, padding: '3px 12px',
+                                            fontSize: 14, color: C.text,
+                                        }}>{w}</span>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -790,7 +855,7 @@ export default function SyncPollPage() {
                             {correct === true  && `✓ Correct! +${pointsEarned.toLocaleString()} pts`}
                             {correct === false && '✗ Wrong answer'}
                             {correct === null  && question?.type === 'wordcloud'
-                                ? `Your word is in the cloud ☁`
+                                ? `Your ${wcWords.length} word${wcWords.length !== 1 ? 's' : ''} are in the cloud ☁`
                                 : `Recorded +${pointsEarned} pts`}
                         </FeedbackBox>
                     ) : (

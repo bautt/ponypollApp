@@ -434,6 +434,8 @@ export default function PollPage() {
     const [score, setScore] = useState(0);
     const [selected, setSelected] = useState([]);
     const [freetextVal, setFreetextVal] = useState('');
+    const [wcWords, setWcWords]   = useState([]);
+    const [wcInput, setWcInput]   = useState('');
     const [sliderVal, setSliderVal] = useState(null);
     const [timeRemaining, setTimeRemaining] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
@@ -475,6 +477,8 @@ export default function PollPage() {
         setPhase(PHASE.QUESTION);
         setSelected([]);
         setFreetextVal('');
+        setWcWords([]);
+        setWcInput('');
         setSliderVal(null);
         setFeedback(null);
         setTimerRunning(true);
@@ -518,7 +522,7 @@ export default function PollPage() {
 
         if (currentQ.type === 'wordcloud') {
             correct = null;
-            points = freetextVal.trim().length > 0 ? 50 : 0;
+            points = wcWords.length > 0 ? 50 : 0;
         } else if (currentQ.type === 'slider') {
             correct = null;
             points = sliderVal !== null ? 50 : 0;
@@ -558,7 +562,8 @@ export default function PollPage() {
 
         // Submit answer to Splunk index
         let answerValue;
-        if (currentQ.type === 'freetext' || currentQ.type === 'wordcloud') answerValue = freetextVal;
+        if (currentQ.type === 'wordcloud') answerValue = wcWords.join(',');
+        else if (currentQ.type === 'freetext') answerValue = freetextVal;
         else if (currentQ.type === 'slider') answerValue = String(sliderVal ?? '');
         else answerValue = selected.join(',');
 
@@ -575,7 +580,7 @@ export default function PollPage() {
             time_remaining: remainingSecs,
         };
         submitAnswer(payload).catch(() => {/* fire and forget */});
-    }, [currentQ, selected, freetextVal, sliderVal, qIndex, nickname, config.poll_index]);
+    }, [currentQ, selected, freetextVal, wcWords, sliderVal, qIndex, nickname, config.poll_index]);
 
     const handleSelect = (optId) => {
         if (phase !== PHASE.QUESTION || timerRunning === false) return;
@@ -591,7 +596,8 @@ export default function PollPage() {
 
     const submitQuestion = () => {
         if (currentQ.type === 'slider' && sliderVal === null) return;
-        if ((currentQ.type === 'freetext' || currentQ.type === 'wordcloud') && freetextVal.trim() === '') return;
+        if (currentQ.type === 'wordcloud' && wcWords.length === 0) return;
+        if (currentQ.type === 'freetext' && freetextVal.trim() === '') return;
         if (!['freetext', 'wordcloud', 'slider'].includes(currentQ.type) && selected.length === 0) return;
         revealAnswer(timeRemaining);
     };
@@ -615,6 +621,8 @@ export default function PollPage() {
         setQIndex(next);
         setSelected([]);
         setFreetextVal('');
+        setWcWords([]);
+        setWcInput('');
         setSliderVal(null);
         setFeedback(null);
         setPhase(PHASE.QUESTION);
@@ -706,7 +714,9 @@ export default function PollPage() {
 
     const q = currentQ;
     const isReveal = phase === PHASE.REVEAL;
-    const canSubmit = (q.type === 'freetext' || q.type === 'wordcloud')
+    const canSubmit = q.type === 'wordcloud'
+        ? wcWords.length > 0
+        : q.type === 'freetext'
         ? freetextVal.trim().length > 0
         : q.type === 'slider'
             ? sliderVal !== null
@@ -744,20 +754,73 @@ export default function PollPage() {
                     />
                 ) : q.type === 'wordcloud' ? (
                     <div>
-                        <FreetextArea
-                            placeholder="Type a word or short phrase…"
-                            maxLength={q.wordcloudMaxChars ?? 32}
-                            value={freetextVal}
-                            onChange={(e) => !isReveal && setFreetextVal(e.target.value)}
-                            disabled={isReveal}
-                            style={{ textAlign: 'center', fontSize: 20, letterSpacing: 1, resize: 'none', height: 'auto', rows: 1 }}
-                        />
-                        <div style={{ textAlign: 'right', fontSize: 11, color: C.muted, marginTop: 4 }}>
-                            {freetextVal.length} / {q.wordcloudMaxChars ?? 32}
+                        {/* Chips */}
+                        {wcWords.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                                {wcWords.map((w, i) => (
+                                    <span key={i} style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                                        background: C.blue + '33', border: `1px solid ${C.blue}`,
+                                        borderRadius: 20, padding: '3px 10px 3px 12px',
+                                        fontSize: 14, color: C.text,
+                                    }}>
+                                        {w}
+                                        {!isReveal && (
+                                            <button
+                                                onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
+                                                style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 14, lineHeight: 1 }}
+                                            >×</button>
+                                        )}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        {/* Input row */}
+                        {!isReveal && wcWords.length < (q.wordcloudMaxWords ?? 7) && (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <FreetextArea
+                                    placeholder="Add a word…"
+                                    maxLength={q.wordcloudMaxChars ?? 32}
+                                    value={wcInput}
+                                    onChange={(e) => setWcInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const w = wcInput.trim();
+                                            if (w && !wcWords.includes(w) && wcWords.length < (q.wordcloudMaxWords ?? 7)) {
+                                                setWcWords((prev) => [...prev, w]);
+                                                setWcInput('');
+                                            }
+                                        }
+                                    }}
+                                    style={{ flex: 1, resize: 'none', height: 'auto' }}
+                                />
+                                <button
+                                    onClick={() => {
+                                        const w = wcInput.trim();
+                                        if (w && !wcWords.includes(w) && wcWords.length < (q.wordcloudMaxWords ?? 7)) {
+                                            setWcWords((prev) => [...prev, w]);
+                                            setWcInput('');
+                                        }
+                                    }}
+                                    disabled={!wcInput.trim()}
+                                    style={{
+                                        alignSelf: 'stretch', padding: '0 18px', borderRadius: 8, border: 'none',
+                                        background: C.blue, color: '#fff', fontWeight: 700,
+                                        fontSize: 20, cursor: wcInput.trim() ? 'pointer' : 'not-allowed',
+                                        opacity: wcInput.trim() ? 1 : 0.4,
+                                    }}
+                                >+</button>
+                            </div>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.muted, marginTop: 6 }}>
+                            <span>{wcWords.length} / {q.wordcloudMaxWords ?? 7} words</span>
+                            {!isReveal && wcWords.length < (q.wordcloudMaxWords ?? 7) && <span>{wcInput.length} / {q.wordcloudMaxChars ?? 32}</span>}
+                            {wcWords.length >= (q.wordcloudMaxWords ?? 7) && !isReveal && <span style={{ color: C.accent }}>Word limit reached</span>}
                         </div>
-                        {isReveal && freetextVal.trim() && (
+                        {isReveal && wcWords.length > 0 && (
                             <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: C.muted }}>
-                                ☁ Your word is in the cloud on the host screen
+                                ☁ Your words are in the cloud
                             </div>
                         )}
                     </div>

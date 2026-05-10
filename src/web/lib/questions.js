@@ -23,14 +23,14 @@ export const QUESTION_TYPES = [
 export function toKvDoc(q) {
     const { _key, sort_order, text, type, timeLimit, options, explanation,
             sliderMin, sliderMax, sliderStep, sliderUnit,
-            wordcloudMaxChars, quiz_id } = q;
+            wordcloudMaxChars, wordcloudMaxWords, quiz_id } = q;
 
     let opts;
     if (type === 'slider') {
         opts = [{ min: sliderMin ?? 1, max: sliderMax ?? 10,
                   step: sliderStep ?? 1, unit: sliderUnit ?? '' }];
     } else if (type === 'wordcloud') {
-        opts = [{ maxChars: wordcloudMaxChars ?? 32 }];
+        opts = [{ maxChars: wordcloudMaxChars ?? 32, maxWords: wordcloudMaxWords ?? 7 }];
     } else {
         opts = options || defaultOptions(type || 'single');
     }
@@ -84,7 +84,7 @@ export function fromKvDoc(doc) {
 
     if (type === 'wordcloud') {
         const cfg = parsed[0] || {};
-        return { ...base, options: [], wordcloudMaxChars: cfg.maxChars ?? 32 };
+        return { ...base, options: [], wordcloudMaxChars: cfg.maxChars ?? 32, wordcloudMaxWords: cfg.maxWords ?? 7 };
     }
 
     const opts = parsed.length ? withIds(parsed) : defaultOptions(type);
@@ -123,6 +123,7 @@ export function newQuestion(overrides = {}) {
         sliderStep: 1,
         sliderUnit: '',
         wordcloudMaxChars: 32,
+        wordcloudMaxWords: 7,
         quiz_id: '',
         ...overrides,
     };

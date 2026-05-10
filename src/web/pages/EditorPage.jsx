@@ -484,7 +484,7 @@ export default function EditorPage() {
     const handleTypeChange = (type) => {
         setActive('type', type);
         setActive('options', defaultOptions(type));
-        if (type === 'wordcloud') setActive('wordcloudMaxChars', 32);
+        if (type === 'wordcloud') { setActive('wordcloudMaxChars', 32); setActive('wordcloudMaxWords', 7); }
     };
 
     const handleOptionText = (optIdx, text) => {
@@ -983,22 +983,35 @@ export default function EditorPage() {
 
                         {active.type === 'wordcloud' && (
                             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
-                                <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>
-                                    ☁ <strong style={{ color: C.text }}>Word Cloud</strong> — participants type a word or short phrase. All submissions are displayed live as a word cloud on the host screen. Larger = more common.
+                                <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>
+                                    ☁ <strong style={{ color: C.text }}>Word Cloud</strong> — participants submit up to <strong style={{ color: C.text }}>{active.wordcloudMaxWords ?? 7}</strong> words during the time limit. All words appear as a cloud on reveal — bigger = more frequent.
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <label style={{ fontSize: 12, color: C.muted, whiteSpace: 'nowrap' }}>Max characters</label>
-                                    <input
-                                        type="number"
-                                        min={8} max={64} step={1}
-                                        value={active.wordcloudMaxChars ?? 32}
-                                        onChange={(e) => setActive({ ...active, wordcloudMaxChars: Math.max(8, Math.min(64, Number(e.target.value))) })}
-                                        style={{ width: 64, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 5, color: C.text, fontSize: 13, padding: '5px 10px', textAlign: 'center' }}
-                                    />
-                                    <span style={{ fontSize: 11, color: C.muted }}>8–64</span>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <label style={{ fontSize: 12, color: C.muted, whiteSpace: 'nowrap' }}>Max words per participant</label>
+                                        <input
+                                            type="number"
+                                            min={1} max={20} step={1}
+                                            value={active.wordcloudMaxWords ?? 7}
+                                            onChange={(e) => setActive({ ...active, wordcloudMaxWords: Math.max(1, Math.min(20, Number(e.target.value))) })}
+                                            style={{ width: 56, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 5, color: C.text, fontSize: 13, padding: '5px 10px', textAlign: 'center' }}
+                                        />
+                                        <span style={{ fontSize: 11, color: C.muted }}>1–20</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <label style={{ fontSize: 12, color: C.muted, whiteSpace: 'nowrap' }}>Max chars per word</label>
+                                        <input
+                                            type="number"
+                                            min={4} max={64} step={1}
+                                            value={active.wordcloudMaxChars ?? 32}
+                                            onChange={(e) => setActive({ ...active, wordcloudMaxChars: Math.max(4, Math.min(64, Number(e.target.value))) })}
+                                            style={{ width: 56, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 5, color: C.text, fontSize: 13, padding: '5px 10px', textAlign: 'center' }}
+                                        />
+                                        <span style={{ fontSize: 11, color: C.muted }}>4–64</span>
+                                    </div>
                                 </div>
                                 <div style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>
-                                    No correct answer — every submission earns participation points.
+                                    No correct answer — any submission earns participation points. Time limit is shared with the question timer above.
                                 </div>
                             </div>
                         )}

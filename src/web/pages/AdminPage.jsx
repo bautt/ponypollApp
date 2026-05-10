@@ -684,7 +684,7 @@ export default function AdminPage() {
                     if (qType === 'wordcloud' && (sess.phase === 'question' || sess.phase === 'reveal')) {
                         try {
                             const wcRows = await runSearch(
-                                `index=ponypoll sourcetype=ponypoll_answer session_id="${sess.session_id}" question_index=${qIdx} | stats count by answer | sort -count`,
+                                `index=ponypoll sourcetype=ponypoll_answer session_id="${sess.session_id}" question_index=${qIdx} | eval words=split(answer,",") | mvexpand words | eval word=trim(words) | where len(word)>0 | stats count by word | sort -count | rename word as answer`,
                                 { earliest: '-1d' }
                             );
                             if (mounted) {
@@ -827,7 +827,7 @@ export default function AdminPage() {
         try {
             if (qType === 'wordcloud') {
                 const rows = await runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | stats count by answer | sort -count`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | eval words=split(answer,",") | mvexpand words | eval word=trim(words) | where len(word)>0 | stats count by word | sort -count | rename word as answer`,
                     { earliest: '-1d' }
                 );
                 setWordcloudWords(
