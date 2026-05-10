@@ -2,9 +2,9 @@
 
 <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
-> **v1.3.1** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.3.14** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
-Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports five question types (single choice, multiple choice, yes/no, free text, and slider), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
+Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports six question types (single choice, multiple choice, yes/no, free text, slider, and **word cloud**), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
 ---
 
@@ -20,7 +20,7 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 |---|---|
 | **Run a quiz** | Open the **Poll** tab, enter your nickname, hit Start |
 | **Host a live session** | **Admin** tab — pick a quiz, set the mode, activate or start a synchronized session |
-| **Build questions** | **Editor** tab — 5 types, reorder (auto-saved), set time limits, add explanations |
+| **Build questions** | **Editor** tab — 6 types, reorder (auto-saved), set time limits, add explanations |
 | **Use ready-made quizzes** | **📚 Library** (bundled) or **🔄 GitHub** (live sync from this repo) |
 | **Share a quiz** | **Export** → JSON file; anyone can **Import** on another instance |
 | **Analyse results** | Built-in **Analytics** tab — leaderboard, KPI cards, question difficulty, session filter; or raw SPL: `index=ponypoll \| stats sum(points) by nickname` |
@@ -30,7 +30,31 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 
 ---
 
-## Screenshots
+## Changelog
+
+### v1.3.14 — Word cloud & participant permissions (2026-05-10)
+
+**New: Word cloud question type**
+
+A new `wordcloud` question type lets participants brainstorm and vote with words. During the countdown, each participant types up to N words; when the time is up (or they submit early) the host sees a live SVG word cloud where word size reflects how many participants mentioned that term.
+
+- **Inline tag input**: press `Space` or `Enter` to commit each word as a chip; `Backspace` on an empty field removes the last chip
+- **Phrase support**: type `word_word` or `"two words"` to submit a multi-word term as a single chip
+- **Admin controls** (in the Editor): max words per participant (1–20, default 7) and max chars per word (4–64, default 32)
+- **Live word cloud** on the Admin tab during both the question phase and the reveal phase
+- **Auto-submit on timer expiry**: any entered words are submitted automatically when the countdown reaches zero
+- **Scoring**: 100 pts for any non-empty submission; no correct/incorrect marking
+
+**Fix: `ponypoll_user` permissions for non-admin participants**
+
+Previously, participants assigned only the `user` Splunk role received `403 Unauthorized` errors when submitting quiz answers or joining synchronized sessions. Two capabilities are now granted to `ponypoll_user`:
+
+| Capability | What it unlocks |
+|---|---|
+| `edit_tcp` | Allows `receivers/simple` POST calls from non-admin users — required to index answer events |
+| `edit_kvstore` | Allows writing to `ponypoll_presence` and `ponypoll_session` — required to appear in the synchronized session lobby |
+
+---
 
 **Poll — start screen**
 
@@ -132,7 +156,7 @@ In the **Admin** tab, each quiz has a **Mode** toggle that is saved immediately 
 
 | Feature | Detail |
 |---|---|
-| **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating |
+| **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating · **Word cloud** |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
 | **Admin tab** | Unified quiz control room — activate self-paced quizzes or start synchronized sessions; includes QR code, short URL, and session name input |
 | **Synchronized host mode** | Presenter-led quiz: host controls question flow, all participants see the same question simultaneously with server-authoritative timer, answer distribution, explanation callout, and per-question leaderboard |
@@ -145,6 +169,8 @@ In the **Admin** tab, each quiz has a **Mode** toggle that is saved immediately 
 | **WYSIWYG editor** | Built-in question editor with reorder, delete, and type switching |
 | **KV Store backed** | Questions, quizzes, and config stored in Splunk KV Store — no external database needed |
 | **Analytics dashboard** | Built-in **📊 Analytics** tab — KPI scorecards, leaderboard, per-question difficulty bars, recent sessions; filterable by time range, quiz, session name, and nickname |
+| **Word cloud** | New question type — participants submit up to N words during the time limit; the host sees a live SVG word cloud where size = frequency |
+| **Participant permissions** | `ponypoll_user` role ships with `edit_tcp` and `edit_kvstore` capabilities so non-admin users can submit answers and appear in the synchronized lobby |
 | **Splunk index** | Every answer and quiz lifecycle event written directly via `receivers/simple` — no custom Python required |
 | **Splunk brand** | Splunk dark theme, Splunk UI colours, Buttercup mascot |
 | **Lazy-loaded JS** | Main bundle is ~220 KB; large dependencies loaded on demand |
@@ -407,8 +433,74 @@ sudo cp dist/appserver/static/poll.bundle.js /opt/splunk/etc/apps/ponypollapp/ap
 | `yesno` | Yes or No | Speed bonus: 500–1000 pts |
 | `freetext` | Open text (up to 100 chars), stored as-is | 100 pts for any non-empty answer |
 | `slider` | Numeric range (configurable min/max/step/unit) | 50 pts for participation |
+| `wordcloud` | Participants submit up to N short words or phrases during the time limit; host sees a live SVG word cloud sized by frequency | 100 pts for any non-empty submission |
 
 Slider questions store the raw numeric value in Splunk, making them ideal for rating scales, NPS scores, or confidence checks.
+
+---
+
+## Word cloud question
+
+The **word cloud** type is designed for open-ended questions where you want to see which terms participants mention most — brainstorming, mood checks, "one word to describe X", or collective tagging exercises.
+
+### How participants enter words
+
+Words are entered in an inline tag field:
+
+- Press **Space** or **Enter** to commit each word as a chip
+- Press **Backspace** on an empty field to remove the last chip
+- To submit a **multi-word phrase** as a single term, use either:
+  - Underscores: `machine_learning` → displayed as *machine learning*
+  - Quotes: `"machine learning"` → displayed as *machine learning*
+
+### Admin configuration (in the Editor)
+
+| Setting | Default | Range | Description |
+|---|---|---|---|
+| **Time limit** | 30 s | any | Countdown in seconds — same as all other question types |
+| **Max words per participant** | 7 | 1–20 | Maximum number of word chips a participant can submit |
+| **Max chars per word** | 32 | 4–64 | Maximum character length of each individual word chip |
+
+When the timer expires, any words already entered are submitted automatically.
+
+### What the host sees
+
+During the question **and** on reveal, the Admin tab shows a live SVG word cloud:
+
+- Word **size** is proportional to submission frequency
+- Words are placed using a greedy non-overlapping layout
+- Up to 10% of words are rotated ±45° for visual variety
+- Colors cycle through the Splunk palette
+
+The SPL behind the live cloud (runs every 3 s during the question phase):
+
+```spl
+index=ponypoll sourcetype=ponypoll_answer session_id="<sid>" question_index=<n>
+| eval words=split(answer,",")
+| mvexpand words
+| eval word=trim(words)
+| where len(word)>0
+| stats count by word
+| sort -count
+| rename word as answer
+```
+
+### JSON format for word cloud questions
+
+```json
+{
+  "text": "Name one thing Splunk does better than anything else",
+  "type": "wordcloud",
+  "timeLimit": 30,
+  "wordcloudMaxWords": 7,
+  "wordcloudMaxChars": 32
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `wordcloudMaxWords` | number | `7` | Maximum words per participant |
+| `wordcloudMaxChars` | number | `32` | Maximum characters per word |
 
 ---
 
@@ -514,7 +606,7 @@ The **Editor** tab is for building and managing quiz content.
 | Field | Notes |
 |---|---|
 | **Question text** | The question shown to participants |
-| **Type** | Single · Multi · Yes/No · Free text · Slider |
+| **Type** | Single · Multi · Yes/No · Free text · Slider · Word cloud |
 | **Time limit** | Countdown in seconds |
 | **Answers** | Options with ✓ correct marking (not for slider/freetext) |
 | **Explanation** | Optional "why" text shown as a 💡 callout after the answer is revealed |
@@ -552,14 +644,16 @@ The exported JSON is an array of question objects. Below is the full schema with
 [
   {
     "text": "Question text shown to participants",
-    "type": "single | multi | yesno | freetext | slider",
+    "type": "single | multi | yesno | freetext | slider | wordcloud",
     "timeLimit": 30,
     "explanation": "Optional one-line 'why' shown after the answer is revealed",
     "options": [ ... ],
     "sliderMin": 1,
     "sliderMax": 10,
     "sliderStep": 1,
-    "sliderUnit": ""
+    "sliderUnit": "",
+    "wordcloudMaxWords": 7,
+    "wordcloudMaxChars": 32
   }
 ]
 ```
@@ -567,7 +661,7 @@ The exported JSON is an array of question objects. Below is the full schema with
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `text` | string | **yes** | The question text displayed to participants |
-| `type` | string | **yes** | One of `single`, `multi`, `yesno`, `freetext`, `slider` |
+| `type` | string | **yes** | One of `single`, `multi`, `yesno`, `freetext`, `slider`, `wordcloud` |
 | `timeLimit` | number | no | Countdown in seconds (default: `30`) |
 | `explanation` | string | no | Short "why" text shown as a 💡 callout after the correct answer is revealed (default: `""`) |
 | `options` | array | for `single`/`multi`/`yesno` | Answer choices — see per-type details below |
@@ -575,6 +669,8 @@ The exported JSON is an array of question objects. Below is the full schema with
 | `sliderMax` | number | for `slider` | Maximum slider value (default: `10`) |
 | `sliderStep` | number | for `slider` | Step increment (default: `1`) |
 | `sliderUnit` | string | for `slider` | Unit label shown next to the value, e.g. `"/10"`, `"°C"` (default: `""`) |
+| `wordcloudMaxWords` | number | for `wordcloud` | Max number of words per participant (default: `7`, range: 1–20) |
+| `wordcloudMaxChars` | number | for `wordcloud` | Max characters per word chip (default: `32`, range: 4–64) |
 
 > **Note:** The `_key` and `quiz_id` fields are stripped on export and regenerated on import, so JSON files are fully portable between instances.
 
@@ -697,6 +793,27 @@ The exported JSON is an array of question objects. Below is the full schema with
 
 ---
 
+### Type: `wordcloud` — open word submission
+
+```json
+{
+  "text": "Name one thing Splunk does better than anything else",
+  "type": "wordcloud",
+  "timeLimit": 30,
+  "wordcloudMaxWords": 7,
+  "wordcloudMaxChars": 32
+}
+```
+
+- `options` should be an empty array (or omitted)
+- No correct/incorrect scoring; participants receive **100 pts** for any non-empty submission
+- Participants enter up to `wordcloudMaxWords` chips; each chip is limited to `wordcloudMaxChars` characters
+- Multi-word phrases: type `word_word` or `"two words"` — both are stored and displayed with spaces
+- Submitted words are stored as a comma-separated string in the `answer` field of the Splunk event
+- The host sees a live SVG word cloud on both the question phase and the reveal phase — word size reflects submission frequency
+
+---
+
 ### Complete example file
 
 ```json
@@ -748,6 +865,13 @@ The exported JSON is an array of question objects. Below is the full schema with
     "sliderMax": 10,
     "sliderStep": 1,
     "sliderUnit": "/10"
+  },
+  {
+    "text": "Name one thing Splunk does better than anything else",
+    "type": "wordcloud",
+    "timeLimit": 30,
+    "wordcloudMaxWords": 7,
+    "wordcloudMaxChars": 32
   }
 ]
 ```
@@ -827,6 +951,29 @@ index=ponypoll type=slider
 index=ponypoll type=freetext | table _time nickname question answer
 ```
 
+**Word cloud — top terms for a question:**
+```spl
+index=ponypoll type=wordcloud question="Name one thing Splunk does better*"
+| eval words=split(answer,",")
+| mvexpand words
+| eval word=trim(words)
+| where len(word)>0
+| stats count by word
+| sort -count
+| head 30
+```
+
+**Word cloud — all terms across all participants:**
+```spl
+index=ponypoll type=wordcloud
+| eval words=split(answer,",")
+| mvexpand words
+| eval word=lower(trim(words))
+| where len(word)>0
+| stats count by word, question
+| sort -count
+```
+
 ---
 
 ## Configuration
@@ -882,7 +1029,19 @@ curl -k -u admin:password https://splunk-host:8089/services/authentication/users
 | Object | Read | Write |
 |---|---|---|
 | KV Store — questions, config, quizzes | Everyone | `ponypoll_admin`, `admin`, `sc_admin`, `power` |
+| KV Store — session & presence (sync lobby) | Everyone | Everyone (authenticated) |
 | `ponypoll` index (submit answers) | Admins | Everyone (authenticated) |
+
+### Capabilities on `ponypoll_user`
+
+The `ponypoll_user` role ships with two non-default capabilities that are required for participants to function:
+
+| Capability | Why it is needed |
+|---|---|
+| `edit_kvstore` | Allows the participant to write their nickname into the synchronized session lobby (KV Store `ponypoll_presence` and `ponypoll_session` collections) |
+| `edit_tcp` | Required by Splunk's `receivers/simple` endpoint to accept events from non-admin users — this is the Splunk REST API used to index answer events without a custom Python script |
+
+Without `edit_tcp`, participants using a `user`-class account receive `403 Unauthorized` when submitting answers. This capability is the minimum required by Splunk's raw HTTP receiver for non-admin users.
 
 ---
 
