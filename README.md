@@ -2,7 +2,7 @@
 
 <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
-> **v1.3.0** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.3.1** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports five question types (single choice, multiple choice, yes/no, free text, and slider), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -19,10 +19,11 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 | What | How |
 |---|---|
 | **Run a quiz** | Open the **Poll** tab, enter your nickname, hit Start |
-| **Build questions** | **Editor** tab — 5 types, drag to reorder, set time limits |
+| **Host a live session** | **Admin** tab — pick a quiz, set the mode, activate or start a synchronized session |
+| **Build questions** | **Editor** tab — 5 types, reorder (auto-saved), set time limits, add explanations |
 | **Use ready-made quizzes** | **📚 Library** (bundled) or **🔄 GitHub** (live sync from this repo) |
 | **Share a quiz** | **Export** → JSON file; anyone can **Import** on another instance |
-| **Analyse results** | Built-in **Analytics** tab — leaderboard, KPI cards, question difficulty; or raw SPL: `index=ponypoll \| stats sum(points) by nickname` |
+| **Analyse results** | Built-in **Analytics** tab — leaderboard, KPI cards, question difficulty, session filter; or raw SPL: `index=ponypoll \| stats sum(points) by nickname` |
 | **Install** | Upload `ponypollapp.tar.gz` in Splunk UI — done |
 
 **Requires:** Splunk Enterprise with a valid license (KV Store must be enabled).
@@ -57,26 +58,37 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 
 ![Settings — active quiz selector, random subset control, default view, poll title](docs/screenshots/settings.png)
 
-**Host — synchronized session setup (QR code and URL masked)**
+**Admin — quiz control room (QR code and URL masked)**
 
-![Host tab — synchronized mode setup with QR code for participants and quiz/question selectors](docs/screenshots/host-idle.png)
+![Admin tab — quiz picker, mode toggle, session name input, QR code for participants](docs/screenshots/host-idle.png)
 
-**Host — answer reveal with distribution and leaderboard**
+**Admin — answer reveal with distribution and leaderboard**
 
-![Host tab — answer revealed, answer distribution bars per option, leaderboard after first question](docs/screenshots/host-reveal.png)
+![Admin tab — answer revealed, explanation callout, answer distribution bars per option, leaderboard](docs/screenshots/host-reveal.png)
 
 ---
 
-## Synchronized Host Mode
+## Admin Tab
 
-In addition to the default **self-paced** mode (every participant runs independently), Pony Poll supports a **Synchronized Host Mode** where the presenter controls the pace for everyone simultaneously — just like Kahoot.
+The **Admin** tab is the quiz control room. It handles both modes from one place:
 
-### How it works
+### Self-paced mode
 
 ```
-Host opens the 🎙 Host tab
-  → picks a quiz + optional question subset
-  → clicks ▶ Start Session   (opens a lobby)
+Admin tab → pick a quiz → Mode: Self-paced → ▶ Activate for Self-paced
+  → participants on /play load that quiz and run at their own pace
+  → share the QR code / URL so participants can join
+```
+
+### Synchronized mode
+
+In synchronized mode the presenter controls the pace for everyone simultaneously — just like Kahoot.
+
+```
+Admin tab → pick a quiz → Mode: 🎙 Synchronized
+  → enter a Session Name (e.g. "Workshop Berlin May 2026")
+  → set question count (all or a random subset)
+  → ▶ Start Synchronized Session   (opens a lobby)
 
 Participants open /play in their browser or scan the QR code
   → enter their nickname → they appear in the lobby
@@ -85,32 +97,34 @@ Host clicks ▶ Launch Quiz
   → Q1 appears on every participant screen at exactly the same second
   → timer counts down from a server-authoritative timestamp (no clock drift)
   → host clicks ⏹ Reveal Answers when ready
-  → answer distribution bars + interim leaderboard shown to everyone
+  → answer distribution bars + explanation + interim leaderboard shown to everyone
   → host clicks ▶ Next Question … repeat until done
   → final leaderboard shown
+  → ▶ Start New Session returns to the control room
 ```
 
 ### Key features
 
 | Feature | Detail |
 |---|---|
-| **QR code** | Shown on the Host tab; white-on-black, always scannable on a projector |
+| **Unified control room** | One tab for both self-paced activation and synchronized session management |
+| **Session name** | Required for synchronized sessions; appears in the Analytics **Session** filter so results are always traceable (e.g. `"Workshop Berlin May 2026"`) |
+| **QR code** | Shown in the Admin tab; white-on-black, always scannable on a projector |
 | **Short URL** | TinyURL auto-generated client-side for easy typing on laptops |
 | **Server-authoritative timer** | All clients compute remaining time from `question_started_at` in KV Store — no clock drift |
 | **Answer distribution** | Horizontal bars per option shown after reveal (both host and participant screens) |
+| **Answer explanation** | Optional "why" text written in the Editor; shown as a 💡 callout after reveal on all screens |
 | **Leaderboard after each question** | Runs a live SPL query against the Splunk index per reveal |
 | **Random question subset** | Choose how many questions to play at session-start (overrides the quiz default) |
 | **Auto-switch on /play** | The `/play` URL detects a live sync session every 4 s — participants are automatically routed without a reload |
 | **Full rollback** | Self-paced `PollPage` is completely untouched; switching back to self-paced is instant |
 
-### Per-quiz mode toggle
+### Mode toggle
 
-In the **Editor** tab, each quiz has a **⚡ Mode** toggle:
+In the **Admin** tab, each quiz has a **Mode** toggle that is saved immediately to KV Store:
 
 - **Self-paced** — each participant runs the quiz independently (default)
-- **🎙 Sync** — host controls the pace via the Host tab
-
-The toggle saves instantly to KV Store (no Save button needed) and shows a **✓ Saved** flash confirmation.
+- **🎙 Synchronized** — host controls the pace; a session name is required before starting
 
 ---
 
@@ -120,7 +134,9 @@ The toggle saves instantly to KV Store (no Save button needed) and shows a **✓
 |---|---|
 | **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
-| **Synchronized host mode** | Presenter-led quiz: host controls question flow, all participants see the same question simultaneously with server-authoritative timer, answer distribution, and per-question leaderboard |
+| **Admin tab** | Unified quiz control room — activate self-paced quizzes or start synchronized sessions; includes QR code, short URL, and session name input |
+| **Synchronized host mode** | Presenter-led quiz: host controls question flow, all participants see the same question simultaneously with server-authoritative timer, answer distribution, explanation callout, and per-question leaderboard |
+| **Answer explanation** | Optional "why" text per question shown as a 💡 callout after revealing the correct answer (self-paced and synchronized) |
 | **Random question subset** | Set a quiz to play a random N questions from its full pool (e.g. 12 of 34) — each participant gets a different draw |
 | **Export / Import** | Download any quiz as a JSON file; import to replace or append questions — great for sharing question sets between Splunk instances |
 | **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via **📚 Library**; **🔄 GitHub** button syncs the latest quizzes live from the repo |
@@ -128,7 +144,7 @@ The toggle saves instantly to KV Store (no Save button needed) and shows a **✓
 | **Nickname** | Pre-filled from the Splunk username, editable before starting |
 | **WYSIWYG editor** | Built-in question editor with reorder, delete, and type switching |
 | **KV Store backed** | Questions, quizzes, and config stored in Splunk KV Store — no external database needed |
-| **Analytics dashboard** | Built-in **📊 Analytics** tab — KPI scorecards, leaderboard, per-question difficulty bars, recent sessions; filterable by time range, quiz, and nickname |
+| **Analytics dashboard** | Built-in **📊 Analytics** tab — KPI scorecards, leaderboard, per-question difficulty bars, recent sessions; filterable by time range, quiz, session name, and nickname |
 | **Splunk index** | Every answer and quiz lifecycle event written directly via `receivers/simple` — no custom Python required |
 | **Splunk brand** | Splunk dark theme, Splunk UI colours, Buttercup mascot |
 | **Lazy-loaded JS** | Main bundle is ~220 KB; large dependencies loaded on demand |
@@ -405,9 +421,9 @@ The **Editor** tab has a quiz selector bar at the top of the sidebar. From there
 - **Rename** — rename the currently selected quiz
 - **Delete** — delete the quiz and all its questions (requires at least one quiz to remain)
 
-The **Settings** tab has an **Active quiz** selector that controls which quiz is shown to participants in the **Poll** tab.
+The **Admin** tab is where you choose which quiz to run. A `▶` marker in the quiz picker shows which quiz is currently live for participants.
 
-The **LIVE** badge appears next to the quiz name in the editor when that quiz is currently set as the active (live) one.
+The **Settings** tab also has an **Active quiz** selector as a fallback control.
 
 ---
 
@@ -417,12 +433,14 @@ When a quiz has many questions (for example a Splunk AI quiz with 34 questions),
 
 ### Setting a subset
 
-In the **Editor** sidebar, below the Activate button, there is a **🎲 Play:** dropdown:
+In the **Admin** tab, the **Questions** dropdown sets the default subset for the selected quiz:
 
 | Selection | Behaviour |
 |---|---|
-| **All N questions** | Every question plays in the saved order (default) |
+| **All (N)** | Every question plays (default) |
 | **Random N of M** | N questions are drawn at random from the full pool each time the quiz starts |
+
+For **synchronized sessions**, the host can also override this per-session from the Admin tab's Questions picker before clicking Start — it doesn't change the quiz's saved default.
 
 The setting is saved immediately and persists across sessions. Participants who run the same quiz at the same time will each receive a different random draw.
 
@@ -476,6 +494,37 @@ The source JSON files live in the [`quizzes/`](quizzes/) folder of the repositor
 
 ---
 
+## Editor
+
+The **Editor** tab is for building and managing quiz content.
+
+### Toolbar actions
+
+| Button | Action |
+|---|---|
+| **↑ Up / ↓ Down** | Reorder the selected question — order is auto-saved immediately, no extra step needed |
+| **Delete** | Delete the selected question (with confirmation) |
+| **⬇ Export** | Download the current quiz as a JSON file |
+| **⬆ Import** | Load questions from a JSON file (choose Replace or Append) |
+| **📚 Library** | Import a bundled pre-built quiz |
+| **🔄 GitHub** | Sync and import quizzes from the GitHub repository |
+
+### Question fields
+
+| Field | Notes |
+|---|---|
+| **Question text** | The question shown to participants |
+| **Type** | Single · Multi · Yes/No · Free text · Slider |
+| **Time limit** | Countdown in seconds |
+| **Answers** | Options with ✓ correct marking (not for slider/freetext) |
+| **Explanation** | Optional "why" text shown as a 💡 callout after the answer is revealed |
+
+### Saving
+
+Click the **Save** button at the bottom of the editor panel to save the current question. Reordering with ↑/↓ is auto-saved instantly. There is no "Save All" — each question is an independent KV Store document.
+
+---
+
 ## Export & Import
 
 ### Exporting a quiz
@@ -505,6 +554,7 @@ The exported JSON is an array of question objects. Below is the full schema with
     "text": "Question text shown to participants",
     "type": "single | multi | yesno | freetext | slider",
     "timeLimit": 30,
+    "explanation": "Optional one-line 'why' shown after the answer is revealed",
     "options": [ ... ],
     "sliderMin": 1,
     "sliderMax": 10,
@@ -519,6 +569,7 @@ The exported JSON is an array of question objects. Below is the full schema with
 | `text` | string | **yes** | The question text displayed to participants |
 | `type` | string | **yes** | One of `single`, `multi`, `yesno`, `freetext`, `slider` |
 | `timeLimit` | number | no | Countdown in seconds (default: `30`) |
+| `explanation` | string | no | Short "why" text shown as a 💡 callout after the correct answer is revealed (default: `""`) |
 | `options` | array | for `single`/`multi`/`yesno` | Answer choices — see per-type details below |
 | `sliderMin` | number | for `slider` | Minimum slider value (default: `1`) |
 | `sliderMax` | number | for `slider` | Maximum slider value (default: `10`) |
@@ -654,6 +705,7 @@ The exported JSON is an array of question objects. Below is the full schema with
     "text": "What is the default Splunk search language called?",
     "type": "single",
     "timeLimit": 30,
+    "explanation": "SPL (Search Processing Language) is Splunk's native query language, used in every search bar.",
     "options": [
       { "id": "A", "text": "SPL (Search Processing Language)", "correct": true  },
       { "id": "B", "text": "SQL (Structured Query Language)",  "correct": false },
@@ -714,6 +766,7 @@ The built-in **📊 Analytics** tab gives you a live view of quiz results withou
 |---|---|
 | **Time range** | Last 15 min / 1h / 4h / 24h / 7 days / 30 days / All time |
 | **Quiz** | Any named quiz from the KV Store catalogue, or *All quizzes* |
+| **Session** | Any named synchronized session (e.g. `"Workshop Berlin May 2026"`), or *All sessions*; only shown when sync session data exists in the index |
 | **Nickname** | Any individual player (auto-populated from the index), or *All players* |
 
 ### Panels

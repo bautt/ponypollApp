@@ -166,16 +166,33 @@ export async function saveAllQuestions(questions, quizId) {
 }
 
 // ── Config collection ─────────────────────────────────────────────────────────
+// loadConfig() result is cached in-memory so submitEvent can check the HEC
+// settings without a round-trip on every event.  saveConfig() invalidates it.
+
+let _cachedConfig = null;
+let _configLoading = null;
 
 export async function loadConfig() {
-    try {
-        return await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`);
-    } catch (_) {
-        return { poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' };
-    }
+    if (_cachedConfig) return _cachedConfig;
+    if (_configLoading) return _configLoading;
+    _configLoading = (async () => {
+        try {
+            const c = await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`);
+            _cachedConfig = c;
+            return c;
+        } catch (_) {
+            const fallback = { poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' };
+            _cachedConfig = fallback;
+            return fallback;
+        } finally {
+            _configLoading = null;
+        }
+    })();
+    return _configLoading;
 }
 
 export async function saveConfig(cfg) {
+    _cachedConfig = null; // invalidate cache so next submitEvent re-reads
     try {
         await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`, {
             method: 'POST',
@@ -187,6 +204,12 @@ export async function saveConfig(cfg) {
             body: JSON.stringify({ _key: 'default', ...cfg }),
         });
     }
+}
+
+/** Default HEC URL inferred from the current Splunk Web hostname (port 8088). */
+export function defaultHecUrl() {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:8088/services/collector/event`;
 }
 
 // ── Current Splunk user ───────────────────────────────────────────────────────
@@ -243,10 +266,34 @@ export async function listIndexes() {
     return (data?.entry || []).map((e) => e.name).sort();
 }
 
-// ── Write events via Splunk's built-in receivers/simple endpoint ──────────────
-// No custom Python handler required — posts JSON directly to Splunk indexing.
+// ── Write events ─────────────────────────────────────────────────────────────
+// Two paths, in order of preference:
+//   1. HEC (HTTP Event Collector) — works for ANY Splunk role (including
+//      ponypoll_user) because the HEC token authenticates independently of
+//      the user's session.  Required for non-admin participants.  Configured
+//      by the admin in Settings.  Works on Splunk Enterprise AND Splunk Cloud.
+//   2. receivers/simple — falls back when HEC isn't configured.  Only works
+//      for users whose role can write to /services/receivers/simple (admins).
 
-async function submitEvent(eventData, { index = 'ponypoll', sourcetype = 'ponypoll_answer', source = 'ponypoll_app' } = {}) {
+async function submitViaHec(eventData, { index, sourcetype, source }, { hec_url, hec_token }) {
+    const body = { event: eventData, sourcetype, source, index };
+    const res = await fetch(hec_url, {
+        method: 'POST',
+        // HEC uses its own token in the header; do NOT send Splunk Web cookies
+        // (they could be rejected on the cross-port HEC endpoint).
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Splunk ${hec_token}`,
+        },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`HEC ${res.status}: ${t.slice(0, 200)}`);
+    }
+}
+
+async function submitViaReceiver(eventData, { index, sourcetype, source }) {
     const params = new URLSearchParams({ index, sourcetype, source, output_mode: 'json' });
     const res = await fetch(
         `${localePrefix()}/splunkd/__raw/services/receivers/simple?${params}`,
@@ -263,8 +310,56 @@ async function submitEvent(eventData, { index = 'ponypoll', sourcetype = 'ponypo
     );
     if (!res.ok) {
         const t = await res.text();
-        throw new Error(`submitEvent failed (${res.status}): ${t.slice(0, 200)}`);
+        throw new Error(`receivers/simple ${res.status}: ${t.slice(0, 200)}`);
     }
+}
+
+async function submitEvent(eventData, opts = {}) {
+    const meta = {
+        index: opts.index || 'ponypoll',
+        sourcetype: opts.sourcetype || 'ponypoll_answer',
+        source: opts.source || 'ponypoll_app',
+    };
+    let cfg = null;
+    try { cfg = await loadConfig(); } catch (_) {}
+    if (cfg?.hec_token && cfg?.hec_url) {
+        try {
+            await submitViaHec(eventData, meta, cfg);
+            return;
+        } catch (e) {
+            // HEC failed (token bad, CORS, network) — fall through to receivers
+            // for admins; for non-admins the next call will also fail and
+            // surface the error.  We do NOT swallow silently here.
+            // eslint-disable-next-line no-console
+            console.warn('HEC submit failed, falling back to receivers/simple:', e.message);
+        }
+    }
+    await submitViaReceiver(eventData, meta);
+}
+
+/** Send a tiny test event to HEC; throws on any failure. */
+export async function testHec(hec_url, hec_token) {
+    if (!hec_url || !hec_token) throw new Error('Both URL and token are required.');
+    const body = {
+        event: { event: 'hec_test', source_app: 'ponypoll', ts: new Date().toISOString() },
+        sourcetype: 'ponypoll_test',
+        source: 'ponypoll_app',
+        index: 'ponypoll',
+    };
+    const res = await fetch(hec_url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Splunk ${hec_token}`,
+        },
+        body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HEC ${res.status}: ${text.slice(0, 300)}`);
+    try {
+        const data = JSON.parse(text);
+        if (data.code !== 0) throw new Error(`HEC code ${data.code}: ${data.text || text}`);
+    } catch (_) { /* not JSON, but 2xx is good enough */ }
 }
 
 export async function submitAnswer(eventData) {
@@ -326,6 +421,13 @@ function presenceKey(sessionId, nickname) {
     return `${sessionId}_${nickname.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'anon'}`;
 }
 
+/**
+ * Record a participant joining.
+ * Primary: KV Store presence doc (lets host see lobby list in real-time).
+ * Fallback: receivers/simple event (works for all Splunk roles regardless of
+ *   KV Store write permissions — host can query via SPL if KV write fails).
+ * Never throws — participant always proceeds to the quiz.
+ */
 export async function joinSession(sessionId, nickname) {
     const key = presenceKey(sessionId, nickname);
     const doc = {
@@ -334,17 +436,28 @@ export async function joinSession(sessionId, nickname) {
         joined_at: new Date().toISOString(),
         last_seen: new Date().toISOString(),
     };
+
+    // Always index a join event so the host's lobby search always finds it.
+    // Fire-and-forget — never blocks the participant from proceeding.
+    submitEvent(
+        { event: 'join', session_id: sessionId, nickname },
+        { sourcetype: 'ponypoll_presence' }
+    ).catch(() => {});
+
+    // Also try KV Store so the host could query it directly (best-effort).
     try {
-        return await kvFetch(`${kvBase()}/ponypoll_presence/${encodeURIComponent(key)}?output_mode=json`, {
+        await kvFetch(`${kvBase()}/ponypoll_presence/${encodeURIComponent(key)}?output_mode=json`, {
             method: 'POST',
             body: JSON.stringify(doc),
         });
-    } catch (_) {
-        return kvFetch(`${kvBase()}/ponypoll_presence?output_mode=json`, {
+        return;
+    } catch (_) {}
+    try {
+        await kvFetch(`${kvBase()}/ponypoll_presence?output_mode=json`, {
             method: 'POST',
             body: JSON.stringify({ _key: key, ...doc }),
         });
-    }
+    } catch (_) { /* best-effort */ }
 }
 
 export async function heartbeatPresence(sessionId, nickname) {

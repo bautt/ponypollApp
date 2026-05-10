@@ -20,7 +20,7 @@ export const QUESTION_TYPES = [
 
 /** Convert internal React shape → KV Store document. */
 export function toKvDoc(q) {
-    const { _key, sort_order, text, type, timeLimit, options,
+    const { _key, sort_order, text, type, timeLimit, options, explanation,
             sliderMin, sliderMax, sliderStep, sliderUnit, quiz_id } = q;
 
     let opts;
@@ -37,6 +37,7 @@ export function toKvDoc(q) {
         type: type || 'single',
         timeLimit: timeLimit ?? 30,
         options_json: JSON.stringify(opts),
+        explanation: explanation || '',
     };
     if (quiz_id) doc.quiz_id = quiz_id;
     if (_key) doc._key = _key;
@@ -66,6 +67,7 @@ export function fromKvDoc(doc) {
         text: doc.text || '',
         type,
         timeLimit: Number(doc.timeLimit) || 30,
+        explanation: doc.explanation || '',
         quiz_id: doc.quiz_id || '',
     };
 
@@ -104,6 +106,7 @@ export function newQuestion(overrides = {}) {
         text: '',
         type: 'single',
         timeLimit: 30,
+        explanation: '',
         options: defaultOptions('single'),
         sliderMin: 1,
         sliderMax: 10,

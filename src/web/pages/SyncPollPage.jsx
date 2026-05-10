@@ -313,6 +313,7 @@ export default function SyncPollPage() {
     const [wasCorrect, setWasCorrect] = useState(null);
     const [timeLeft, setTimeLeft]     = useState(0);
     const [totalScore, setTotalScore] = useState(0);
+    const totalScoreRef = useRef(0); // mirror of totalScore for async callbacks
 
     // ── Mini-leaderboard + answer distribution (fetched on reveal) ───────────
     const [leaderboard, setLeaderboard] = useState([]);
@@ -352,6 +353,22 @@ export default function SyncPollPage() {
                     setAnswerDist([]);
                     setDistTotal(0);
                     fetchDist(sess.session_id, sess.question_index ?? 0);
+                }
+                if (enteringDone && nicknameRef.current) {
+                    // Count total questions from the question_keys stored in the session
+                    const qCount = (() => {
+                        try { return JSON.parse(sess.question_keys || '[]').length; } catch (_) { return 0; }
+                    })();
+                    submitQuizAttempt({
+                        event:          'quiz_complete',
+                        session_id:     sess.session_id,
+                        session_name:   sess.session_name || '',
+                        quiz_id:        sess.quiz_id || '',
+                        quiz_name:      sess.quiz_name || '',
+                        nickname:       nicknameRef.current,
+                        total_score:    totalScoreRef.current,
+                        question_count: qCount,
+                    }).catch(() => {});
                 }
                 // Reset distribution when a new question starts
                 if (sess.phase === 'question' && prev.phase !== 'question') {
@@ -412,7 +429,7 @@ export default function SyncPollPage() {
     const fetchLeaderboard = async (sessionId) => {
         try {
             const rows = await runSearch(
-                `index=ponypoll session_id="${sessionId}" sourcetype=ponypoll_answer | stats sum(points) as score by nickname | sort -score | head 10`,
+                `index=ponypoll sourcetype=ponypoll_answer session_id="${sessionId}" | stats sum(points) as score by nickname | sort -score | head 10`,
                 { earliest: '-1d' }
             );
             setLeaderboard(rows);
@@ -424,11 +441,11 @@ export default function SyncPollPage() {
         try {
             const [distRows, totalRows] = await Promise.all([
                 runSearch(
-                    `index=ponypoll session_id="${sessionId}" sourcetype=ponypoll_answer question_index=${questionIndex} | eval opts=split(answer, ",") | mvexpand opts | stats count by opts | rename opts as option`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sessionId}" question_index=${questionIndex} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
                     { earliest: '-1d' }
                 ),
                 runSearch(
-                    `index=ponypoll session_id="${sessionId}" sourcetype=ponypoll_answer question_index=${questionIndex} | stats count as total`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sessionId}" question_index=${questionIndex} | stats count as total`,
                     { earliest: '-1d' }
                 ),
             ]);
@@ -438,13 +455,18 @@ export default function SyncPollPage() {
     };
 
     // ── Actions ───────────────────────────────────────────────────────────────
+    const [joinBusy, setJoinBusy] = useState(false);
+
     const handleJoin = async () => {
-        if (!nickname.trim() || !session?.session_id) return;
+        if (!nickname.trim() || !session?.session_id || joinBusy) return;
+        setJoinBusy(true);
         nicknameRef.current = nickname.trim();
         sessionStorage.setItem('ponypoll_nickname', nickname.trim());
+        // joinSession is best-effort and never throws — participant always proceeds
         await joinSession(session.session_id, nickname.trim());
         sessionIdRef.current = session.session_id;
         setJoined(true);
+        setJoinBusy(false);
     };
 
     const toggleOption = (id) => {
@@ -474,12 +496,19 @@ export default function SyncPollPage() {
         setSubmitted(true);
         setWasCorrect(correct);
         setPointsEarned(pts);
-        setTotalScore((prev) => prev + pts);
+        setTotalScore((prev) => {
+            const next = prev + pts;
+            totalScoreRef.current = next;
+            return next;
+        });
 
         const ansStr = answerString(q.type, selected, sliderVal, freetextVal);
         try {
             await submitAnswer({
                 session_id:     session.session_id,
+                session_name:   session.session_name || '',
+                quiz_id:        session.quiz_id || '',
+                quiz_name:      session.quiz_name || '',
                 nickname:       nicknameRef.current,
                 question_index: Number(session.question_index) || 0,
                 question:       q.text,
@@ -530,8 +559,8 @@ export default function SyncPollPage() {
                         onKeyDown={(e) => e.key === 'Enter' && nickname.trim() && handleJoin()}
                         autoFocus
                     />
-                    <JoinBtn onClick={handleJoin} disabled={!nickname.trim()}>
-                        Join →
+                    <JoinBtn onClick={handleJoin} disabled={!nickname.trim() || joinBusy}>
+                        {joinBusy ? 'Joining…' : 'Join →'}
                     </JoinBtn>
                 </Card>
             </Page>
@@ -729,6 +758,16 @@ export default function SyncPollPage() {
                         <FeedbackBox correct={false} style={{ fontSize: 15 }}>
                             ⏱ Didn't answer in time
                         </FeedbackBox>
+                    )}
+
+                    {question.explanation && (
+                        <div style={{
+                            padding: '10px 14px', marginTop: 4,
+                            background: '#0e1e30', border: '1px solid #009CDE44',
+                            borderRadius: 8, fontSize: 13, color: '#7EC8E3', lineHeight: 1.5,
+                        }}>
+                            💡 {question.explanation}
+                        </div>
                     )}
 
                     {leaderboard.length > 0 && (

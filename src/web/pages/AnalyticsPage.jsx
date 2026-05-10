@@ -297,33 +297,47 @@ function fmtTime(isoOrUnix) {
 // Time filter is passed via `opts.earliest`; quiz filter is baked into SPL.
 // All other filtering (nickname) happens in JavaScript after fetch.
 
-// All-time quiz catalogue — reads from the index so deleted quizzes still appear
+// All-time quiz catalogue — reads from the index so deleted quizzes still appear.
+// Uses stats first() instead of dedup for a deterministic single-pass aggregation.
 function quizListSpl() {
     return `index=ponypoll sourcetype=ponypoll_attempt
-        | dedup quiz_id
+        | stats first(quiz_name) as quiz_name by quiz_id
         | eval label=if(isnotnull(quiz_name) AND quiz_name!="", quiz_name, quiz_id)
-        | fields quiz_id, label
+        | fields quiz_id label
         | sort label`;
 }
 
 function attemptBaseSpl(quizId) {
     const qf = quizId ? ` quiz_id="${quizId}"` : '';
     return `index=ponypoll sourcetype=ponypoll_attempt${qf}
-        | table _time, event, nickname, session_id, total_score, question_count, quiz_id, quiz_name
+        | table _time event nickname session_id total_score question_count quiz_id quiz_name
         | sort -_time`;
 }
 
 function answerBaseSpl(quizId) {
     const qf = quizId ? ` quiz_id="${quizId}"` : '';
     return `index=ponypoll sourcetype=ponypoll_answer${qf}
-        | table _time, nickname, session_id, question, correct, points, type, quiz_id
+        | table _time nickname session_id session_name question correct points type quiz_id
         | sort -_time`;
+}
+
+// Distinct sync session names from ponypoll_answer events.
+// Uses stats count by (one pass) instead of dedup.
+function sessionListSpl() {
+    return `index=ponypoll sourcetype=ponypoll_answer session_name=*
+        | stats count by session_name
+        | fields session_name
+        | sort session_name`;
 }
 
 // ── In-browser aggregation functions ──────────────────────────────────────────
 
 function applyNicknameFilter(rows, nickname) {
     return nickname ? rows.filter((r) => r.nickname === nickname) : rows;
+}
+
+function applySessionFilter(rows, sessionName) {
+    return sessionName ? rows.filter((r) => (r.session_name || '') === sessionName) : rows;
 }
 
 function computeKpi(attempts) {
@@ -380,10 +394,12 @@ function computeNicknames(attempts) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
-    const [quizzes, setQuizzes]   = useState([]); // [{quiz_id, label}] from index
-    const [timeIdx, setTimeIdx]   = useState(1); // default: Last 1 hour
-    const [quizId, setQuizId]     = useState('');
-    const [nickname, setNickname] = useState('');
+    const [quizzes, setQuizzes]         = useState([]); // [{quiz_id, label}] from index
+    const [syncSessions, setSyncSessions] = useState([]); // [{session_name}] from index
+    const [timeIdx, setTimeIdx]         = useState(1); // default: Last 1 hour
+    const [quizId, setQuizId]           = useState('');
+    const [sessionFilter, setSessionFilter] = useState(''); // sync session name filter
+    const [nickname, setNickname]       = useState('');
     const [nicknameInput, setNicknameInput] = useState('');
 
     const [loading, setLoading]   = useState(false);
@@ -394,14 +410,22 @@ export default function AnalyticsPage() {
     const [rawAttempts, setRawAttempts] = useState([]);
     const [rawAnswers,  setRawAnswers]  = useState([]);
 
-    // ── Derived: apply nickname filter in JS (instant, no extra search) ──
+    // ── Derived: apply session + nickname filters in JS (instant, no extra search) ──
+    const sessionAttempts = useMemo(
+        () => applySessionFilter(rawAttempts, sessionFilter),
+        [rawAttempts, sessionFilter],
+    );
+    const sessionAnswers = useMemo(
+        () => applySessionFilter(rawAnswers, sessionFilter),
+        [rawAnswers, sessionFilter],
+    );
     const filteredAttempts = useMemo(
-        () => applyNicknameFilter(rawAttempts, nickname),
-        [rawAttempts, nickname],
+        () => applyNicknameFilter(sessionAttempts, nickname),
+        [sessionAttempts, nickname],
     );
     const filteredAnswers = useMemo(
-        () => applyNicknameFilter(rawAnswers, nickname),
-        [rawAnswers, nickname],
+        () => applyNicknameFilter(sessionAnswers, nickname),
+        [sessionAnswers, nickname],
     );
 
     const kpi         = useMemo(() => computeKpi(filteredAttempts),        [filteredAttempts]);
@@ -413,10 +437,13 @@ export default function AnalyticsPage() {
 
     const maxLbPts = Math.max(...leaderboard.map((r) => r.best_score), 1);
 
-    // Load quiz list from the index (all time) so deleted quizzes remain visible
+    // Load quiz list + sync session list from the index (all-time)
     useEffect(() => {
         runSearch(quizListSpl(), { earliest: '0', latest: 'now', count: 200 })
             .then((rows) => setQuizzes(rows.filter((r) => r.quiz_id)))
+            .catch(() => {});
+        runSearch(sessionListSpl(), { earliest: '0', latest: 'now', count: 500 })
+            .then((rows) => setSyncSessions(rows.filter((r) => r.session_name)))
             .catch(() => {});
     }, []);
 
@@ -462,6 +489,19 @@ export default function AnalyticsPage() {
                         <option key={q.quiz_id} value={q.quiz_id}>{q.label}</option>
                     ))}
                 </Select>
+
+                {syncSessions.length > 0 && (
+                    <>
+                        <FilterSep />
+                        <FilterLabel>Session</FilterLabel>
+                        <Select value={sessionFilter} onChange={(e) => setSessionFilter(e.target.value)}>
+                            <option value="">All sessions</option>
+                            {syncSessions.map((s) => (
+                                <option key={s.session_name} value={s.session_name}>{s.session_name}</option>
+                            ))}
+                        </Select>
+                    </>
+                )}
 
                 <FilterSep />
 

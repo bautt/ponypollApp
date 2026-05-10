@@ -830,6 +830,16 @@ export default function PollPage() {
                                 {timedOut ? 'No answer — 0 pts' : 'Incorrect — see the highlighted answer'}
                             </FeedbackBanner>
                         )}
+                        {currentQ?.explanation && (
+                            <div style={{
+                                marginTop: 10, padding: '10px 14px',
+                                background: '#0e1e30', border: '1px solid #009CDE44',
+                                borderRadius: 8, fontSize: 13, color: '#7EC8E3',
+                                lineHeight: 1.5,
+                            }}>
+                                💡 {currentQ.explanation}
+                            </div>
+                        )}
                         {timedOut ? (
                             <div style={{ textAlign: 'center', fontSize: 13, color: '#868A9C', marginTop: 16 }}>
                                 Advancing to next question…

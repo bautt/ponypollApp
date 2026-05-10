@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Component } from 'react';
 import styled from 'styled-components';
 import PollPage from './pages/PollPage';
-import SyncHostPage from './pages/SyncHostPage';
+import AdminPage from './pages/AdminPage';
 import SyncPollPage from './pages/SyncPollPage';
 import EditorPage from './pages/EditorPage';
 import SettingsPage from './pages/SettingsPage';
@@ -83,9 +83,29 @@ const BarChartIcon = () => (
     </svg>
 );
 
+/* Projector icon — body + lens + beam + stand */
+const ProjectorIcon = () => (
+    <svg viewBox="0 0 16 16" width="15" height="15"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, marginBottom: 1 }}
+        fill="currentColor" aria-hidden="true">
+        {/* projector body */}
+        <rect x="1" y="4" width="10" height="6" rx="1.2" />
+        {/* lens circle cutout (white) */}
+        <circle cx="8.5" cy="7" r="1.8" fill="none" stroke="currentColor" strokeWidth="1.2" />
+        {/* small indicator dot */}
+        <circle cx="3" cy="6" r="0.7" />
+        {/* beam lines to screen */}
+        <line x1="11" y1="5.2" x2="15" y2="3"   stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" />
+        <line x1="11" y1="8.8" x2="15" y2="11"  stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" />
+        {/* stand */}
+        <line x1="5.5" y1="10" x2="5.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="3.5" y1="13" x2="7.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+);
+
 const TABS = [
     { id: 'poll',      label: '▶ Poll' },
-    { id: 'host',      label: '🎙 Host' },
+    { id: 'host',      label: <><ProjectorIcon />Admin</> },
     { id: 'analytics', label: <><BarChartIcon />Analytics</> },
     { id: 'editor',    label: '✏ Editor' },
     { id: 'settings',  label: '⚙ Settings' },
@@ -190,7 +210,7 @@ function FullApp() {
             </NavBar>
 
             {tab === 'poll'      && <PollPage />}
-            {tab === 'host'      && <SyncHostPage />}
+            {tab === 'host'      && <AdminPage />}
             {tab === 'analytics' && <AnalyticsPage />}
             {tab === 'editor'    && <EditorPage />}
             {tab === 'settings'  && <SettingsPage />}

@@ -27,6 +27,20 @@ access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 [storage/collections/data/ponypoll_quizzes]
 access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
 
+# Synchronized session — host writes, everyone reads
+[storage/collections/config/ponypoll_session]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
+
+[storage/collections/data/ponypoll_session]
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
+
+# Participant presence — participants WRITE their own join/heartbeat entries
+[storage/collections/config/ponypoll_presence]
+access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]
+
+[storage/collections/data/ponypoll_presence]
+access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]
+
 # Splunk index — all authenticated users can write (submit answers)
 [indexes/ponypoll]
 access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]

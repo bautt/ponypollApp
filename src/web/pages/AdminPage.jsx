@@ -1,11 +1,13 @@
 /**
- * SyncHostPage — host/presenter view for synchronized quiz mode.
+ * AdminPage — quiz admin / host view.
  *
- * The host controls the session state written to the ponypoll_session KV Store
- * document. Participants on SyncPollPage poll that document every 1.5 s and
- * react to phase changes. PollPage.jsx (self-paced) is completely untouched.
+ * Self-paced mode: host picks a quiz, sets the mode & question count, then
+ * clicks "Activate" to make it live for participants on PollPage.
  *
- * Session phases:
+ * Synchronized mode: host controls the session step by step.  Participants
+ * on SyncPollPage poll ponypoll_session every 1.5 s and react to phase changes.
+ *
+ * Session phases (sync only):
  *   idle      – no active session
  *   waiting   – session started, participants joining the lobby
  *   question  – question is live, timer running
@@ -16,12 +18,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-    loadConfig, getSession, updateSession,
-    listQuestions, listQuizzes, getQuiz, getPresence, clearPresence,
-    runSearch,
+    loadConfig, saveConfig, getSession, updateSession,
+    listQuestions, listQuizzes, updateQuiz, getQuiz, clearPresence,
+    getPresence, runSearch,
 } from '../lib/kvstore';
 import { fromKvDoc } from '../lib/questions';
-import { uid, calcPoints } from '../lib/utils';
+import { uid } from '../lib/utils';
 
 // ── Derive the /play URL from the current browser location ───────────────────
 function getPlayUrl() {
@@ -346,6 +348,71 @@ const QuizPicker = styled.select`
     &:focus { outline: none; border-color: ${C.blue}; }
 `;
 
+const ModeToggleWrap = styled.div`
+    display: flex;
+    gap: 6px;
+    flex: 1;
+`;
+
+const ModeBtn = styled.button`
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 7px;
+    border: 1px solid ${({ active }) => (active ? C.blue : C.border)};
+    background: ${({ active }) => (active ? C.blue + '22' : 'transparent')};
+    color: ${({ active }) => (active ? C.blue : C.muted)};
+    font-size: 13px;
+    font-weight: ${({ active }) => (active ? 700 : 500)};
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    &:hover:not(:disabled) { border-color: ${C.blue}88; color: ${C.text}; }
+    &:disabled { opacity: 0.35; cursor: not-allowed; }
+`;
+
+const SavedFlash = styled.span`
+    font-size: 11px;
+    color: ${C.accent};
+    font-weight: 600;
+    opacity: ${({ show }) => (show ? 1 : 0)};
+    transition: opacity 0.4s;
+    white-space: nowrap;
+`;
+
+const ActivateBadge = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid ${C.accent}66;
+    background: ${C.accent}18;
+    color: ${C.accent};
+    font-size: 14px;
+    font-weight: 700;
+`;
+
+const ControlLabel = styled.span`
+    font-size: 13px;
+    color: ${C.muted};
+    width: 90px;
+    flex-shrink: 0;
+`;
+
+const TextInput = styled.input`
+    background: ${C.surface2};
+    border: 1px solid ${({ highlight }) => (highlight ? C.orange : C.border)};
+    border-radius: 7px;
+    color: ${C.text};
+    font-size: 14px;
+    padding: 9px 12px;
+    flex: 1;
+    min-width: 0;
+    outline: none;
+    &:focus { border-color: ${C.blue}; }
+    &::placeholder { color: ${C.muted}; opacity: 0.7; }
+`;
+
 const MEDALS = ['🥇', '🥈', '🥉'];
 const OPTION_COLORS = ['#009CDE', '#5CC05C', '#ED8B00', '#9B59B6', '#E84545', '#20B2AA'];
 
@@ -394,11 +461,11 @@ function DistBars({ options, dist, total }) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function SyncHostPage() {
+export default function AdminPage() {
     const [session, setSession]           = useState(null);
     const [questions, setQuestions]       = useState([]);
     const [quizName, setQuizName]         = useState('');
-    const [participants, setParticipants] = useState([]);
+    const [participantCount, setParticipants] = useState(0);
     const [leaderboard, setLeaderboard]   = useState([]);
     const [answerDist, setAnswerDist]     = useState([]); // [{option, count}]
     const [distTotal, setDistTotal]       = useState(0);  // total respondents
@@ -406,12 +473,19 @@ export default function SyncHostPage() {
     const [status, setStatus]             = useState(null); // { error, msg }
     const [busy, setBusy]                 = useState(false);
 
-    // Quiz selection — host picks which quiz to run, independent of global active_quiz_id
-    const [quizzes, setQuizzes]           = useState([]);
+    // Quiz selection
+    const [quizzes, setQuizzes]               = useState([]);
     const [selectedQuizId, setSelectedQuizId] = useState('');
+    const [liveQuizId, setLiveQuizId]         = useState(''); // currently active for self-paced
+    const [quizMode, setQuizMode]             = useState('self_paced'); // per selected quiz
+    const [modeSaved, setModeSaved]           = useState(false);
+
     // Question count for this session ('all' or a number as string)
     const [questionCount, setQuestionCount] = useState('all');
     const [totalAvailable, setTotalAvailable] = useState(0); // total Qs in selected quiz
+
+    // Human-readable session name assigned by the host before starting sync session
+    const [sessionName, setSessionName] = useState('');
 
     // Join URL state
     const [playUrl]    = useState(getPlayUrl);
@@ -427,7 +501,9 @@ export default function SyncHostPage() {
         Promise.all([listQuizzes(), loadConfig()])
             .then(async ([qs, cfg]) => {
                 setQuizzes(qs);
-                const defaultId = cfg.active_quiz_id || (qs[0]?._key ?? '');
+                const activeId = cfg.active_quiz_id || '';
+                setLiveQuizId(activeId);
+                const defaultId = activeId || (qs[0]?._key ?? '');
                 setSelectedQuizId(defaultId);
                 if (defaultId) loadQuizMeta(defaultId, qs);
             })
@@ -437,7 +513,7 @@ export default function SyncHostPage() {
         fetchShortUrl(playUrl).then((s) => s && setShortUrl(s));
     }, []);
 
-    // ── Fetch question count + default limit when quiz selection changes ───────
+    // ── Fetch question count + mode when quiz selection changes ──────────────
     const loadQuizMeta = async (quizId, quizList) => {
         try {
             const list = quizList || quizzes;
@@ -445,44 +521,87 @@ export default function SyncHostPage() {
             const docs = await listQuestions(quizId);
             const total = docs.length;
             setTotalAvailable(total);
-            // Pre-fill with the quiz's saved question_limit (if any), else 'all'
             const saved = meta?.question_limit ? String(meta.question_limit) : 'all';
             setQuestionCount(saved);
+            setQuizMode(meta?.quiz_mode || 'self_paced');
         } catch (_) {
             setTotalAvailable(0);
             setQuestionCount('all');
+            setQuizMode('self_paced');
         }
     };
 
-    // ── Polling loop: refresh session + presence every 2 s ───────────────────
+    // ── Polling loop: refresh session every 2 s ──────────────────────────────
+    // The presence/answer runSearch runs every 8 s (every 4th tick) so it never
+    // starves KV Store requests.  A busy flag prevents overlapping iterations.
     useEffect(() => {
         let mounted = true;
+        let polling = false;
+        let tickCount = 0;
 
         const poll = async () => {
-            const sess = await getSession();
-            if (!mounted) return;
-            sessionRef.current = sess;
-            setSession(sess ? { ...sess } : null);
+            if (polling || !mounted) return;
+            polling = true;
+            try {
+                const sess = await getSession();
+                if (!mounted) return;
+                sessionRef.current = sess;
+                setSession(sess ? { ...sess } : null);
 
-            if (sess?.session_id) {
-                const presence = await getPresence(sess.session_id);
-                if (mounted) setParticipants(presence.map((p) => p.nickname));
-            }
+                tickCount++;
+                if (sess?.session_id && sess.phase === 'waiting') {
+                    const sid = sess.session_id;
 
-            // Re-hydrate questions if host refreshed mid-session
-            if (
-                sess?.question_keys &&
-                questionsRef.current.length === 0 &&
-                sess.phase && sess.phase !== 'idle'
-            ) {
-                try {
-                    const docs = await listQuestions(sess.quiz_id);
-                    const byKey = Object.fromEntries(docs.map((d) => [d._key, fromKvDoc(d)]));
-                    const keys = JSON.parse(sess.question_keys);
-                    const ordered = keys.map((k) => byKey[k]).filter(Boolean);
-                    questionsRef.current = ordered;
-                    if (mounted) setQuestions(ordered);
-                } catch (_) {}
+                    // Source 1: KV Store (instant, works when KV write succeeded)
+                    let kvCount = 0;
+                    try {
+                        const docs = await getPresence(sid);
+                        kvCount = new Set(docs.map((d) => d.nickname).filter(Boolean)).size;
+                    } catch (_) {}
+
+                    // Source 2: Splunk index (throttled ~8 s, catches receivers/simple fallback)
+                    let idxCount = 0;
+                    if (tickCount % 4 === 0) {
+                        try {
+                            const rows = await runSearch(
+                                `index=ponypoll sourcetype=ponypoll_presence session_id="${sid}" | stats dc(nickname) as n`,
+                                { earliest: '-2h' }
+                            );
+                            idxCount = Number(rows[0]?.n || 0);
+                        } catch (_) {}
+                    }
+
+                    if (mounted) setParticipants(Math.max(kvCount, idxCount));
+
+                } else if (sess?.session_id && sess.phase !== 'idle' && tickCount % 4 === 0) {
+                    // During question/reveal/done: count from answer events (throttled)
+                    try {
+                        const sid = sess.session_id;
+                        const rows = await runSearch(
+                            `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" | stats dc(nickname) as n`,
+                            { earliest: '-2h' }
+                        );
+                        if (mounted) setParticipants(Number(rows[0]?.n || 0));
+                    } catch (_) {}
+                }
+
+                // Re-hydrate questions if host refreshed mid-session
+                if (
+                    sess?.question_keys &&
+                    questionsRef.current.length === 0 &&
+                    sess.phase && sess.phase !== 'idle'
+                ) {
+                    try {
+                        const docs = await listQuestions(sess.quiz_id);
+                        const byKey = Object.fromEntries(docs.map((d) => [d._key, fromKvDoc(d)]));
+                        const keys = JSON.parse(sess.question_keys);
+                        const ordered = keys.map((k) => byKey[k]).filter(Boolean);
+                        questionsRef.current = ordered;
+                        if (mounted) setQuestions(ordered);
+                    } catch (_) {}
+                }
+            } finally {
+                polling = false;
             }
         };
 
@@ -520,7 +639,20 @@ export default function SyncHostPage() {
         try {
             const qid  = selectedQuizId;
             if (!qid) { setStatus({ error: true, msg: 'Pick a quiz above before starting.' }); return; }
-            const [docs, meta] = await Promise.all([listQuestions(qid), getQuiz(qid).catch(() => null)]);
+            const name = sessionName.trim();
+            if (!name) {
+                setStatus({ error: true, msg: 'Give this session a unique name (e.g. "Workshop Berlin May 2026").' });
+                setBusy(false);
+                // Return to idle so all controls are visible again
+                await resetToIdle();
+                return;
+            }
+            let docs, meta;
+            try {
+                [docs, meta] = await Promise.all([listQuestions(qid), getQuiz(qid).catch(() => null)]);
+            } catch (e) {
+                throw new Error(`Could not load quiz questions — ${e.message}. Try refreshing the page.`);
+            }
             if (!docs.length) { setStatus({ error: true, msg: 'The active quiz has no questions.' }); return; }
 
             let qs = docs.map(fromKvDoc);
@@ -528,7 +660,8 @@ export default function SyncHostPage() {
             const limit = questionCount !== 'all' ? Number(questionCount) : null;
             if (limit && limit > 0 && limit < qs.length) qs = shuffle(qs).slice(0, limit);
 
-            setQuizName(meta?.name || 'Quiz');
+            const quizMeta = meta;
+            setQuizName(quizMeta?.name || 'Quiz');
             questionsRef.current = qs;
             setQuestions(qs);
 
@@ -538,17 +671,23 @@ export default function SyncHostPage() {
             const doc = {
                 phase: 'waiting',
                 session_id: sessionId,
+                session_name: name,
                 quiz_id: qid,
+                quiz_name: quizMeta?.name || '',
                 question_index: 0,
                 question_keys: JSON.stringify(qs.map((q) => q._key)),
                 time_limit: qs[0]?.timeLimit || 30,
                 question_started_at: '',
             };
-            await updateSession(doc);
+            try {
+                await updateSession(doc);
+            } catch (e) {
+                throw new Error(`Could not create session — ${e.message}. Try refreshing the page.`);
+            }
             await clearPresence(sessionId);
             sessionRef.current = doc;
             setSession({ ...doc });
-            setParticipants([]);
+            setParticipants(0);
             setLeaderboard([]);
         } catch (e) {
             setStatus({ error: true, msg: e.message });
@@ -577,11 +716,11 @@ export default function SyncHostPage() {
         try {
             const [distRows, totalRows] = await Promise.all([
                 runSearch(
-                    `index=ponypoll session_id="${sid}" sourcetype=ponypoll_answer question_index=${qIdx} | eval opts=split(answer, ",") | mvexpand opts | stats count by opts | rename opts as option`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
                     { earliest: '-1d' }
                 ),
                 runSearch(
-                    `index=ponypoll session_id="${sid}" sourcetype=ponypoll_answer question_index=${qIdx} | stats count as total`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIdx} | stats count as total`,
                     { earliest: '-1d' }
                 ),
             ]);
@@ -603,7 +742,7 @@ export default function SyncHostPage() {
                 setDistTotal(0);
                 const [lbRows] = await Promise.all([
                     runSearch(
-                        `index=ponypoll session_id="${sid}" sourcetype=ponypoll_answer | stats sum(points) as score by nickname | sort -score | head 10`,
+                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" | stats sum(points) as score by nickname | sort -score | head 10`,
                         { earliest: '-1d' }
                     ),
                     fetchDist(sid, qIdx),
@@ -627,7 +766,7 @@ export default function SyncHostPage() {
                 const sid = sessionRef.current?.session_id;
                 if (sid) {
                     const rows = await runSearch(
-                        `index=ponypoll session_id="${sid}" sourcetype=ponypoll_answer | stats sum(points) as score by nickname | sort -score | head 10`,
+                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" | stats sum(points) as score by nickname | sort -score | head 10`,
                         { earliest: '-1d' }
                     );
                     setLeaderboard(rows);
@@ -644,17 +783,54 @@ export default function SyncHostPage() {
         finally { setBusy(false); }
     };
 
+    const resetToIdle = async () => {
+        await write({ phase: 'idle' });
+        setQuestions([]);
+        questionsRef.current = [];
+        setLeaderboard([]);
+        setParticipants(0);
+        setSessionName('');
+    };
+
     const handleEndSession = async () => {
         if (!window.confirm('End this session? Participants will see "Quiz ended".')) return;
         setBusy(true);
         try {
-            await write({ phase: 'idle' });
-            setQuestions([]);
-            questionsRef.current = [];
-            setLeaderboard([]);
-            setParticipants([]);
+            await resetToIdle();
         } catch (e) { setStatus({ error: true, msg: e.message }); }
         finally { setBusy(false); }
+    };
+
+    // ── Mode + activate (self-paced) ──────────────────────────────────────────
+    const handleModeChange = async (newMode) => {
+        setQuizMode(newMode);
+        const quiz = quizzes.find((q) => q._key === selectedQuizId);
+        if (!quiz) return;
+        try {
+            await updateQuiz(selectedQuizId, { ...quiz, quiz_mode: newMode });
+            const fresh = await listQuizzes();
+            setQuizzes(fresh);
+            setModeSaved(true);
+            setTimeout(() => setModeSaved(false), 2000);
+        } catch (e) {
+            setStatus({ error: true, msg: `Failed to save mode: ${e.message}` });
+        }
+    };
+
+    const handleActivate = async () => {
+        if (!selectedQuizId) return;
+        setBusy(true);
+        try {
+            const cfg = await loadConfig();
+            await saveConfig({ ...cfg, active_quiz_id: selectedQuizId });
+            setLiveQuizId(selectedQuizId);
+            const name = quizzes.find((q) => q._key === selectedQuizId)?.name || 'Quiz';
+            setStatus({ error: false, msg: `"${name}" is now active — participants can start the quiz.` });
+        } catch (e) {
+            setStatus({ error: true, msg: `Activate failed: ${e.message}` });
+        } finally {
+            setBusy(false);
+        }
     };
 
     // ── Copy URL helper ───────────────────────────────────────────────────────
@@ -733,21 +909,32 @@ export default function SyncHostPage() {
                 </StatusBanner>
             )}
 
-            {/* ── IDLE: no session ── */}
+            {/* ── IDLE: quiz admin ── */}
             {phase === 'idle' && (
                 <Card>
-                    <Title>🎙 Synchronized Host Mode</Title>
+                    <Title>
+                        <svg viewBox="0 0 16 16" width="20" height="20"
+                            style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, marginBottom: 3 }}
+                            fill="currentColor" aria-hidden="true">
+                            <rect x="1" y="4" width="10" height="6" rx="1.2" />
+                            <circle cx="8.5" cy="7" r="1.8" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                            <circle cx="3" cy="6" r="0.7" />
+                            <line x1="11" y1="5.2" x2="15" y2="3"   stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" />
+                            <line x1="11" y1="8.8" x2="15" y2="11"  stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" />
+                            <line x1="5.5" y1="10" x2="5.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                            <line x1="3.5" y1="13" x2="7.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                        </svg>
+                        Quiz Admin
+                    </Title>
                     <Subtitle>
-                        You control the pace. Everyone sees the same question at the same time.
-                        Pick a quiz, start the session, then show participants the join URL below.
+                        Select a quiz, set the mode, and run it for participants.
                     </Subtitle>
 
-                    <JoinInfo large={false} />
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-                        {/* Quiz selector */}
+                    {/* ── Quiz controls ── */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+                        {/* Quiz picker */}
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                            <span style={{ fontSize: 13, color: C.muted, width: 80, flexShrink: 0 }}>Quiz:</span>
+                            <ControlLabel>Quiz:</ControlLabel>
                             <QuizPicker
                                 value={selectedQuizId}
                                 onChange={(e) => {
@@ -757,18 +944,45 @@ export default function SyncHostPage() {
                             >
                                 {quizzes.length === 0 && <option value="">Loading…</option>}
                                 {quizzes.map((q) => (
-                                    <option key={q._key} value={q._key}>{q.name}</option>
+                                    <option key={q._key} value={q._key}>
+                                        {q._key === liveQuizId ? '▶ ' : ''}{q.name}
+                                    </option>
                                 ))}
                             </QuizPicker>
                         </div>
 
-                        {/* Question count selector */}
+                        {/* Mode toggle */}
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                            <span style={{ fontSize: 13, color: C.muted, width: 80, flexShrink: 0 }}>Questions:</span>
+                            <ControlLabel>Mode:</ControlLabel>
+                            <ModeToggleWrap>
+                                <ModeBtn
+                                    active={quizMode === 'self_paced'}
+                                    disabled={!selectedQuizId}
+                                    onClick={() => quizMode !== 'self_paced' && handleModeChange('self_paced')}
+                                    title="Each participant runs the quiz at their own pace"
+                                >
+                                    Self-paced
+                                </ModeBtn>
+                                <ModeBtn
+                                    active={quizMode === 'synchronized'}
+                                    disabled={!selectedQuizId}
+                                    onClick={() => quizMode !== 'synchronized' && handleModeChange('synchronized')}
+                                    title="You control the pace — everyone sees the same question at the same time"
+                                >
+                                    🎙 Synchronized
+                                </ModeBtn>
+                            </ModeToggleWrap>
+                            <SavedFlash show={modeSaved}>✓ Saved</SavedFlash>
+                        </div>
+
+                        {/* Question count */}
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                            <ControlLabel>Questions:</ControlLabel>
                             <QuizPicker
                                 value={questionCount}
                                 onChange={(e) => setQuestionCount(e.target.value)}
                                 disabled={!selectedQuizId || totalAvailable === 0}
+                                title="Randomly pick a subset of questions"
                             >
                                 <option value="all">All {totalAvailable > 0 ? `(${totalAvailable})` : ''}</option>
                                 {[3, 5, 6, 8, 10, 12, 15, 20, 25, 30]
@@ -780,11 +994,47 @@ export default function SyncHostPage() {
                                     ))}
                             </QuizPicker>
                         </div>
+
+                        {/* Session name — sync only */}
+                        {quizMode === 'synchronized' && (
+                            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                <ControlLabel>Session:</ControlLabel>
+                                <TextInput
+                                    type="text"
+                                    placeholder='e.g. "Workshop Berlin May 2026"'
+                                    value={sessionName}
+                                    onChange={(e) => setSessionName(e.target.value)}
+                                    highlight={!sessionName.trim() ? 1 : 0}
+                                    maxLength={80}
+                                    title="Unique name for this session — used to filter results in Analytics"
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    <BigBtn onClick={handleStartSession} disabled={busy || !selectedQuizId}>
-                        {busy ? 'Starting…' : '▶ Start Session'}
-                    </BigBtn>
+                    {/* ── Action button — depends on mode ── */}
+                    {quizMode === 'self_paced' ? (
+                        <div style={{ marginBottom: 28 }}>
+                            {selectedQuizId && selectedQuizId === liveQuizId ? (
+                                <ActivateBadge>
+                                    ● Active — participants are on this quiz
+                                </ActivateBadge>
+                            ) : (
+                                <BigBtn onClick={handleActivate} disabled={busy || !selectedQuizId}>
+                                    {busy ? 'Activating…' : '▶ Activate for Self-paced'}
+                                </BigBtn>
+                            )}
+                        </div>
+                    ) : (
+                        <div style={{ marginBottom: 28 }}>
+                            <BigBtn onClick={handleStartSession} disabled={busy || !selectedQuizId}>
+                                {busy ? 'Starting…' : '▶ Start Synchronized Session'}
+                            </BigBtn>
+                        </div>
+                    )}
+
+                    {/* ── Join URL + QR — always visible so host can share ── */}
+                    <JoinInfo large={false} />
                 </Card>
             )}
 
@@ -804,7 +1054,7 @@ export default function SyncHostPage() {
 
                     <Grid2 style={{ gridTemplateColumns: '1fr 1fr', maxWidth: 320, marginBottom: 20 }}>
                         <Stat>
-                            <StatVal color={C.green}>{participants.length}</StatVal>
+                            <StatVal color={C.green}>{participantCount}</StatVal>
                             <StatLabel>Joined</StatLabel>
                         </Stat>
                         <Stat>
@@ -813,16 +1063,19 @@ export default function SyncHostPage() {
                         </Stat>
                     </Grid2>
 
-                    <ParticipantGrid>
-                        {participants.length === 0 && (
-                            <span style={{ color: C.muted, fontSize: 13 }}>No participants yet…</span>
-                        )}
-                        {participants.map((n) => <ParticipantChip key={n}>{n}</ParticipantChip>)}
-                    </ParticipantGrid>
+                    {participantCount === 0 && (
+                        <div style={{ color: C.muted, fontSize: 13, marginBottom: 16 }}>
+                            Waiting for participants to scan the QR code and join…
+                        </div>
+                    )}
 
-                    <div style={{ marginTop: 24 }}>
-                        <BigBtn onClick={handleLaunchQuiz} disabled={busy || participants.length === 0}>
-                            {busy ? 'Launching…' : `▶ Launch Quiz (${participants.length} players)`}
+                    <div style={{ marginTop: 8 }}>
+                        <BigBtn onClick={handleLaunchQuiz} disabled={busy}>
+                            {busy
+                                ? 'Launching…'
+                                : participantCount > 0
+                                    ? `▶ Launch Quiz (${participantCount} joined)`
+                                    : '▶ Launch Quiz'}
                         </BigBtn>
                         <SmallBtn danger onClick={handleEndSession} disabled={busy}>Cancel</SmallBtn>
                     </div>
@@ -838,7 +1091,7 @@ export default function SyncHostPage() {
                             <PhaseTag phase="question">Live</PhaseTag>
                         </span>
                         <span style={{ fontSize: 13, color: C.muted }}>
-                            {participants.length} participant{participants.length !== 1 ? 's' : ''}
+                            {participantCount} participant{participantCount !== 1 ? 's' : ''}
                         </span>
                     </div>
 
@@ -918,6 +1171,17 @@ export default function SyncHostPage() {
                         <DistBars options={currQ.options} dist={answerDist} total={distTotal} />
                     )}
 
+                    {/* Explanation — shown to host so they can read it aloud */}
+                    {currQ.explanation && (
+                        <div style={{
+                            padding: '10px 16px', marginBottom: 8,
+                            background: '#0e1e30', border: '1px solid #009CDE44',
+                            borderRadius: 8, fontSize: 13, color: '#7EC8E3', lineHeight: 1.5,
+                        }}>
+                            💡 {currQ.explanation}
+                        </div>
+                    )}
+
                     {leaderboard.length > 0 && (
                         <>
                             <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10, marginTop: 4 }}>
@@ -959,7 +1223,7 @@ export default function SyncHostPage() {
             {phase === 'done' && (
                 <Card>
                     <Title>🏁 Quiz Complete!</Title>
-                    <Subtitle>Session finished — {participants.length} participant{participants.length !== 1 ? 's' : ''}.</Subtitle>
+                    <Subtitle>Session finished — {participantCount} participant{participantCount !== 1 ? 's' : ''}.</Subtitle>
 
                     {leaderboard.length > 0 ? (
                         <LbTable>
@@ -987,7 +1251,9 @@ export default function SyncHostPage() {
                     )}
 
                     <div style={{ marginTop: 28 }}>
-                        <BigBtn onClick={handleStartSession} disabled={busy}>▶ New Session</BigBtn>
+                        <BigBtn onClick={async () => { setBusy(true); try { await resetToIdle(); } finally { setBusy(false); } }} disabled={busy}>
+                            ▶ Start New Session
+                        </BigBtn>
                     </div>
                 </Card>
             )}

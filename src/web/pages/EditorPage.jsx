@@ -77,56 +77,6 @@ const SmallBtn = styled.button`
     &:disabled { opacity: 0.35; cursor: default; }
 `;
 
-const ActiveBadge = styled.span`
-    font-size: 11px;
-    background: ${C.accent}33;
-    color: ${C.accent};
-    border: 1px solid ${C.accent}66;
-    border-radius: 5px;
-    padding: 4px 8px;
-    font-weight: 700;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-`;
-
-const ActivateBtn = styled.button`
-    padding: 4px 10px;
-    border-radius: 5px;
-    border: 1px solid ${C.accent};
-    background: ${C.accent}22;
-    color: ${C.accent};
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    &:hover { background: ${C.accent}44; }
-    &:disabled { opacity: 0.35; cursor: default; }
-`;
-
-const ModeToggleWrap = styled.div`
-    display: flex;
-    gap: 4px;
-    flex: 1;
-`;
-
-const ModeBtn = styled.button`
-    flex: 1;
-    padding: 5px 6px;
-    border-radius: 5px;
-    border: 1px solid ${({ active }) => (active ? C.blue : C.border)};
-    background: ${({ active }) => (active ? C.blue + '25' : 'transparent')};
-    color: ${({ active }) => (active ? C.blue : C.muted)};
-    font-size: 11px;
-    font-weight: ${({ active }) => (active ? 700 : 500)};
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s;
-    &:hover:not(:disabled) { border-color: ${C.blue}88; color: ${C.text}; }
-    &:disabled { opacity: 0.35; cursor: default; }
-`;
-
 const SavedFlash = styled.span`
     font-size: 10px;
     color: ${C.accent};
@@ -392,7 +342,6 @@ const SourceBtn = styled.button`
 export default function EditorPage() {
     const [questions, setQuestions] = useState([]);
     const [activeIdx, setActiveIdx] = useState(null);
-    const [saving, setSaving] = useState(false);
     const [savingOne, setSavingOne] = useState(false);
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -400,12 +349,8 @@ export default function EditorPage() {
     // Quiz management
     const [quizzes, setQuizzes] = useState([]);
     const [activeQuizId, setActiveQuizId] = useState(null); // currently editing
-    const [liveQuizId, setLiveQuizId] = useState('');       // what participants see
+    const [liveQuizId, setLiveQuizId] = useState('');       // what participants see (read-only indicator)
     const [quizLoading, setQuizLoading] = useState(true);
-    const [questionLimit, setQuestionLimit] = useState(null); // null = all questions
-    const [quizMode, setQuizMode] = useState('self_paced');   // 'self_paced' | 'synchronized'
-    const [modeSaved, setModeSaved] = useState(false);        // brief "✓ Saved" flash
-    const [limitSaved, setLimitSaved] = useState(false);      // brief "✓ Saved" flash
 
     const importInputRef = useRef(null);
     const configRef = useRef({});
@@ -441,9 +386,6 @@ export default function EditorPage() {
                     setQuizzes(qs);
                     const targetId = cfg.active_quiz_id || qs[0]._key;
                     setActiveQuizId(targetId);
-                    const targetQuiz = qs.find((q) => q._key === targetId);
-                    setQuestionLimit(targetQuiz?.question_limit ? Number(targetQuiz.question_limit) : null);
-                    setQuizMode(targetQuiz?.quiz_mode || 'self_paced');
                     await loadQuestionsForQuiz(targetId);
                 }
             })
@@ -468,25 +410,7 @@ export default function EditorPage() {
 
     const handleQuizSwitch = async (quizId) => {
         setActiveQuizId(quizId);
-        const quiz = quizzes.find((q) => q._key === quizId);
-        setQuestionLimit(quiz?.question_limit ? Number(quiz.question_limit) : null);
-        setQuizMode(quiz?.quiz_mode || 'self_paced');
         await loadQuestionsForQuiz(quizId);
-    };
-
-    const handleModeChange = async (newMode) => {
-        setQuizMode(newMode);
-        const currentQuiz = quizzes.find((q) => q._key === activeQuizId);
-        if (!currentQuiz) return;
-        try {
-            await updateQuiz(activeQuizId, { ...currentQuiz, quiz_mode: newMode });
-            const freshQuizzes = await listQuizzes();
-            setQuizzes(freshQuizzes);
-            setModeSaved(true);
-            setTimeout(() => setModeSaved(false), 2000);
-        } catch (e) {
-            setStatus({ error: true, msg: `Failed to save mode: ${e.message}` });
-        }
     };
 
     const handleNewQuiz = async () => {
@@ -544,33 +468,6 @@ export default function EditorPage() {
         }
     };
 
-    const handleActivate = async () => {
-        if (!activeQuizId) return;
-        try {
-            await saveConfig({ ...configRef.current, active_quiz_id: activeQuizId });
-            configRef.current = { ...configRef.current, active_quiz_id: activeQuizId };
-            setLiveQuizId(activeQuizId);
-            const name = quizzes.find((q) => q._key === activeQuizId)?.name || 'Quiz';
-            setStatus({ error: false, msg: `"${name}" is now active — participants will see this quiz.` });
-        } catch (e) {
-            setStatus({ error: true, msg: `Activate failed: ${e.message}` });
-        }
-    };
-
-    const handleLimitChange = async (newLimit) => {
-        setQuestionLimit(newLimit);
-        const currentQuiz = quizzes.find((q) => q._key === activeQuizId);
-        if (!currentQuiz) return;
-        try {
-            await updateQuiz(activeQuizId, { ...currentQuiz, question_limit: newLimit || null });
-            const freshQuizzes = await listQuizzes();
-            setQuizzes(freshQuizzes);
-            setLimitSaved(true);
-            setTimeout(() => setLimitSaved(false), 2000);
-        } catch (e) {
-            setStatus({ error: true, msg: `Failed to save limit: ${e.message}` });
-        }
-    };
 
     // ── Question editing ────────────────────────────────────────────────────────
 
@@ -659,22 +556,14 @@ export default function EditorPage() {
         }
     };
 
-    const saveAll = async () => {
-        if (!activeQuizId) return;
-        setSaving(true);
+
+    const saveOrder = async (qs) => {
         try {
             await saveAllQuestions(
-                questions.map((q, i) => ({ ...toKvDoc(q), sort_order: i })),
+                qs.map((q, i) => ({ ...toKvDoc(q), sort_order: i })),
                 activeQuizId
             );
-            const docs = await listQuestions(activeQuizId);
-            setQuestions(docs.map(fromKvDoc));
-            setStatus({ error: false, msg: 'All questions saved.' });
-        } catch (e) {
-            setStatus({ error: true, msg: e.message });
-        } finally {
-            setSaving(false);
-        }
+        } catch (_) { /* silent — order will re-sync on next load */ }
     };
 
     const moveUp = () => {
@@ -683,6 +572,7 @@ export default function EditorPage() {
         [qs[activeIdx - 1], qs[activeIdx]] = [qs[activeIdx], qs[activeIdx - 1]];
         setQuestions(qs);
         setActiveIdx(activeIdx - 1);
+        saveOrder(qs);
     };
 
     const moveDown = () => {
@@ -691,6 +581,7 @@ export default function EditorPage() {
         [qs[activeIdx], qs[activeIdx + 1]] = [qs[activeIdx + 1], qs[activeIdx]];
         setQuestions(qs);
         setActiveIdx(activeIdx + 1);
+        saveOrder(qs);
     };
 
     // ── Export ──────────────────────────────────────────────────────────────────
@@ -815,8 +706,6 @@ export default function EditorPage() {
 
     // ── Render ──────────────────────────────────────────────────────────────────
 
-    const currentQuizIsLive = activeQuizId && activeQuizId === liveQuizId;
-
     return (
         <Root>
 
@@ -828,6 +717,7 @@ export default function EditorPage() {
                             value={activeQuizId || ''}
                             onChange={(e) => handleQuizSwitch(e.target.value)}
                             disabled={quizLoading}
+                            title="Select which quiz to edit"
                         >
                             {quizzes.map((q) => (
                                 <option key={q._key} value={q._key}>
@@ -835,61 +725,6 @@ export default function EditorPage() {
                                 </option>
                             ))}
                         </QuizSelect>
-                    </QuizRow>
-                    <QuizRow>
-                        {currentQuizIsLive ? (
-                            <ActiveBadge style={{ flex: 1, justifyContent: 'center' }}>
-                                ● Active — participants see this quiz
-                            </ActiveBadge>
-                        ) : (
-                            <ActivateBtn
-                                style={{ flex: 1 }}
-                                onClick={handleActivate}
-                                disabled={!activeQuizId}
-                                title="Make this quiz visible to participants"
-                            >
-                                ▶ Activate this quiz
-                            </ActivateBtn>
-                        )}
-                    </QuizRow>
-                    <QuizRow style={{ alignItems: 'center' }}>
-                        <span style={{ fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>🎲 Play:</span>
-                        <QuizSelect
-                            value={questionLimit || ''}
-                            onChange={(e) => handleLimitChange(e.target.value ? Number(e.target.value) : null)}
-                            disabled={!activeQuizId}
-                            title="Randomly pick a subset of questions when the quiz runs"
-                        >
-                            <option value="">All {questions.length} questions</option>
-                            {[3, 5, 6, 8, 10, 12, 15, 20, 25, 30]
-                                .filter((n) => n < questions.length)
-                                .map((n) => (
-                                    <option key={n} value={n}>Random {n} of {questions.length}</option>
-                                ))}
-                        </QuizSelect>
-                        <SavedFlash show={limitSaved}>✓</SavedFlash>
-                    </QuizRow>
-                    <QuizRow style={{ alignItems: 'center' }}>
-                        <span style={{ fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>⚡ Mode:</span>
-                        <ModeToggleWrap>
-                            <ModeBtn
-                                active={quizMode === 'self_paced'}
-                                disabled={!activeQuizId}
-                                onClick={() => quizMode !== 'self_paced' && handleModeChange('self_paced')}
-                                title="Each participant runs the quiz independently at their own pace"
-                            >
-                                Self-paced
-                            </ModeBtn>
-                            <ModeBtn
-                                active={quizMode === 'synchronized'}
-                                disabled={!activeQuizId}
-                                onClick={() => quizMode !== 'synchronized' && handleModeChange('synchronized')}
-                                title="Host controls the pace — all participants see the same question simultaneously"
-                            >
-                                🎙 Sync
-                            </ModeBtn>
-                        </ModeToggleWrap>
-                        <SavedFlash show={modeSaved}>✓ Saved</SavedFlash>
                     </QuizRow>
                     <QuizRow>
                         <SmallBtn primary onClick={handleNewQuiz}>+ New</SmallBtn>
@@ -927,17 +762,9 @@ export default function EditorPage() {
                     <ToolbarTitle>
                         {active ? `Editing Q${activeIdx + 1}` : 'Question Editor'}
                     </ToolbarTitle>
-                    <TBtn onClick={moveUp} disabled={activeIdx === null || activeIdx === 0}>↑ Up</TBtn>
-                    <TBtn onClick={moveDown} disabled={activeIdx === null || activeIdx >= questions.length - 1}>↓ Down</TBtn>
+                    <TBtn onClick={moveUp} disabled={activeIdx === null || activeIdx === 0} title="Move question up (auto-saved)">↑ Up</TBtn>
+                    <TBtn onClick={moveDown} disabled={activeIdx === null || activeIdx >= questions.length - 1} title="Move question down (auto-saved)">↓ Down</TBtn>
                     <TBtn danger onClick={deleteActive} disabled={active === null}>Delete</TBtn>
-                    <TBtn
-                        primary
-                        onClick={handleSaveActive}
-                        disabled={active === null || savingOne}
-                        title="Save this question only"
-                    >
-                        {savingOne ? 'Saving…' : '💾 Save'}
-                    </TBtn>
                     <TBtn onClick={handleExport} disabled={questions.length === 0} title="Download questions as JSON">
                         ⬇ Export
                     </TBtn>
@@ -956,9 +783,6 @@ export default function EditorPage() {
                     </TBtn>
                     <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub">
                         🔄 GitHub
-                    </TBtn>
-                    <TBtn onClick={saveAll} disabled={saving || !activeQuizId} title="Save all questions in this quiz (reorders and persists every question)">
-                        {saving ? 'Saving…' : '💾 Save All'}
                     </TBtn>
                 </Toolbar>
 
@@ -1096,7 +920,7 @@ export default function EditorPage() {
                                     <button
                                         onClick={addOption}
                                         style={{
-                                            marginTop: 4, background: C.surface2,
+                                            marginTop: 4, background: C.bg,
                                             border: `1px dashed ${C.border}`, borderRadius: 5,
                                             color: C.muted, fontSize: 12, padding: '5px 14px',
                                             cursor: 'pointer',
@@ -1106,7 +930,30 @@ export default function EditorPage() {
                             </div>
                         )}
 
-                        {/* Per-question save — visible inline so users don't miss it */}
+                        {/* Explanation */}
+                        <div>
+                            <Label>
+                                Explanation
+                                <span style={{ marginLeft: 8, fontWeight: 400, textTransform: 'none', fontSize: 11, color: C.muted }}>
+                                    — optional "why" shown after revealing the answer
+                                </span>
+                            </Label>
+                            <textarea
+                                value={active.explanation || ''}
+                                onChange={(e) => setActive('explanation', e.target.value)}
+                                placeholder='e.g. "Splunk Web runs on port 8000 by default."'
+                                rows={2}
+                                style={{
+                                    width: '100%', boxSizing: 'border-box',
+                                    background: C.surface, border: `1px solid ${C.border}`,
+                                    borderRadius: 6, color: C.text, fontSize: 13,
+                                    padding: '9px 12px', resize: 'vertical', fontFamily: 'inherit',
+                                    outline: 'none',
+                                }}
+                            />
+                        </div>
+
+                        {/* Save button */}
                         <div style={{
                             display: 'flex', alignItems: 'center', gap: 12,
                             padding: '14px 0 0',
@@ -1116,12 +963,20 @@ export default function EditorPage() {
                                 primary
                                 onClick={handleSaveActive}
                                 disabled={savingOne}
-                                style={{ minWidth: 140 }}
+                                style={{ minWidth: 120, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                             >
-                                {savingOne ? 'Saving…' : '💾 Save Question'}
+                                {savingOne ? 'Saving…' : (
+                                    <>
+                                        <svg viewBox="0 0 14 14" width="13" height="13" fill="currentColor" aria-hidden="true"
+                                            style={{ flexShrink: 0 }}>
+                                            <path d="M2 11h10v1.5H2V11zm4-1.5L2.5 5.7l1.1-1.1L6 7.1V1h2v6.1l2.4-2.5 1.1 1.1L7 9.5z"/>
+                                        </svg>
+                                        Save
+                                    </>
+                                )}
                             </TBtn>
                             <span style={{ fontSize: 12, color: C.muted }}>
-                                Saves only this question · Use <strong>Save All</strong> to reorder or bulk-save
+                                Saves this question · ↑ ↓ reordering is saved automatically
                             </span>
                         </div>
 
