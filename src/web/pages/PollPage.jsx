@@ -516,7 +516,10 @@ export default function PollPage() {
         let correct = false;
         let points = 0;
 
-        if (currentQ.type === 'slider') {
+        if (currentQ.type === 'wordcloud') {
+            correct = null;
+            points = freetextVal.trim().length > 0 ? 50 : 0;
+        } else if (currentQ.type === 'slider') {
             correct = null;
             points = sliderVal !== null ? 50 : 0;
         } else if (currentQ.type === 'freetext') {
@@ -555,7 +558,7 @@ export default function PollPage() {
 
         // Submit answer to Splunk index
         let answerValue;
-        if (currentQ.type === 'freetext') answerValue = freetextVal;
+        if (currentQ.type === 'freetext' || currentQ.type === 'wordcloud') answerValue = freetextVal;
         else if (currentQ.type === 'slider') answerValue = String(sliderVal ?? '');
         else answerValue = selected.join(',');
 
@@ -588,8 +591,8 @@ export default function PollPage() {
 
     const submitQuestion = () => {
         if (currentQ.type === 'slider' && sliderVal === null) return;
-        if (currentQ.type === 'freetext' && freetextVal.trim() === '') return;
-        if (currentQ.type !== 'freetext' && currentQ.type !== 'slider' && selected.length === 0) return;
+        if ((currentQ.type === 'freetext' || currentQ.type === 'wordcloud') && freetextVal.trim() === '') return;
+        if (!['freetext', 'wordcloud', 'slider'].includes(currentQ.type) && selected.length === 0) return;
         revealAnswer(timeRemaining);
     };
 
@@ -703,7 +706,7 @@ export default function PollPage() {
 
     const q = currentQ;
     const isReveal = phase === PHASE.REVEAL;
-    const canSubmit = q.type === 'freetext'
+    const canSubmit = (q.type === 'freetext' || q.type === 'wordcloud')
         ? freetextVal.trim().length > 0
         : q.type === 'slider'
             ? sliderVal !== null
@@ -739,6 +742,25 @@ export default function PollPage() {
                         setSliderVal={setSliderVal}
                         disabled={isReveal}
                     />
+                ) : q.type === 'wordcloud' ? (
+                    <div>
+                        <FreetextArea
+                            placeholder="Type a word or short phrase…"
+                            maxLength={q.wordcloudMaxChars ?? 32}
+                            value={freetextVal}
+                            onChange={(e) => !isReveal && setFreetextVal(e.target.value)}
+                            disabled={isReveal}
+                            style={{ textAlign: 'center', fontSize: 20, letterSpacing: 1, resize: 'none', height: 'auto', rows: 1 }}
+                        />
+                        <div style={{ textAlign: 'right', fontSize: 11, color: C.muted, marginTop: 4 }}>
+                            {freetextVal.length} / {q.wordcloudMaxChars ?? 32}
+                        </div>
+                        {isReveal && freetextVal.trim() && (
+                            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: C.muted }}>
+                                ☁ Your word is in the cloud on the host screen
+                            </div>
+                        )}
+                    </div>
                 ) : q.type === 'freetext' ? (
                     <>
                         <FreetextArea
