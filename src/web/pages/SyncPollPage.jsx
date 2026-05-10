@@ -271,6 +271,19 @@ function DistBars({ options, dist, total }) {
     );
 }
 
+// ── Word-cloud helpers ────────────────────────────────────────────────────────
+/** Normalise raw input into the stored/displayed word:
+ *  - Strip surrounding "quotes" or 'quotes'
+ *  - Convert underscores to spaces (one_term → "one term")
+ */
+function normalizeWcWord(raw) {
+    let w = raw.trim();
+    if ((w.startsWith('"') && w.endsWith('"')) || (w.startsWith("'") && w.endsWith("'"))) {
+        w = w.slice(1, -1).trim();
+    }
+    return w.replace(/_/g, ' ').trim();
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function answerString(type, selected, sliderVal, freetextVal, wcWords) {
     if (type === 'freetext')  return freetextVal;
@@ -649,76 +662,90 @@ export default function SyncPollPage() {
                         />
                     )}
 
-                    {/* Word cloud chip input */}
+                    {/* Word cloud — inline tag input */}
                     {question.type === 'wordcloud' && (() => {
                         const maxChars = question.wordcloudMaxChars ?? 32;
                         const maxWords = question.wordcloudMaxWords ?? 7;
                         const full     = wcWords.length >= maxWords;
+                        const tryAdd   = (raw) => {
+                            const w = normalizeWcWord(raw);
+                            if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
+                                setWcWords((prev) => [...prev, w]);
+                            }
+                            setWcInput('');
+                        };
                         return (
                             <div>
-                                {/* Chips */}
-                                {wcWords.length > 0 && (
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                                        {wcWords.map((w, i) => (
-                                            <span key={i} style={{
-                                                display: 'inline-flex', alignItems: 'center', gap: 5,
-                                                background: C.blue + '33', border: `1px solid ${C.blue}`,
-                                                borderRadius: 20, padding: '3px 10px 3px 12px',
-                                                fontSize: 14, color: C.text,
-                                            }}>
-                                                {w}
-                                                {!locked && (
-                                                    <button
-                                                        onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
-                                                        style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 14, lineHeight: 1 }}
-                                                    >×</button>
-                                                )}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                                {/* Input row */}
-                                {!locked && !full && (
-                                    <div style={{ display: 'flex', gap: 8 }}>
-                                        <NicknameInput
-                                            placeholder="Add a word…"
-                                            maxLength={maxChars}
+                                {/* Inline tag field */}
+                                <div
+                                    onClick={() => document.getElementById('wc-input')?.focus()}
+                                    style={{
+                                        display: 'flex', flexWrap: 'wrap', alignItems: 'center',
+                                        gap: 6, padding: '10px 14px', minHeight: 52,
+                                        background: C.surface2, border: `1px solid ${locked ? C.border : C.blue}`,
+                                        borderRadius: 8, cursor: 'text',
+                                    }}
+                                >
+                                    {wcWords.map((w, i) => (
+                                        <span key={i} style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                                            background: C.blue + '33', border: `1px solid ${C.blue}`,
+                                            borderRadius: 20, padding: '2px 8px 2px 11px',
+                                            fontSize: 14, color: C.text, whiteSpace: 'nowrap',
+                                        }}>
+                                            {w}
+                                            {!locked && (
+                                                <button
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
+                                                    style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 13, lineHeight: 1 }}
+                                                >×</button>
+                                            )}
+                                        </span>
+                                    ))}
+                                    {!locked && !full && (
+                                        <input
+                                            id="wc-input"
                                             value={wcInput}
-                                            onChange={(e) => setWcInput(e.target.value)}
+                                            maxLength={maxChars}
+                                            placeholder={wcWords.length === 0 ? 'Type a word, press Space to add…' : 'next word…'}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val.endsWith(' ')) { tryAdd(val); }
+                                                else { setWcInput(val); }
+                                            }}
                                             onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
+                                                if (e.key === 'Enter') { e.preventDefault(); tryAdd(wcInput); }
+                                                if (e.key === 'Backspace' && wcInput === '') {
                                                     e.preventDefault();
-                                                    const w = wcInput.trim();
-                                                    if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
-                                                        setWcWords((prev) => [...prev, w]);
-                                                        setWcInput('');
-                                                    }
+                                                    setWcWords((prev) => prev.slice(0, -1));
                                                 }
                                             }}
-                                            style={{ flex: 1, margin: 0 }}
-                                        />
-                                        <button
-                                            onClick={() => {
-                                                const w = wcInput.trim();
-                                                if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
-                                                    setWcWords((prev) => [...prev, w]);
-                                                    setWcInput('');
-                                                }
-                                            }}
-                                            disabled={!wcInput.trim()}
                                             style={{
-                                                padding: '0 18px', borderRadius: 8, border: 'none',
-                                                background: C.blue, color: '#fff', fontWeight: 700,
-                                                fontSize: 18, cursor: wcInput.trim() ? 'pointer' : 'not-allowed',
-                                                opacity: wcInput.trim() ? 1 : 0.4,
+                                                flex: '1 1 120px', minWidth: 80, background: 'transparent',
+                                                border: 'none', outline: 'none', color: C.text,
+                                                fontSize: 15, padding: '2px 4px',
                                             }}
-                                        >+</button>
+                                        />
+                                    )}
+                                    {(locked || full) && wcWords.length === 0 && (
+                                        <span style={{ color: C.muted, fontSize: 13 }}>No words submitted</span>
+                                    )}
+                                </div>
+
+                                {/* Hint + counter */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 7, gap: 8 }}>
+                                    {!locked && (
+                                        <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+                                            <strong style={{ color: C.text }}>Space</strong> or <strong style={{ color: C.text }}>Enter</strong> adds a word &nbsp;·&nbsp;
+                                            <strong style={{ color: C.text }}>Backspace</strong> removes last &nbsp;·&nbsp;
+                                            use <strong style={{ color: C.text }}>word_word</strong> or <strong style={{ color: C.text }}>"two words"</strong> for phrases
+                                        </div>
+                                    )}
+                                    <div style={{ fontSize: 11, color: full ? C.green : C.muted, whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                                        {wcWords.length} / {maxWords}
+                                        {full && !locked && ' — submit when ready'}
                                     </div>
-                                )}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.muted, marginTop: 6 }}>
-                                    <span>{wcWords.length} / {maxWords} words</span>
-                                    {!locked && !full && <span>{wcInput.length} / {maxChars} chars</span>}
-                                    {full && !locked && <span style={{ color: C.green }}>Word limit reached — submit when ready</span>}
                                 </div>
                             </div>
                         );

@@ -417,6 +417,15 @@ const RestartBtn = styled.button`
     &:hover { background: rgba(255,255,255,0.06); }
 `;
 
+// ── Word-cloud helpers ────────────────────────────────────────────────────────
+function normalizeWcWord(raw) {
+    let w = raw.trim();
+    if ((w.startsWith('"') && w.endsWith('"')) || (w.startsWith("'") && w.endsWith("'"))) {
+        w = w.slice(1, -1).trim();
+    }
+    return w.replace(/_/g, ' ').trim();
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 const PHASE = { SETUP: 'setup', QUESTION: 'question', REVEAL: 'reveal', DONE: 'done' };
@@ -752,79 +761,98 @@ export default function PollPage() {
                         setSliderVal={setSliderVal}
                         disabled={isReveal}
                     />
-                ) : q.type === 'wordcloud' ? (
-                    <div>
-                        {/* Chips */}
-                        {wcWords.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                ) : q.type === 'wordcloud' ? (() => {
+                    const maxChars = q.wordcloudMaxChars ?? 32;
+                    const maxWords = q.wordcloudMaxWords ?? 7;
+                    const full     = wcWords.length >= maxWords;
+                    const tryAdd   = (raw) => {
+                        const w = normalizeWcWord(raw);
+                        if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
+                            setWcWords((prev) => [...prev, w]);
+                        }
+                        setWcInput('');
+                    };
+                    return (
+                        <div>
+                            {/* Inline tag field */}
+                            <div
+                                onClick={() => document.getElementById('wc-input-poll')?.focus()}
+                                style={{
+                                    display: 'flex', flexWrap: 'wrap', alignItems: 'center',
+                                    gap: 6, padding: '10px 14px', minHeight: 52,
+                                    background: '#2B2E38', border: `1px solid ${isReveal ? C.border : C.blue}`,
+                                    borderRadius: 8, cursor: 'text',
+                                }}
+                            >
                                 {wcWords.map((w, i) => (
                                     <span key={i} style={{
-                                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                                        display: 'inline-flex', alignItems: 'center', gap: 4,
                                         background: C.blue + '33', border: `1px solid ${C.blue}`,
-                                        borderRadius: 20, padding: '3px 10px 3px 12px',
-                                        fontSize: 14, color: C.text,
+                                        borderRadius: 20, padding: '2px 8px 2px 11px',
+                                        fontSize: 14, color: C.text, whiteSpace: 'nowrap',
                                     }}>
                                         {w}
                                         {!isReveal && (
                                             <button
+                                                onMouseDown={(e) => e.preventDefault()}
                                                 onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
-                                                style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 14, lineHeight: 1 }}
+                                                style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 13, lineHeight: 1 }}
                                             >×</button>
                                         )}
                                     </span>
                                 ))}
-                            </div>
-                        )}
-                        {/* Input row */}
-                        {!isReveal && wcWords.length < (q.wordcloudMaxWords ?? 7) && (
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <FreetextArea
-                                    placeholder="Add a word…"
-                                    maxLength={q.wordcloudMaxChars ?? 32}
-                                    value={wcInput}
-                                    onChange={(e) => setWcInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            const w = wcInput.trim();
-                                            if (w && !wcWords.includes(w) && wcWords.length < (q.wordcloudMaxWords ?? 7)) {
-                                                setWcWords((prev) => [...prev, w]);
-                                                setWcInput('');
+                                {!isReveal && !full && (
+                                    <input
+                                        id="wc-input-poll"
+                                        value={wcInput}
+                                        maxLength={maxChars}
+                                        placeholder={wcWords.length === 0 ? 'Type a word, press Space to add…' : 'next word…'}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val.endsWith(' ')) { tryAdd(val); }
+                                            else { setWcInput(val); }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') { e.preventDefault(); tryAdd(wcInput); }
+                                            if (e.key === 'Backspace' && wcInput === '') {
+                                                e.preventDefault();
+                                                setWcWords((prev) => prev.slice(0, -1));
                                             }
-                                        }
-                                    }}
-                                    style={{ flex: 1, resize: 'none', height: 'auto' }}
-                                />
-                                <button
-                                    onClick={() => {
-                                        const w = wcInput.trim();
-                                        if (w && !wcWords.includes(w) && wcWords.length < (q.wordcloudMaxWords ?? 7)) {
-                                            setWcWords((prev) => [...prev, w]);
-                                            setWcInput('');
-                                        }
-                                    }}
-                                    disabled={!wcInput.trim()}
-                                    style={{
-                                        alignSelf: 'stretch', padding: '0 18px', borderRadius: 8, border: 'none',
-                                        background: C.blue, color: '#fff', fontWeight: 700,
-                                        fontSize: 20, cursor: wcInput.trim() ? 'pointer' : 'not-allowed',
-                                        opacity: wcInput.trim() ? 1 : 0.4,
-                                    }}
-                                >+</button>
+                                        }}
+                                        style={{
+                                            flex: '1 1 120px', minWidth: 80, background: 'transparent',
+                                            border: 'none', outline: 'none', color: C.text,
+                                            fontSize: 15, padding: '2px 4px',
+                                        }}
+                                    />
+                                )}
+                                {(isReveal || full) && wcWords.length === 0 && (
+                                    <span style={{ color: C.muted, fontSize: 13 }}>No words submitted</span>
+                                )}
                             </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.muted, marginTop: 6 }}>
-                            <span>{wcWords.length} / {q.wordcloudMaxWords ?? 7} words</span>
-                            {!isReveal && wcWords.length < (q.wordcloudMaxWords ?? 7) && <span>{wcInput.length} / {q.wordcloudMaxChars ?? 32}</span>}
-                            {wcWords.length >= (q.wordcloudMaxWords ?? 7) && !isReveal && <span style={{ color: C.accent }}>Word limit reached</span>}
+
+                            {/* Hint + counter */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 7, gap: 8 }}>
+                                {!isReveal && (
+                                    <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+                                        <strong style={{ color: C.text }}>Space</strong> or <strong style={{ color: C.text }}>Enter</strong> adds a word &nbsp;·&nbsp;
+                                        <strong style={{ color: C.text }}>Backspace</strong> removes last &nbsp;·&nbsp;
+                                        use <strong style={{ color: C.text }}>word_word</strong> or <strong style={{ color: C.text }}>"two words"</strong> for phrases
+                                    </div>
+                                )}
+                                <div style={{ fontSize: 11, color: full ? C.accent : C.muted, whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                                    {wcWords.length} / {maxWords}
+                                    {full && !isReveal && ' — submit when ready'}
+                                </div>
+                            </div>
+                            {isReveal && wcWords.length > 0 && (
+                                <div style={{ textAlign: 'center', marginTop: 10, fontSize: 13, color: C.muted }}>
+                                    ☁ Your words are in the cloud
+                                </div>
+                            )}
                         </div>
-                        {isReveal && wcWords.length > 0 && (
-                            <div style={{ textAlign: 'center', marginTop: 12, fontSize: 13, color: C.muted }}>
-                                ☁ Your words are in the cloud
-                            </div>
-                        )}
-                    </div>
-                ) : q.type === 'freetext' ? (
+                    );
+                })() : q.type === 'freetext' ? (
                     <>
                         <FreetextArea
                             placeholder="Type your answer… (max 100 characters)"
