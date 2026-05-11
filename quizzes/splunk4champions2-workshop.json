@@ -379,6 +379,122 @@
     ]
   },
   {
+    "text": "Drilldown in a Classic XML dashboard can be used to… (select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/drilldown1.png",
+    "explanation": "Drilldown supports navigation to another dashboard, a search, a custom URL, or a field-value based filter. It fires on a user click event inside a panel (chart bar, table row, map region, etc.).",
+    "options": [
+      { "id": "A", "text": "Navigate to another Splunk dashboard", "correct": true },
+      { "id": "B", "text": "Run a new search filtered by the clicked value", "correct": true },
+      { "id": "C", "text": "Open an external URL in the browser", "correct": true },
+      { "id": "D", "text": "Automatically email the clicked result to a user", "correct": false }
+    ]
+  },
+  {
+    "text": "In Classic XML dashboards, tokens allow you to…",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/tokenviz1.png",
+    "explanation": "Tokens store dynamic values (e.g. from drilldown, inputs, or set/unset actions) and can be referenced inside SPL searches, panel titles, and labels using the $token_name$ syntax to create interactive dashboards.",
+    "options": [
+      { "id": "A", "text": "Password-protect individual panels", "correct": false },
+      { "id": "B", "text": "Pass dynamic values between panels, searches, and labels at runtime", "correct": true },
+      { "id": "C", "text": "Replace saved search names with friendly titles", "correct": false },
+      { "id": "D", "text": "Grant access to specific users only", "correct": false }
+    ]
+  },
+  {
+    "text": "Transforming (non-streaming) commands such as stats and timechart run exclusively on…",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/Nonstreaming_flow.png",
+    "explanation": "Non-streaming (transforming) commands like stats, timechart, sort, and top must run on the search head because they need all results gathered before producing output. Streaming commands like eval and where can run on indexers.",
+    "options": [
+      { "id": "A", "text": "All indexers in parallel", "correct": false },
+      { "id": "B", "text": "The search head, after all indexers return their partial results", "correct": true },
+      { "id": "C", "text": "The deployment server", "correct": false },
+      { "id": "D", "text": "Wherever the licence manager resides", "correct": false }
+    ]
+  },
+  {
+    "text": "The Phyphox app used in the workshop lets you…",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/phyphox_large.png",
+    "explanation": "Phyphox streams real smartphone sensor data (accelerometer, gyroscope, barometer, etc.) over HTTP in JSON format. In the workshop this is used as a live data source to build searches and dashboards against real IoT-style data.",
+    "options": [
+      { "id": "A", "text": "Configure Splunk forwarder settings on an Android device", "correct": false },
+      { "id": "B", "text": "Stream live smartphone sensor data (accelerometer, GPS, etc.) over HTTP as JSON", "correct": true },
+      { "id": "C", "text": "Run Splunk searches directly from a smartphone", "correct": false },
+      { "id": "D", "text": "Simulate log data for testing Splunk dashboards", "correct": false }
+    ]
+  },
+  {
+    "text": "Which command lists all metric names and dimensions available in a metric index?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "mcatalog searches metric indexes and returns a catalogue of available metric names (and optionally their dimensions). It's the discovery command for the metrics ecosystem — equivalent to a metadata search for event indexes.",
+    "options": [
+      { "id": "A", "text": "mstats", "correct": false },
+      { "id": "B", "text": "mcollect", "correct": false },
+      { "id": "C", "text": "mcatalog", "correct": true },
+      { "id": "D", "text": "mpreview", "correct": false }
+    ]
+  },
+  {
+    "text": "Data sources in Dashboard Studio can include… (select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/datasources.png",
+    "explanation": "Dashboard Studio supports inline SPL searches, saved searches (referenced by name), and chain searches (post-processing of another data source). Static data sources (hard-coded JSON) are also supported.",
+    "options": [
+      { "id": "A", "text": "Inline SPL searches", "correct": true },
+      { "id": "B", "text": "Saved searches referenced by name", "correct": true },
+      { "id": "C", "text": "Chain searches (post-processing of another source)", "correct": true },
+      { "id": "D", "text": "Live SQL database queries", "correct": false }
+    ]
+  },
+  {
+    "text": "Splunk Job Settings let you control… (select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/jobsettings1.png",
+    "explanation": "Job Settings expose per-search controls: how long cached results are kept (TTL), the time range dispatched, whether real-time search is used, and sampling rate for performance testing.",
+    "options": [
+      { "id": "A", "text": "How long search results are cached (auto-cancel / TTL)", "correct": true },
+      { "id": "B", "text": "The time range dispatched to indexers", "correct": true },
+      { "id": "C", "text": "Event sampling rate for performance testing", "correct": true },
+      { "id": "D", "text": "Which specific indexers receive the search", "correct": false }
+    ]
+  },
+  {
+    "text": "The Analytics Workspace in Splunk is best suited for working with…",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/Analytics1.png",
+    "explanation": "The Analytics Workspace provides a visual, no-SPL interface optimised for metric indexes — you pick dimensions, measure names, and time ranges graphically. It does not work well with standard event data.",
+    "options": [
+      { "id": "A", "text": "Standard event indexes using complex SPL pipelines", "correct": false },
+      { "id": "B", "text": "Metric indexes using a visual, no-SPL interface", "correct": true },
+      { "id": "C", "text": "KV Store collections via REST API", "correct": false },
+      { "id": "D", "text": "Machine Learning Toolkit experiments", "correct": false }
+    ]
+  },
+  {
+    "text": "The highlight_terms feature in Splunk search results…",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/highlight_terms.png",
+    "explanation": "highlight_terms visually marks the search keywords inside each raw event in the results list, making it easy to spot where matches occurred without reading every character of the event.",
+    "options": [
+      { "id": "A", "text": "Adds colour to field names in the field sidebar", "correct": false },
+      { "id": "B", "text": "Highlights your search keywords inside each matching raw event", "correct": true },
+      { "id": "C", "text": "Marks anomalous events with a warning icon", "correct": false },
+      { "id": "D", "text": "Bolds the _time field in the results table", "correct": false }
+    ]
+  },
+  {
     "text": "Rate your overall confidence with the topics covered in this Splunk4Champions workshop",
     "type": "slider",
     "timeLimit": 30,
