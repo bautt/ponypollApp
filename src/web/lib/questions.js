@@ -23,7 +23,7 @@ export const QUESTION_TYPES = [
 export function toKvDoc(q) {
     const { _key, sort_order, text, type, timeLimit, options, explanation,
             sliderMin, sliderMax, sliderStep, sliderUnit,
-            wordcloudMaxChars, wordcloudMaxWords, quiz_id } = q;
+            wordcloudMaxChars, wordcloudMaxWords, quiz_id, image } = q;
 
     let opts;
     if (type === 'slider') {
@@ -42,6 +42,7 @@ export function toKvDoc(q) {
         timeLimit: timeLimit ?? 30,
         options_json: JSON.stringify(opts),
         explanation: explanation || '',
+        image: image || '',
     };
     if (quiz_id) doc.quiz_id = quiz_id;
     if (_key) doc._key = _key;
@@ -73,6 +74,7 @@ export function fromKvDoc(doc) {
         timeLimit: Number(doc.timeLimit) || 30,
         explanation: doc.explanation || '',
         quiz_id: doc.quiz_id || '',
+        image: doc.image || '',
     };
 
     if (type === 'slider') {
@@ -125,6 +127,7 @@ export function newQuestion(overrides = {}) {
         wordcloudMaxChars: 32,
         wordcloudMaxWords: 7,
         quiz_id: '',
+        image: '',
         ...overrides,
     };
 }

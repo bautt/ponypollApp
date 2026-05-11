@@ -337,6 +337,59 @@ const SourceBtn = styled.button`
     &:hover { background: ${({ active }) => active ? C.blue : C.blue + '22'}; color: #fff; }
 `;
 
+// ── Image compression helper ───────────────────────────────────────────────────
+
+const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_SOURCE_BYTES = 1024 * 1024; // 1 MB pre-check
+const MAX_STORED_BYTES = 400 * 1024;  // 400 KB base64 target
+const MAX_PX = 1200;                  // max dimension after resize
+
+function compressImage(file) {
+    if (file.size > MAX_SOURCE_BYTES) {
+        return Promise.reject(new Error('Image must be under 1 MB. Try a screenshot or smaller export.'));
+    }
+    if (!ALLOWED_MIME.includes(file.type)) {
+        return Promise.reject(new Error('Only JPEG, PNG, GIF, and WebP images are supported.'));
+    }
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Failed to read file.'));
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('Failed to decode image.'));
+            img.onload = () => {
+                const scale = Math.min(1, MAX_PX / Math.max(img.width, img.height));
+                const w = Math.round(img.width * scale);
+                const h = Math.round(img.height * scale);
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+                const attempt = (quality) => {
+                    canvas.toBlob((blob) => {
+                        if (!blob) { reject(new Error('Canvas export failed.')); return; }
+                        if (blob.size <= MAX_STORED_BYTES || quality < 0.35) {
+                            if (blob.size > MAX_STORED_BYTES) {
+                                reject(new Error('Image is too complex to compress. Try a simpler screenshot.'));
+                                return;
+                            }
+                            const r2 = new FileReader();
+                            r2.onload = (e2) => resolve(e2.target.result);
+                            r2.readAsDataURL(blob);
+                        } else {
+                            attempt(quality - 0.17);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                attempt(0.82);
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function EditorPage() {
@@ -353,7 +406,13 @@ export default function EditorPage() {
     const [quizLoading, setQuizLoading] = useState(true);
 
     const importInputRef = useRef(null);
+    const imageInputRef = useRef(null);
     const configRef = useRef({});
+    const [imageError, setImageError] = useState(null);
+    const [imageUploading, setImageUploading] = useState(false);
+
+    // Clear image error when selecting a different question
+    useEffect(() => { setImageError(null); }, [activeIdx]);
 
     // Library modal
     const [showLibrary, setShowLibrary] = useState(false);
@@ -485,6 +544,22 @@ export default function EditorPage() {
         setActive('type', type);
         setActive('options', defaultOptions(type));
         if (type === 'wordcloud') { setActive('wordcloudMaxChars', 32); setActive('wordcloudMaxWords', 7); }
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        setImageError(null);
+        setImageUploading(true);
+        try {
+            const dataUri = await compressImage(file);
+            setActive('image', dataUri);
+        } catch (err) {
+            setImageError(err.message);
+        } finally {
+            setImageUploading(false);
+        }
     };
 
     const handleOptionText = (optIdx, text) => {
@@ -801,6 +876,68 @@ export default function EditorPage() {
                                 onChange={(e) => setActive('text', e.target.value)}
                                 placeholder="Type your question…"
                             />
+                        </div>
+
+                        {/* Image (optional) */}
+                        <div>
+                            <Label>
+                                Image
+                                <span style={{ marginLeft: 8, fontWeight: 400, textTransform: 'none', fontSize: 11, color: C.muted }}>
+                                    — optional · shown above the question text for all participants
+                                </span>
+                            </Label>
+                            <input
+                                ref={imageInputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/gif,image/webp"
+                                style={{ display: 'none' }}
+                                onChange={handleImageUpload}
+                            />
+                            {active.image ? (
+                                <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+                                    <img
+                                        src={active.image}
+                                        alt="Question illustration"
+                                        style={{
+                                            maxWidth: '100%', maxHeight: 220,
+                                            borderRadius: 8, border: `1px solid ${C.border}`,
+                                            display: 'block',
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => { setActive('image', ''); setImageError(null); }}
+                                        title="Remove image"
+                                        style={{
+                                            position: 'absolute', top: 6, right: 6,
+                                            background: 'rgba(0,0,0,0.72)', border: 'none', borderRadius: '50%',
+                                            width: 26, height: 26, cursor: 'pointer', color: '#fff',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: 14, lineHeight: 1,
+                                        }}
+                                    >✕</button>
+                                    <div style={{ fontSize: 11, color: C.muted, marginTop: 5 }}>
+                                        ~{Math.round(active.image.length * 0.75 / 1024)} KB stored · click ✕ to remove
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => { setImageError(null); imageInputRef.current.click(); }}
+                                    disabled={imageUploading}
+                                    style={{
+                                        background: C.bg, border: `1px dashed ${C.border}`,
+                                        borderRadius: 8, padding: '14px 20px', cursor: imageUploading ? 'default' : 'pointer',
+                                        color: C.muted, fontSize: 13,
+                                        display: 'flex', alignItems: 'center', gap: 10,
+                                        opacity: imageUploading ? 0.6 : 1,
+                                    }}
+                                >
+                                    <span style={{ fontSize: 20 }}>🖼</span>
+                                    {imageUploading ? 'Compressing…' : 'Add image  (JPEG / PNG / WebP · max 1 MB)'}
+                                </button>
+                            )}
+                            {imageError && (
+                                <div style={{ fontSize: 12, color: C.red, marginTop: 5 }}>✗ {imageError}</div>
+                            )}
                         </div>
 
                         {/* Type + time */}

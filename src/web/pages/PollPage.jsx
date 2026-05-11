@@ -133,6 +133,15 @@ const QuestionText = styled.h1`
     line-height: 1.3;
 `;
 
+const QuestionImage = styled.img`
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    object-fit: contain;
+    margin-bottom: 16px;
+    display: block;
+`;
+
 const OptionsGrid = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -752,6 +761,7 @@ export default function PollPage() {
             )}
 
             <Body>
+                {q.image && <QuestionImage src={q.image} alt="" />}
                 <QuestionText>{q.text}</QuestionText>
 
                 {q.type === 'slider' ? (

@@ -169,6 +169,15 @@ const QuestionBox = styled.div`
     line-height: 1.5;
 `;
 
+const QuestionImage = styled.img`
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 10px;
+    object-fit: contain;
+    margin-bottom: 16px;
+    display: block;
+`;
+
 const TimerBar = styled.div`
     height: 6px;
     border-radius: 3px;
@@ -1224,6 +1233,7 @@ export default function AdminPage() {
                     </TimerBar>
                     <TimerLabel>{Math.ceil(timeLeft)}s remaining</TimerLabel>
 
+                    {currQ.image && <QuestionImage src={currQ.image} alt="" />}
                     <QuestionBox>{currQ.text}</QuestionBox>
 
                     {currQ.type === 'single' || currQ.type === 'multi' ? (
@@ -1267,6 +1277,7 @@ export default function AdminPage() {
                         <span style={{ fontSize: 13, color: C.muted }}>Q {qIdx + 1} / {total}</span>
                     </div>
 
+                    {currQ.image && <QuestionImage src={currQ.image} alt="" />}
                     <QuestionBox>{currQ.text}</QuestionBox>
 
                     {(currQ.type === 'single' || currQ.type === 'multi') && (

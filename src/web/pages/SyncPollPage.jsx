@@ -136,6 +136,17 @@ const QuestionText = styled.div`
     color: ${C.text};
 `;
 
+const QuestionImage = styled.img`
+    max-width: 100%;
+    max-height: 280px;
+    border-radius: 10px;
+    object-fit: contain;
+    margin-bottom: 18px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+`;
+
 const OptionsGrid = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -625,6 +636,7 @@ export default function SyncPollPage() {
                         <TimerFill pct={timerPct} />
                     </TimerBar>
 
+                    {question.image && <QuestionImage src={question.image} alt="" />}
                     <QuestionText>{question.text}</QuestionText>
 
                     {/* Multiple choice */}
@@ -829,6 +841,7 @@ export default function SyncPollPage() {
                         <span style={{ fontSize: 13, fontWeight: 700, color: C.yellow }}>★ {totalScore.toLocaleString()}</span>
                     </div>
 
+                    {question.image && <QuestionImage src={question.image} alt="" />}
                     <QuestionText style={{ fontSize: 16 }}>{question.text}</QuestionText>
 
                     {isMC && (
