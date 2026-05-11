@@ -3,6 +3,7 @@
     "text": "Which goddess is known as the goddess of wisdom, strategy, and crafts?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Athena was born fully armoured from the head of Zeus. She is patron goddess of Athens and goddess of wisdom, craft, and strategic warfare.",
     "options": [
       { "id": "A", "text": "Hera",      "correct": false },
       { "id": "B", "text": "Aphrodite", "correct": false },
@@ -14,6 +15,8 @@
     "text": "Who is the Greek god of the sea, earthquakes, and horses?",
     "type": "single",
     "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Poseidon_sculpture_Copenhagen_2005.jpg/500px-Poseidon_sculpture_Copenhagen_2005.jpg",
+    "explanation": "Poseidon wielded his trident to stir the seas and cause earthquakes. He competed with Athena to be patron of Athens, offering the horse as his gift.",
     "options": [
       { "id": "A", "text": "Zeus",      "correct": false },
       { "id": "B", "text": "Poseidon",  "correct": true  },
@@ -22,9 +25,11 @@
     ]
   },
   {
-    "text": "Who is the goddess of love and beauty?",
+    "text": "Botticelli's 'The Birth of Venus' depicts which goddess rising from the sea foam?",
     "type": "single",
-    "timeLimit": 20,
+    "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/500px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg",
+    "explanation": "Aphrodite (Venus in Roman mythology) was said to have been born from the sea foam near Cyprus. Botticelli's 1484–1486 masterpiece is in the Uffizi Gallery, Florence.",
     "options": [
       { "id": "A", "text": "Hera",      "correct": false },
       { "id": "B", "text": "Athena",    "correct": false },
@@ -36,6 +41,7 @@
     "text": "Who is the messenger of the gods, also god of travellers, thieves, and trade?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Hermes wore winged sandals and carried the caduceus (a staff with two entwined snakes). He guided the souls of the dead to the Underworld.",
     "options": [
       { "id": "A", "text": "Apollo",  "correct": false },
       { "id": "B", "text": "Ares",    "correct": false },
@@ -47,6 +53,7 @@
     "text": "Who is the god of war, known for his fierce and violent nature?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Ares (Mars in Roman mythology) represented the brutal, bloodthirsty side of war. He was one of the least popular gods on Olympus, even among other gods.",
     "options": [
       { "id": "A", "text": "Ares",    "correct": true  },
       { "id": "B", "text": "Zeus",    "correct": false },
@@ -58,6 +65,8 @@
     "text": "Who is the god of the sun, music, poetry, and prophecy, with an oracle at Delphi?",
     "type": "single",
     "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Apollo_of_the_Belvedere.jpg/500px-Apollo_of_the_Belvedere.jpg",
+    "explanation": "Apollo was one of the most important Olympian gods. His oracle at Delphi was the most prestigious in the ancient Greek world, consulted by leaders before major decisions.",
     "options": [
       { "id": "A", "text": "Helios",  "correct": false },
       { "id": "B", "text": "Hermes",  "correct": false },
@@ -69,6 +78,8 @@
     "text": "Who is the goddess of the hunt and the moon, twin sister of Apollo?",
     "type": "single",
     "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Diane_de_Versailles_Leochares.jpg/500px-Diane_de_Versailles_Leochares.jpg",
+    "explanation": "This marble statue (Diane de Versailles) is in the Louvre. Artemis was patron of hunters and protector of young women. She was fiercely independent and demanded chastity from her companions.",
     "options": [
       { "id": "A", "text": "Artemis",    "correct": true  },
       { "id": "B", "text": "Athena",     "correct": false },
@@ -80,6 +91,7 @@
     "text": "Who is the god of wine, theatre, and ecstasy — who granted King Midas his golden touch?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Dionysus (Bacchus in Roman mythology) was the last god to join the Twelve Olympians. He was associated with liberation, ritual madness, and the cycle of life, death, and rebirth.",
     "options": [
       { "id": "A", "text": "Apollo",   "correct": false },
       { "id": "B", "text": "Dionysus", "correct": true  },
@@ -91,6 +103,8 @@
     "text": "Which hero was tasked with completing the famous Twelve Labours as punishment for a terrible crime?",
     "type": "single",
     "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Farnese_Hercules.jpg/500px-Farnese_Hercules.jpg",
+    "explanation": "The Farnese Hercules is a Roman copy of a 4th-century BC Greek original. Heracles (Hercules) was driven to madness by Hera and killed his own family. The Twelve Labours were his atonement.",
     "options": [
       { "id": "A", "text": "Achilles",         "correct": false },
       { "id": "B", "text": "Perseus",           "correct": false },
@@ -102,6 +116,7 @@
     "text": "Which hero spent ten years trying to sail home after the Trojan War, battling monsters, gods, and temptation along the way?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Odysseus (Ulysses in Roman mythology) is the hero of Homer's Odyssey. He encountered the Cyclops Polyphemus, the Sirens, Circe, Scylla, Charybdis, and more on his ten-year journey home to Ithaca.",
     "options": [
       { "id": "A", "text": "Achilles",  "correct": false },
       { "id": "B", "text": "Odysseus",  "correct": true  },
@@ -113,6 +128,7 @@
     "text": "Which Greek hero is known for killing the Gorgon Medusa and rescuing Andromeda from a sea monster?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Perseus used gifts from the gods: a mirrored shield from Athena, winged sandals from Hermes, and Hades' invisibility cap. He slew Medusa by looking at her reflection rather than directly.",
     "options": [
       { "id": "A", "text": "Theseus",   "correct": false },
       { "id": "B", "text": "Bellerophon","correct": false },
@@ -124,6 +140,7 @@
     "text": "Achilles was dipped in the River Styx as a baby, making him invulnerable everywhere except his heel — true or false?",
     "type": "yesno",
     "timeLimit": 20,
+    "explanation": "His mother Thetis held him by the heel when dipping him, leaving that spot unprotected. Paris shot an arrow guided by Apollo that struck Achilles' heel, killing him.",
     "options": [
       { "id": "A", "text": "Yes", "correct": true  },
       { "id": "B", "text": "No",  "correct": false }
@@ -133,6 +150,7 @@
     "text": "Which of these mythical creatures are half-human? (Select all that apply)",
     "type": "multi",
     "timeLimit": 30,
+    "explanation": "Centaurs were half-human, half-horse. Minotaurs were half-human, half-bull. Harpies were winged women (fully human upper body, bird lower body — so also count!). Cerberus is a fully canine creature.",
     "options": [
       { "id": "A", "text": "Centaur (half horse)",    "correct": true  },
       { "id": "B", "text": "Minotaur (half bull)",    "correct": true  },
@@ -144,6 +162,8 @@
     "text": "What is the name of the three-headed dog that guards the entrance to the Underworld?",
     "type": "single",
     "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Cerberus-Blake.jpeg/500px-Cerberus-Blake.jpeg",
+    "explanation": "Cerberus is depicted here by William Blake. The beast prevented the living from entering and the dead from leaving. Heracles captured him for one of his Twelve Labours.",
     "options": [
       { "id": "A", "text": "Orthrus",  "correct": false },
       { "id": "B", "text": "Cerberus", "correct": true  },
@@ -155,6 +175,8 @@
     "text": "The Minotaur — half-man, half-bull — was kept in a labyrinth on which island?",
     "type": "single",
     "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/George_Frederic_Watts_-_The_Minotaur_-_Google_Art_Project.jpg/500px-George_Frederic_Watts_-_The_Minotaur_-_Google_Art_Project.jpg",
+    "explanation": "George Frederic Watts painted this in 1885 as a protest against child prostitution. The Minotaur (named Asterion) was the son of Queen Pasiphae of Crete, born of a curse from Poseidon.",
     "options": [
       { "id": "A", "text": "Rhodes",  "correct": false },
       { "id": "B", "text": "Corfu",   "correct": false },
@@ -166,6 +188,7 @@
     "text": "Which hero slew the Minotaur in the labyrinth?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Theseus volunteered to be one of the Athenian tributes sent to Crete. Princess Ariadne gave him a thread so he could find his way back through the labyrinth after killing the Minotaur.",
     "options": [
       { "id": "A", "text": "Perseus",   "correct": false },
       { "id": "B", "text": "Heracles",  "correct": false },
@@ -177,6 +200,7 @@
     "text": "What winged horse was born when Perseus beheaded Medusa?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Pegasus sprang from Medusa's neck, along with the giant Chrysaor. The horse was later tamed by Bellerophon with a golden bridle given by Athena.",
     "options": [
       { "id": "A", "text": "Arion",    "correct": false },
       { "id": "B", "text": "Pegasus",  "correct": true  },
@@ -188,6 +212,8 @@
     "text": "The Sphinx terrorised the city of Thebes, devouring anyone who could not answer her riddle. Who solved it and broke the curse?",
     "type": "single",
     "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Jean_Auguste_Dominique_Ingres_-_Oedipus_and_the_Sphynx_-_WGA11843.jpg/500px-Jean_Auguste_Dominique_Ingres_-_Oedipus_and_the_Sphynx_-_WGA11843.jpg",
+    "explanation": "Ingres painted this in 1808 (Louvre, Paris). When Oedipus answered correctly — 'man' — the Sphinx threw herself from her rock and died. Oedipus became king of Thebes and unwittingly married his own mother.",
     "options": [
       { "id": "A", "text": "Hercules",  "correct": false },
       { "id": "B", "text": "Odysseus",  "correct": false },
@@ -199,6 +225,7 @@
     "text": "The Sphinx's riddle: 'What walks on four legs in the morning, two at noon, and three in the evening?' The answer is:",
     "type": "single",
     "timeLimit": 30,
+    "explanation": "The 'morning' is infancy (crawling), 'noon' is adulthood (walking upright), and 'evening' is old age (using a walking stick). Time-of-day represents stages of life.",
     "options": [
       { "id": "A", "text": "A god",  "correct": false },
       { "id": "B", "text": "A horse","correct": false },
@@ -210,6 +237,8 @@
     "text": "Who was condemned by the gods to roll a boulder up a hill for eternity, only to watch it roll back down every time?",
     "type": "single",
     "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Punishment_sisyph.jpg/500px-Punishment_sisyph.jpg",
+    "explanation": "Titian's 'Sisyphus' (c. 1548–1549) hangs in the Prado, Madrid. Sisyphus was punished for cheating death twice — he tricked Persephone and bound Thanatos (Death) so no one could die.",
     "options": [
       { "id": "A", "text": "Tantalus",  "correct": false },
       { "id": "B", "text": "Ixion",     "correct": false },
@@ -221,6 +250,7 @@
     "text": "King Midas was granted a wish by Dionysus. What did he wish for, quickly regretting it?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Everything Midas touched turned to gold — including his food and his daughter. He begged Dionysus to take the gift back. He was told to wash in the River Pactolus, which is why the river ran with gold-flecked sand.",
     "options": [
       { "id": "A", "text": "Eternal life",               "correct": false },
       { "id": "B", "text": "Everything he touched turned to gold","correct": true  },
@@ -232,6 +262,8 @@
     "text": "Who fell in love with his own reflection in a pool of water and wasted away gazing at it?",
     "type": "single",
     "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Narcissus-Caravaggio_%281594-96%29_edited.jpg/500px-Narcissus-Caravaggio_%281594-96%29_edited.jpg",
+    "explanation": "Caravaggio painted 'Narcissus' around 1597–1599. Narcissus was so beautiful that he rejected all suitors. He was eventually transformed into the narcissus flower (daffodil).",
     "options": [
       { "id": "A", "text": "Adonis",    "correct": false },
       { "id": "B", "text": "Hyacinth",  "correct": false },
@@ -243,6 +275,7 @@
     "text": "Which mortal weaver was transformed into a spider after daring to challenge Athena to a weaving contest?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Arachne wove a tapestry depicting the gods' scandalous affairs. Athena, furious at the insult and the skill, destroyed the tapestry. Arachne hanged herself in despair; Athena transformed her into a spider. Hence 'arachnid'.",
     "options": [
       { "id": "A", "text": "Medusa",    "correct": false },
       { "id": "B", "text": "Arachne",   "correct": true  },
@@ -254,6 +287,7 @@
     "text": "Who was the first woman created by the gods, given a container holding all the world's evils and one last gift — hope?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Pandora was crafted by Hephaestus on Zeus's orders as punishment for Prometheus stealing fire. When she opened her jar (often mistranslated as 'box'), all evils escaped — only Elpis (Hope) remained inside.",
     "options": [
       { "id": "A", "text": "Persephone", "correct": false },
       { "id": "B", "text": "Danaë",      "correct": false },
@@ -265,6 +299,7 @@
     "text": "Which Titan stole fire from the gods and gave it to humanity — and was punished by being chained to a rock where an eagle ate his liver every day?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Prometheus stole fire from the forge of Hephaestus on Mount Olympus and gave it to mankind. His liver regrew each night so the eagle could return each day — until Heracles freed him.",
     "options": [
       { "id": "A", "text": "Atlas",      "correct": false },
       { "id": "B", "text": "Prometheus", "correct": true  },
@@ -276,6 +311,7 @@
     "text": "Which Titan was condemned to hold up the sky (sometimes depicted as the Earth) for eternity?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Atlas was the leader of the Titans in their war against the Olympians. As punishment for leading the Titans, he was condemned to hold up the heavens on his shoulders at the edge of the world.",
     "options": [
       { "id": "A", "text": "Cronos",    "correct": false },
       { "id": "B", "text": "Hyperion",  "correct": false },
@@ -287,6 +323,7 @@
     "text": "Who is the queen of the Underworld, spending half the year below with Hades — explaining why we have winter?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "When Persephone is in the Underworld, her mother Demeter (goddess of the harvest) mourns and stops crops from growing. When she returns in spring, Demeter's joy makes the earth bloom again.",
     "options": [
       { "id": "A", "text": "Hecate",     "correct": false },
       { "id": "B", "text": "Persephone", "correct": true  },
@@ -298,6 +335,7 @@
     "text": "What is the name of the river that the souls of the dead must cross to enter the Underworld?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "The Styx was so sacred that even the gods swore oaths by it — a broken oath by the Styx meant nine years of exile from Olympus. The river wound nine times around the Underworld.",
     "options": [
       { "id": "A", "text": "Lethe",   "correct": false },
       { "id": "B", "text": "Acheron", "correct": false },
@@ -309,6 +347,7 @@
     "text": "What is the name of the river of forgetfulness in the Underworld — souls drank from it to forget their past lives before reincarnation?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Lethe means 'oblivion' or 'concealment'. Souls destined for reincarnation drank from Lethe to forget their previous lives. The word 'lethargy' derives from it.",
     "options": [
       { "id": "A", "text": "Styx",    "correct": false },
       { "id": "B", "text": "Lethe",   "correct": true  },
@@ -320,6 +359,7 @@
     "text": "Who was the cloaked ferryman who rowed the souls of the dead across the River Styx — for a coin placed on their lips?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "The custom of placing a coin (obol) in the mouth or on the eyes of the dead was a widespread Greek funerary practice. Without payment, souls wandered the banks of the Styx for 100 years.",
     "options": [
       { "id": "A", "text": "Thanatos","correct": false },
       { "id": "B", "text": "Morpheus","correct": false },
@@ -331,6 +371,7 @@
     "text": "Who is the goddess of the harvest and the mother of Persephone, whose grief over her daughter causes winter?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Demeter (Ceres in Roman mythology) was responsible for agriculture. When Hades abducted Persephone, Demeter stopped all crops from growing until Zeus negotiated Persephone's partial return.",
     "options": [
       { "id": "A", "text": "Hera",    "correct": false },
       { "id": "B", "text": "Rhea",    "correct": false },
@@ -342,6 +383,7 @@
     "text": "Who was the god of the forge, fire, and craftsmen — the only Olympian said to be physically ugly, and husband of Aphrodite?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Hephaestus (Vulcan) was thrown from Olympus as a baby — either by his mother Hera or by Zeus. He became the greatest craftsman among the gods, forging Zeus's thunderbolts, Hermes' winged helmet, and Achilles' armour.",
     "options": [
       { "id": "A", "text": "Ares",       "correct": false },
       { "id": "B", "text": "Hephaestus", "correct": true  },
@@ -353,6 +395,7 @@
     "text": "The Trojan War began because of the abduction (or elopement) of which legendary beauty?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Helen was the wife of King Menelaus of Sparta. Her 'face that launched a thousand ships' is a phrase from Christopher Marlowe, not Homer — but it captures the scale of the war fought to retrieve her.",
     "options": [
       { "id": "A", "text": "Clytemnestra","correct": false },
       { "id": "B", "text": "Cassandra",   "correct": false },
@@ -364,6 +407,8 @@
     "text": "What was the famous trick — a hollow wooden gift — that the Greeks used to finally enter the city of Troy after a 10-year siege?",
     "type": "single",
     "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/The_Trojans_hauling_the_wooden_horse_into_Troy_MET_DP845311_ff.jpg/500px-The_Trojans_hauling_the_wooden_horse_into_Troy_MET_DP845311_ff.jpg",
+    "explanation": "The Greeks feigned retreat, leaving the horse as an offering to Athena. The Trojan priest Laocoon warned against taking it inside but was killed by sea serpents, which the Trojans took as a sign to accept the gift.",
     "options": [
       { "id": "A", "text": "Trojan Catapult","correct": false },
       { "id": "B", "text": "Trojan Tunnel",  "correct": false },
@@ -375,6 +420,7 @@
     "text": "Who was the tragic musician who descended into the Underworld to rescue his beloved Eurydice — but looked back too soon?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Orpheus' music was so beautiful it charmed the rivers, rocks, and beasts. In the Underworld, his lyre brought Hades and Persephone to tears. He was allowed to lead Eurydice out on one condition: he must not look back. He did.",
     "options": [
       { "id": "A", "text": "Orpheus",   "correct": true  },
       { "id": "B", "text": "Amphion",   "correct": false },
@@ -386,6 +432,7 @@
     "text": "What is the name of the nymph who fell in love with Narcissus, cursed by Hera to only repeat the last words spoken to her?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Echo had distracted Hera with conversation while Zeus had affairs. As punishment, Hera cursed her to only echo others' words. Rejected by Narcissus, Echo pined away until only her voice remained.",
     "options": [
       { "id": "A", "text": "Syrinx",  "correct": false },
       { "id": "B", "text": "Echo",    "correct": true  },
@@ -397,6 +444,7 @@
     "text": "How many gods make up the Twelve Olympians — the principal deities of the Greek pantheon?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "The Twelve Olympians were Zeus, Hera, Poseidon, Demeter, Athena, Apollo, Artemis, Ares, Hephaestus, Aphrodite, Hermes, and either Dionysus or Hestia (depending on the source). They resided on Mount Olympus.",
     "options": [
       { "id": "A", "text": "10", "correct": false },
       { "id": "B", "text": "12", "correct": true  },
@@ -408,6 +456,7 @@
     "text": "Zeus is the king of the Olympian gods — who is his queen and wife, goddess of marriage and family?",
     "type": "single",
     "timeLimit": 20,
+    "explanation": "Hera (Juno in Roman mythology) was famously jealous of Zeus's many affairs. She often targeted his lovers and children — including Heracles, whom she persecuted throughout his life.",
     "options": [
       { "id": "A", "text": "Demeter",  "correct": false },
       { "id": "B", "text": "Athena",   "correct": false },
@@ -419,6 +468,7 @@
     "text": "Which goddess was born fully formed and already in armour, springing from the head of Zeus?",
     "type": "single",
     "timeLimit": 25,
+    "explanation": "Zeus had swallowed Athena's mother Metis (goddess of wisdom) when pregnant, fearing the prophecy that Metis' children would be more powerful than their father. Hephaestus split Zeus's head open with an axe to release her.",
     "options": [
       { "id": "A", "text": "Artemis",  "correct": false },
       { "id": "B", "text": "Aphrodite","correct": false },
@@ -427,9 +477,11 @@
     ]
   },
   {
-    "text": "Nike, the winged Greek goddess, gave her name to a modern sportswear giant. What was Nike the goddess of?",
+    "text": "Nike, the winged goddess, gave her name to a modern sportswear giant. What was Nike the goddess of?",
     "type": "single",
     "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Nike_of_Samothrake_Louvre_Ma2369_n4.jpg/500px-Nike_of_Samothrake_Louvre_Ma2369_n4.jpg",
+    "explanation": "The Nike of Samothrace (c. 190 BC) is one of the greatest surviving works of ancient Greek sculpture, now in the Louvre. Nike personified victory and was often depicted landing from flight, as seen here.",
     "options": [
       { "id": "A", "text": "Speed",   "correct": false },
       { "id": "B", "text": "Victory", "correct": true  },
@@ -441,6 +493,7 @@
     "text": "Which of the following god-and-domain pairings are CORRECT? (Select all that apply)",
     "type": "multi",
     "timeLimit": 35,
+    "explanation": "Hades ruled the Underworld; Hephaestus was god of fire and the forge; Poseidon ruled the sea. Ares was god of war, not wisdom — that was Athena.",
     "options": [
       { "id": "A", "text": "Hades — god of the Underworld",     "correct": true  },
       { "id": "B", "text": "Ares — god of wisdom",              "correct": false },
@@ -452,6 +505,7 @@
     "text": "Eris, the goddess of discord, threw the Apple of Discord inscribed 'for the fairest' — sparking the chain of events that led to the Trojan War. Which three goddesses competed for it? (Select all that apply)",
     "type": "multi",
     "timeLimit": 35,
+    "explanation": "Paris of Troy was chosen to judge. Each goddess bribed him: Hera offered power, Athena wisdom, and Aphrodite the most beautiful mortal woman. Paris chose Aphrodite — and Helen.",
     "options": [
       { "id": "A", "text": "Hera",      "correct": true  },
       { "id": "B", "text": "Athena",    "correct": true  },
@@ -460,9 +514,53 @@
     ]
   },
   {
+    "text": "This Caravaggio painting depicts the severed head of which Gorgon — whose gaze could turn anyone who looked directly at her to stone?",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Caravaggio_-_Medusa_-_Google_Art_Project.jpg/500px-Caravaggio_-_Medusa_-_Google_Art_Project.jpg",
+    "explanation": "Caravaggio painted Medusa (c. 1597) on a ceremonial shield. Perseus avoided her petrifying gaze by watching her reflection in his polished shield. From her severed neck sprang Pegasus and the giant Chrysaor.",
+    "options": [
+      { "id": "A", "text": "Stheno",    "correct": false },
+      { "id": "B", "text": "Euryale",   "correct": false },
+      { "id": "C", "text": "Medusa",    "correct": true  },
+      { "id": "D", "text": "Charybdis", "correct": false }
+    ]
+  },
+  {
+    "text": "In this Gustave Moreau-inspired scene, Heracles battles a serpentine monster that regrows two heads for each one cut off. What was this creature called?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "The Lernaean Hydra was Heracles' Second Labour. He solved the regeneration problem by having his nephew Iolaus cauterise each stump with a torch immediately after cutting. The Hydra's immortal central head was buried under a rock.",
+    "options": [
+      { "id": "A", "text": "The Chimera",        "correct": false },
+      { "id": "B", "text": "The Lernaean Hydra", "correct": true  },
+      { "id": "C", "text": "The Nemean Lion",    "correct": false },
+      { "id": "D", "text": "The Colchian Dragon","correct": false }
+    ]
+  },
+  {
+    "text": "The Greeks believed that the dead had to pay Charon a coin for passage across the River Styx — which is why coins were placed on or in the mouths of the deceased. True or false?",
+    "type": "yesno",
+    "timeLimit": 20,
+    "explanation": "The 'obol for Charon' (or 'Charon's obol') was a widespread Greek and later Roman funerary custom. Without payment, the soul wandered the near shore of the Styx for 100 years before Charon would ferry it across for free.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true  },
+      { "id": "B", "text": "No",  "correct": false }
+    ]
+  },
+  {
+    "text": "Name one Greek deity, hero, or mythological creature that you remember from this quiz",
+    "type": "wordcloud",
+    "timeLimit": 20,
+    "explanation": "Greek mythology is full of gods, heroes, and monsters. The most frequently mentioned will loom largest in the cloud!",
+    "wordcloudMaxWords": 2,
+    "wordcloudMaxChars": 20
+  },
+  {
     "text": "On a scale of 1–10, how much do you know about Greek mythology?",
     "type": "slider",
     "timeLimit": 20,
+    "explanation": "There are no wrong answers here — use the Analytics tab to see how the group rated their own knowledge!",
     "options": [],
     "sliderMin": 1,
     "sliderMax": 10,

@@ -2,8 +2,8 @@
   {
     "id": "greek-mythology",
     "name": "Greek Mythology Trivia",
-    "description": "42 questions spanning the Olympian gods, legendary heroes, monsters, the Underworld, the Trojan War, and famous myths — from Sisyphus to the Sphinx's riddle.",
-    "questionCount": 42,
+    "description": "47 questions spanning the Olympian gods, legendary heroes, monsters, the Underworld, the Trojan War, and famous myths — illustrated with Wikimedia artworks (Caravaggio, Botticelli, Titian, and more).",
+    "questionCount": 47,
     "difficulty": "Intermediate",
     "file": "greek-mythology.json"
   },
