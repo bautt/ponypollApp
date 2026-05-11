@@ -296,7 +296,7 @@ function quizListSpl() {
 function attemptBaseSpl(quizId) {
     const qf = quizId ? ` quiz_id="${quizId}"` : '';
     return `index=ponypoll sourcetype=ponypoll_attempt${qf}
-        | table _time event nickname session_id total_score question_count quiz_id quiz_name
+        | table _time event nickname session_id session_name total_score question_count quiz_id quiz_name
         | sort -_time`;
 }
 
@@ -307,12 +307,12 @@ function answerBaseSpl(quizId) {
         | sort -_time`;
 }
 
-// Distinct sync session names from ponypoll_answer events — latest first.
+// Distinct sync session names from ponypoll_answer events — most recent first by event time.
 function sessionListSpl() {
     return `index=ponypoll sourcetype=ponypoll_answer session_name=*
-        | stats count by session_name
-        | fields session_name
-        | sort -session_name`;
+        | stats max(_time) as last_event by session_name
+        | sort -last_event
+        | fields session_name`;
 }
 
 // ── In-browser aggregation functions ──────────────────────────────────────────

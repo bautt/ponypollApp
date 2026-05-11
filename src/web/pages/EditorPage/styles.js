@@ -89,12 +89,16 @@ export const QList = styled.div`flex: 1; overflow-y: auto;`;
 export const QItem = styled.div`
     padding: 10px 16px;
     border-bottom: 1px solid ${C.border}55;
-    cursor: pointer;
+    cursor: grab;
     background: ${({ $active }) => ($active ? C.blue + '22' : 'transparent')};
     border-left: 3px solid ${({ $active }) => ($active ? C.blue : 'transparent')};
+    border-top: 2px solid ${({ $dragOver }) => ($dragOver ? C.accent : 'transparent')};
     font-size: 13px;
     color: ${({ $active }) => ($active ? '#fff' : C.text)};
+    opacity: ${({ $dragging }) => ($dragging ? 0.4 : 1)};
+    transition: opacity 0.1s, border-top-color 0.1s;
     &:hover { background: rgba(255,255,255,0.04); }
+    &:active { cursor: grabbing; }
 `;
 export const QItemText = styled.div`white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
 export const QItemType = styled.div`font-size: 11px; color: ${C.muted}; margin-top: 2px;`;

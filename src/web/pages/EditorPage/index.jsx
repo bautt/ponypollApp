@@ -318,6 +318,15 @@ export default function EditorPage() {
         saveOrder(qs);
     };
 
+    const handleReorder = (fromIdx, toIdx) => {
+        const qs = [...questions];
+        const [moved] = qs.splice(fromIdx, 1);
+        qs.splice(toIdx, 0, moved);
+        setQuestions(qs);
+        setActiveIdx(activeIdx === fromIdx ? toIdx : activeIdx);
+        saveOrder(qs);
+    };
+
     // ── Export / Import ───────────────────────────────────────────────────────
     const handleExport = () => {
         const quizName = quizzes.find((q) => q._key === activeQuizId)?.name || 'Quiz';
@@ -438,6 +447,7 @@ export default function EditorPage() {
                 activeIdx={activeIdx}
                 onSelectQuestion={setActiveIdx}
                 onAddQuestion={addQuestion}
+                onReorder={handleReorder}
                 loading={loading}
             />
 

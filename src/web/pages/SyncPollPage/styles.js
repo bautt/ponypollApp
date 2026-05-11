@@ -236,3 +236,81 @@ export const LbTable = styled.table`
 export const LbRow = styled.tr`border-bottom: 1px solid ${C.border}; &:last-child{border-bottom:none;}`;
 export const LbTh = styled.th`text-align:left;padding:7px 8px;color:${C.muted};font-size:11px;text-transform:uppercase;letter-spacing:0.04em;`;
 export const LbTd = styled.td`padding:8px;color:${C.text};`;
+
+// ── Podium ────────────────────────────────────────────────────────────────────
+export const PodiumWrap = styled.div`
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    margin: 28px 0 20px;
+`;
+
+// order prop: 1 = gold (center, tallest), 2 = silver (left), 3 = bronze (right)
+export const PodiumSlot = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    max-width: 160px;
+`;
+
+export const PodiumAvatar = styled.div`
+    font-size: ${({ $rank }) => ($rank === 1 ? '48px' : '36px')};
+    line-height: 1;
+    margin-bottom: 6px;
+`;
+
+export const PodiumName = styled.div`
+    font-size: ${({ $rank }) => ($rank === 1 ? '15px' : '13px')};
+    font-weight: 700;
+    color: ${C.text};
+    text-align: center;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    ${({ $isMe }) => $isMe && `color: ${C.blue};`}
+    margin-bottom: 4px;
+`;
+
+export const PodiumScore = styled.div`
+    font-size: 13px;
+    font-weight: 600;
+    color: ${C.yellow};
+    margin-bottom: 6px;
+`;
+
+export const PodiumBlock = styled.div`
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    height: ${({ $rank }) => ($rank === 1 ? '90px' : $rank === 2 ? '64px' : '44px')};
+    background: ${({ $rank }) =>
+        $rank === 1 ? 'linear-gradient(180deg,#f5c842 0%,#c8960a 100%)' :
+        $rank === 2 ? 'linear-gradient(180deg,#b0b8c8 0%,#7a848e 100%)' :
+                     'linear-gradient(180deg,#c8895a 0%,#8a5530 100%)'};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: ${({ $rank }) => ($rank === 1 ? '26px' : '20px')};
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.02em;
+`;
+
+export const PodiumRest = styled.table`
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 4px;
+`;
+export const PodiumRestRow = styled.tr`
+    border-bottom: 1px solid ${C.border};
+    &:last-child { border-bottom: none; }
+    background: ${({ $isMe }) => $isMe ? '#0a2535' : 'transparent'};
+`;
+export const PodiumRestTd = styled.td`
+    padding: 8px;
+    color: ${C.text};
+    ${({ $isMe }) => $isMe && `font-weight: 700;`}
+`;

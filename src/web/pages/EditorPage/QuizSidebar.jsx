@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { C } from '../../lib/theme';
 import { QUESTION_TYPES } from '../../lib/questions';
 import {
@@ -10,8 +10,41 @@ export default function QuizSidebar({
     quizzes, activeQuizId, liveQuizId, quizLoading,
     onQuizSwitch, onNewQuiz, onRenameQuiz, onDeleteQuiz,
     questions, activeIdx, onSelectQuestion, onAddQuestion,
-    loading,
+    onReorder, loading,
 }) {
+    const dragIdx = useRef(null);
+    const [dragOverIdx, setDragOverIdx] = useState(null);
+
+    const handleDragStart = (e, i) => {
+        dragIdx.current = i;
+        // Use a transparent image so the browser ghost doesn't show
+        const ghost = document.createElement('div');
+        ghost.style.position = 'absolute';
+        ghost.style.top = '-9999px';
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, 0, 0);
+        setTimeout(() => document.body.removeChild(ghost), 0);
+    };
+
+    const handleDragOver = (e, i) => {
+        e.preventDefault();
+        if (i !== dragOverIdx) setDragOverIdx(i);
+    };
+
+    const handleDrop = (e, i) => {
+        e.preventDefault();
+        if (dragIdx.current !== null && dragIdx.current !== i) {
+            onReorder(dragIdx.current, i);
+        }
+        dragIdx.current = null;
+        setDragOverIdx(null);
+    };
+
+    const handleDragEnd = () => {
+        dragIdx.current = null;
+        setDragOverIdx(null);
+    };
+
     return (
         <Sidebar>
             <QuizBar>
@@ -48,7 +81,19 @@ export default function QuizSidebar({
                     <QItem style={{ cursor: 'default', color: C.muted }}>Loading…</QItem>
                 )}
                 {questions.map((q, i) => (
-                    <QItem key={i} $active={i === activeIdx} onClick={() => onSelectQuestion(i)}>
+                    <QItem
+                        key={i}
+                        $active={i === activeIdx}
+                        $dragging={i === dragIdx.current}
+                        $dragOver={i === dragOverIdx}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, i)}
+                        onDragOver={(e) => handleDragOver(e, i)}
+                        onDrop={(e) => handleDrop(e, i)}
+                        onDragEnd={handleDragEnd}
+                        onClick={() => onSelectQuestion(i)}
+                        title="Drag to reorder"
+                    >
                         <QItemText>{i + 1}. {q.text || <em style={{ color: C.muted }}>Untitled</em>}</QItemText>
                         <QItemType>
                             {QUESTION_TYPES.find((t) => t.value === q.type)?.label || q.type}
