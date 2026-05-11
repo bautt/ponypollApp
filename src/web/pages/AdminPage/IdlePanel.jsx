@@ -2,7 +2,7 @@ import React from 'react';
 import { C } from '../../lib/theme';
 import {
     Card, Title, Subtitle, BigBtn, ActivateBadge,
-    ControlLabel, QuizPicker, ModeToggleWrap, ModeBtn, SavedFlash, TextInput,
+    ControlLabel, QuizPicker, ModeToggleWrap, ModeBtn, SavedFlash,
 } from './styles';
 import JoinInfo from './JoinInfo';
 
@@ -14,7 +14,6 @@ export default function IdlePanel({
     modeSaved,
     questionCount,
     totalAvailable,
-    sessionName,
     playUrl,
     shortUrl,
     copied,
@@ -23,7 +22,6 @@ export default function IdlePanel({
     onQuizChange,
     onModeChange,
     onQuestionCountChange,
-    onSessionNameChange,
     onActivate,
     onStartSession,
     onShorten,
@@ -107,20 +105,6 @@ export default function IdlePanel({
                     </QuizPicker>
                 </div>
 
-                {quizMode === 'synchronized' && (
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <ControlLabel>Session:</ControlLabel>
-                        <TextInput
-                            type="text"
-                            placeholder='e.g. "Workshop Berlin May 2026"'
-                            value={sessionName}
-                            onChange={(e) => onSessionNameChange(e.target.value)}
-                            $highlight={!sessionName.trim()}
-                            maxLength={80}
-                            title="Unique name for this session — used to filter results in Analytics"
-                        />
-                    </div>
-                )}
             </div>
 
             {quizMode === 'self_paced' ? (

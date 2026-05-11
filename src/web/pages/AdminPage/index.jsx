@@ -70,7 +70,6 @@ export default function AdminPage() {
     const [modeSaved, setModeSaved]               = useState(false);
     const [questionCount, setQuestionCount]       = useState('all');
     const [totalAvailable, setTotalAvailable]     = useState(0);
-    const [sessionName, setSessionName]           = useState('');
 
     const [playUrl]        = useState(getPlayUrl);
     const [shortUrl, setShortUrl]             = useState('');
@@ -232,19 +231,20 @@ export default function AdminPage() {
         setSession({ ...doc });
     }, []);
 
+    /** Auto-generate the next session name using a localStorage counter. */
+    const nextSessionName = () => {
+        const n = Number(localStorage.getItem('ponypoll_session_counter') || 0) + 1;
+        localStorage.setItem('ponypoll_session_counter', String(n));
+        return `Session ${n}`;
+    };
+
     const handleStartSession = async () => {
         setBusy(true);
         setStatus(null);
         try {
             const qid  = selectedQuizId;
             if (!qid) { setStatus({ error: true, msg: 'Pick a quiz above before starting.' }); return; }
-            const name = sessionName.trim();
-            if (!name) {
-                setStatus({ error: true, msg: 'Give this session a unique name (e.g. "Workshop Berlin May 2026").' });
-                setBusy(false);
-                await resetToIdle();
-                return;
-            }
+            const name = nextSessionName();
             let docs, meta;
             try {
                 [docs, meta] = await Promise.all([listQuestions(qid), getQuiz(qid).catch(() => null)]);
@@ -472,12 +472,10 @@ export default function AdminPage() {
                     modeSaved={modeSaved}
                     questionCount={questionCount}
                     totalAvailable={totalAvailable}
-                    sessionName={sessionName}
                     busy={busy}
                     onQuizChange={(id) => { setSelectedQuizId(id); loadQuizMeta(id); }}
                     onModeChange={handleModeChange}
                     onQuestionCountChange={setQuestionCount}
-                    onSessionNameChange={setSessionName}
                     onActivate={handleActivate}
                     onStartSession={handleStartSession}
                     {...joinProps}
