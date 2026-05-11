@@ -44,9 +44,9 @@ Install app → create questions in the Editor → share the /play URL → watch
 
 ### Admin — quiz control room
 
-| All questions (default) | Question range selected |
+| Quiz active — QR code for participants | Question range selected |
 |---|---|
-| ![Admin — quiz picker, mode toggles, Questions: All (42)](docs/screenshots/host-idle.png) | ![Admin — Questions: From # – #, inputs showing 1–12 of 42](docs/screenshots/host-idle-range.png) |
+| ![Admin — active quiz, QR code and URL for participants](docs/screenshots/host-idle.png) | ![Admin — Questions: From # – #, inputs showing 1–12 of 42](docs/screenshots/host-idle-range.png) |
 
 ### Admin — lobby (waiting for participants)
 
