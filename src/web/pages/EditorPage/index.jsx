@@ -16,6 +16,12 @@ const IconSync = () => (
         <polyline points="11,1 14,3.5 11,6"/>
     </svg>
 );
+const IconPlay = () => (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, flexShrink: 0 }}>
+        <path d="M4 2.8v10.4c0 .7.8 1.1 1.4.7l7.7-5.2a.85.85 0 0 0 0-1.4L5.4 2.1C4.8 1.7 4 2.1 4 2.8Z"/>
+    </svg>
+);
 import {
     listQuestions, deleteQuestion, saveAllQuestions, saveQuestion,
     listQuizzes, createQuiz, renameQuiz, deleteQuiz, updateQuiz,
@@ -93,6 +99,7 @@ export default function EditorPage() {
     const [activeQuizId, setActiveQuizId] = useState(null);
     const [liveQuizId, setLiveQuizId] = useState('');
     const [quizLoading, setQuizLoading] = useState(true);
+    const [activatingQuiz, setActivatingQuiz] = useState(false);
 
     const importInputRef = useRef(null);
     const imageInputRef = useRef(null);
@@ -203,6 +210,28 @@ export default function EditorPage() {
             setStatus({ error: false, msg: `Quiz "${name}" deleted.` });
         } catch (e) {
             setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    const handleActivateQuiz = async () => {
+        if (!activeQuizId) return;
+        if (questions.length === 0) {
+            setStatus({ error: true, msg: 'Cannot activate an empty quiz. Add at least one question first.' });
+            return;
+        }
+        setActivatingQuiz(true);
+        try {
+            const cfg = await loadConfig();
+            const nextCfg = { ...cfg, active_quiz_id: activeQuizId };
+            await saveConfig(nextCfg);
+            configRef.current = nextCfg;
+            setLiveQuizId(activeQuizId);
+            const name = quizzes.find((q) => q._key === activeQuizId)?.name || 'This quiz';
+            setStatus({ error: false, msg: `"${name}" is now active for participants.` });
+        } catch (e) {
+            setStatus({ error: true, msg: `Activate failed: ${e.message}` });
+        } finally {
+            setActivatingQuiz(false);
         }
     };
 
@@ -473,6 +502,14 @@ export default function EditorPage() {
                     <ToolbarTitle>
                         {active ? `Editing Q${activeIdx + 1}` : 'Question Editor'}
                     </ToolbarTitle>
+                    <TBtn
+                        $primary={activeQuizId && activeQuizId !== liveQuizId}
+                        onClick={handleActivateQuiz}
+                        disabled={!activeQuizId || activeQuizId === liveQuizId || activatingQuiz || questions.length === 0}
+                        title={activeQuizId === liveQuizId ? 'This quiz is already active for participants' : 'Make this quiz active for the participant Poll page'}
+                    >
+                        <IconPlay />{activeQuizId === liveQuizId ? 'Active' : (activatingQuiz ? 'Activating…' : 'Activate')}
+                    </TBtn>
                     <TBtn onClick={moveUp} disabled={activeIdx === null || activeIdx === 0} title="Move question up (auto-saved)">↑ Up</TBtn>
                     <TBtn onClick={moveDown} disabled={activeIdx === null || activeIdx >= questions.length - 1} title="Move question down (auto-saved)">↓ Down</TBtn>
                     <TBtn $danger onClick={deleteActive} disabled={active === null}>Delete</TBtn>
