@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
+
+const IconSearch = () => (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+        <circle cx="6.5" cy="6.5" r="4.5" />
+        <line x1="10" y1="10" x2="14" y2="14" />
+    </svg>
+);
 import styled from 'styled-components';
 import {
-    loadConfig, saveConfig, listIndexes, listQuizzes, updateQuiz, getVersionInfo,
+    loadConfig, saveConfig, listIndexes, getVersionInfo,
 } from '../lib/kvstore';
 import { C, FONTS } from '../lib/theme';
 
@@ -105,58 +114,27 @@ const IndexNote = styled.div`
 export default function SettingsPage() {
     const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
     const [indexes, setIndexes] = useState([]);
-    const [quizzes, setQuizzes] = useState([]);
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
     const [loadingIdx, setLoadingIdx] = useState(true);
-    const [questionLimit, setQuestionLimit] = useState(null);
     const [versions, setVersions] = useState(null);
 
     useEffect(() => {
         getVersionInfo().then(setVersions).catch(() => {});
 
-        Promise.all([loadConfig(), listIndexes(), listQuizzes()])
-            .then(([c, idxList, qList]) => {
-                const activeId = c.active_quiz_id || '';
+        Promise.all([loadConfig(), listIndexes()])
+            .then(([c, idxList]) => {
                 setCfg({
                     poll_index: c.poll_index || 'ponypoll',
                     poll_subject: c.poll_subject || 'Pony Poll',
-                    active_quiz_id: activeId,
+                    active_quiz_id: c.active_quiz_id || '',
                     default_view: c.default_view || 'poll',
                 });
                 setIndexes(idxList);
-                setQuizzes(qList);
-                const activeQuiz = qList.find((q) => q._key === activeId);
-                setQuestionLimit(activeQuiz?.question_limit ? Number(activeQuiz.question_limit) : null);
             })
             .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }))
             .finally(() => setLoadingIdx(false));
     }, []);
-
-    const handleQuizChange = (newId) => {
-        setCfg((prev) => ({ ...prev, active_quiz_id: newId }));
-        const quiz = quizzes.find((q) => q._key === newId);
-        setQuestionLimit(quiz?.question_limit ? Number(quiz.question_limit) : null);
-    };
-
-    const handleLimitChange = async (newLimit) => {
-        setQuestionLimit(newLimit);
-        const quiz = quizzes.find((q) => q._key === cfg.active_quiz_id);
-        if (!quiz) return;
-        try {
-            await updateQuiz(cfg.active_quiz_id, { ...quiz, question_limit: newLimit || null });
-            const freshQuizzes = await listQuizzes();
-            setQuizzes(freshQuizzes);
-            setStatus({
-                error: false,
-                msg: newLimit
-                    ? `Quiz will play ${newLimit} random questions per session.`
-                    : 'Quiz will play all questions in order.',
-            });
-        } catch (e) {
-            setStatus({ error: true, msg: `Failed to save limit: ${e.message}` });
-        }
-    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -174,44 +152,6 @@ export default function SettingsPage() {
         <Root>
             <Card>
                 <Title>Poll Settings</Title>
-
-                <Section>
-                    <Label>Active quiz (shown to participants)</Label>
-                    {quizzes.length > 0 ? (
-                        <Select
-                            value={cfg.active_quiz_id}
-                            onChange={(e) => handleQuizChange(e.target.value)}
-                        >
-                            {quizzes.map((q) => (
-                                <option key={q._key} value={q._key}>{q.name}</option>
-                            ))}
-                        </Select>
-                    ) : (
-                        <Input value="No quizzes yet — create one in the Editor" readOnly />
-                    )}
-                    <Hint>
-                        This is the quiz participants see when they open the Poll tab. Switch quizzes
-                        here without affecting what the editor is currently browsing.
-                    </Hint>
-                </Section>
-
-                <Section>
-                    <Label>🎲 Random question subset</Label>
-                    <Select
-                        value={questionLimit || ''}
-                        onChange={(e) => handleLimitChange(e.target.value ? Number(e.target.value) : null)}
-                        disabled={!cfg.active_quiz_id}
-                    >
-                        <option value="">All questions (play in saved order)</option>
-                        {[3, 5, 6, 8, 10, 12, 15, 20, 25, 30].map((n) => (
-                            <option key={n} value={n}>Random {n} questions per session</option>
-                        ))}
-                    </Select>
-                    <Hint>
-                        When set, each session draws this many questions at random from the full pool —
-                        every participant gets a different shuffle. Saved immediately to the quiz.
-                    </Hint>
-                </Section>
 
                 <Section>
                     <Label>Default view when opening the app</Label>
@@ -306,7 +246,7 @@ export default function SettingsPage() {
                             color: C.blue, fontSize: 13, textDecoration: 'none',
                         }}
                     >
-                        🔍 Search <code style={{ color: C.accent }}>index={cfg.poll_index || 'ponypoll'}</code> in Splunk
+                        <IconSearch /> Search <code style={{ color: C.accent }}>index={cfg.poll_index || 'ponypoll'}</code> in Splunk
                     </a>
                 </div>
 
@@ -365,7 +305,7 @@ export default function SettingsPage() {
                     borderTop: `1px solid ${C.border}`,
                     fontSize: 12, color: C.muted, lineHeight: 1.6,
                 }}>
-                    💬 Have a suggestion or found a bug?{' '}
+                    Have a suggestion or found a bug?{' '}
                     <a
                         href="mailto:tbaublys@splunk.com"
                         style={{ color: C.blue, textDecoration: 'none' }}

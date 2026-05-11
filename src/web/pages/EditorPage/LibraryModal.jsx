@@ -1,4 +1,15 @@
 import React from 'react';
+
+const ico = (children) => (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, flexShrink: 0 }}>
+        {children}
+    </svg>
+);
+const IconBook   = () => ico(<><path d="M2 2h5a1 1 0 0 1 1 1v11a1 1 0 0 0-1-1H2V2Z"/><path d="M14 2H9a1 1 0 0 0-1 1v11a1 1 0 0 1 1-1h5V2Z"/></>);
+const IconBox    = () => ico(<><path d="M1 5l7-3 7 3v7l-7 3-7-3V5Z"/><polyline points="8,2 8,15"/><polyline points="1,5 8,8 15,5"/></>);
+const IconSync   = () => ico(<><path d="M13 3.5A6 6 0 1 0 14 8"/><polyline points="11,1 14,3.5 11,6"/></>);
 import { C } from '../../lib/theme';
 import {
     ModalOverlay, ModalBox, ModalTitle, ModalSub,
@@ -15,17 +26,17 @@ export default function LibraryModal({
     return (
         <ModalOverlay onClick={onClose}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
-                <ModalTitle>📚 Quiz Library</ModalTitle>
+                <ModalTitle><IconBook />Quiz Library</ModalTitle>
                 <ModalSub>
                     Click Import next to any quiz to load it as a new quiz.
                 </ModalSub>
 
                 <SourceToggle>
                     <SourceBtn $active={librarySource === 'bundled'} onClick={() => onSwitchSource('bundled')}>
-                        📦 Bundled with app
+                        <IconBox />Bundled with app
                     </SourceBtn>
                     <SourceBtn $active={librarySource === 'github'} onClick={() => onSwitchSource('github')}>
-                        🔄 Live from GitHub
+                        <IconSync />Live from GitHub
                     </SourceBtn>
                 </SourceToggle>
 
@@ -38,7 +49,7 @@ export default function LibraryModal({
 
                 {libraryLoading && (
                     <div style={{ color: C.muted, fontSize: 14, padding: '12px 0' }}>
-                        {librarySource === 'github' ? '🔄 Fetching from GitHub…' : 'Loading library…'}
+                        {librarySource === 'github' ? <><IconSync />Fetching from GitHub…</> : 'Loading library…'}
                     </div>
                 )}
                 {libraryError && (

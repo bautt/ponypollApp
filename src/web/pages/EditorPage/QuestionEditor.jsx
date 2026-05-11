@@ -3,6 +3,16 @@
  * All state lives in EditorPage/index.jsx; this component is pure rendering.
  */
 import React from 'react';
+
+const IconImage = () => (
+    <svg viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+        <rect x="1" y="2" width="14" height="12" rx="1.5" />
+        <circle cx="5.5" cy="6" r="1.2" />
+        <polyline points="1,12 5,8 8,11 10.5,8.5 15,13" />
+    </svg>
+);
 import { C, OPTION_COLORS } from '../../lib/theme';
 import { QUESTION_TYPES } from '../../lib/questions';
 import {
@@ -85,7 +95,7 @@ export default function QuestionEditor({
                             opacity: imageUploading ? 0.6 : 1,
                         }}
                     >
-                        <span style={{ fontSize: 20 }}>🖼</span>
+                        <IconImage />
                         {imageUploading ? 'Compressing…' : 'Add image  (JPEG / PNG / WebP · max 1 MB)'}
                     </button>
                 )}

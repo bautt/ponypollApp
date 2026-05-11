@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <!-- background -->
+  <rect width="240" height="240" rx="46" fill="#1B1D22"/>
+
+  <!-- A  blue -->
+  <rect x="22"  y="22"  width="97" height="97" rx="18" fill="#1F77B4"/>
+  <text x="70"  y="83"  font-family="system-ui,sans-serif" font-size="46" font-weight="700"
+        fill="white" text-anchor="middle" dominant-baseline="auto">A</text>
+
+  <!-- B  green -->
+  <rect x="131" y="22"  width="97" height="97" rx="18" fill="#65A637"/>
+  <text x="179" y="83"  font-family="system-ui,sans-serif" font-size="46" font-weight="700"
+        fill="white" text-anchor="middle" dominant-baseline="auto">B</text>
+
+  <!-- C  orange -->
+  <rect x="22"  y="131" width="97" height="97" rx="18" fill="#ED8B00"/>
+  <text x="70"  y="192" font-family="system-ui,sans-serif" font-size="46" font-weight="700"
+        fill="white" text-anchor="middle" dominant-baseline="auto">C</text>
+
+  <!-- D  purple, selected: checkmark -->
+  <rect x="131" y="131" width="97" height="97" rx="18" fill="#AF6DC7"/>
+  <polyline points="153,180 167,196 205,162"
+            fill="none" stroke="white" stroke-width="9"
+            stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

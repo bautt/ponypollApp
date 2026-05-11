@@ -1,12 +1,12 @@
 <div align="center">
   <img src="src/package/appserver/static/buttercup.png" alt="Buttercup mascot" width="160" />
-  <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" style="margin-left:24px" />
+  <img src="docs/icons/icon-a-no-letters-240.png" alt="Pony Poll app icon" width="96" style="margin-left:24px" />
 
   # Pony Poll
 
   **Interactive quiz app for Splunk — no extra infrastructure needed**
 
-  ![version](https://img.shields.io/badge/version-1.3.28-blue)
+  ![version](https://img.shields.io/badge/version-1.3.30-blue)
   ![Splunk](https://img.shields.io/badge/Splunk-≥8.x-orange)
   ![AppInspect](https://img.shields.io/badge/AppInspect-approved-green)
   ![React](https://img.shields.io/badge/React-16-61dafb)
@@ -28,7 +28,7 @@ Install app → create questions in the Editor → share the /play URL → watch
 | Run a self-paced quiz | **Poll** tab → nickname → Start |
 | Host a live synchronized session | **Admin** tab → pick quiz → Synchronized → Start |
 | Build or edit questions | **Editor** tab — 6 question types, drag-to-reorder, images |
-| Import a ready-made quiz | Editor → **📚 Library** (bundled) or **🔄 GitHub** (live sync) |
+| Import a ready-made quiz | Editor → **Library** (bundled) or **GitHub** (live sync) |
 | Analyse results | **Analytics** tab — leaderboard, KPIs, difficulty breakdown, session filter |
 | Install | Upload `ponypollapp.tar.gz` in **Apps → Manage Apps** |
 
@@ -36,9 +36,17 @@ Install app → create questions in the Editor → share the /play URL → watch
 
 ## Screenshots
 
+### Poll — participant view
+
+| Start screen | Question with image | Wrong answer reveal |
+|---|---|---|
+| ![Poll — start screen, pony mascot, nickname field](docs/screenshots/start.png) | ![Poll — timed question with image, answer choices](docs/screenshots/participant-question.png) | ![Poll — incorrect answer highlighted, explanation shown](docs/screenshots/participant-reveal-wrong.png) |
+
 ### Admin — quiz control room
 
-![Admin — quiz picker, mode toggle (Synchronized), Start button and QR area](docs/screenshots/host-idle.png)
+| All questions (default) | Question range selected |
+|---|---|
+| ![Admin — quiz picker, mode toggles, Questions: All (42)](docs/screenshots/host-idle.png) | ![Admin — Questions: From # – #, inputs showing 1–12 of 42](docs/screenshots/host-idle-range.png) |
 
 ### Admin — lobby (waiting for participants)
 
@@ -46,31 +54,21 @@ The session number is displayed prominently so the host can announce it to the r
 
 | Waiting for participants | First participant joined |
 |---|---|
-| ![Admin lobby — Session #00002, QR code blurred, 0 joined](docs/screenshots/host-lobby.png) | ![Admin lobby — Session #00001, 1 joined, Launch Quiz button](docs/screenshots/host-lobby-joined.png) |
-
-### Admin — answer reveal with leaderboard
-
-![Admin reveal — correct option highlighted, answer distribution bars, leaderboard](docs/screenshots/host-reveal.png)
-
-### Participant — question with answer reveal
-
-![Participant — question answered correctly, Correct! +700 pts banner, explanation callout](docs/screenshots/participant-question.png)
-
-### Participant — feedback after answering
-
-| Correct answer | Wrong answer + explanation |
-|---|---|
-| ![Participant — green 'Correct! +784 pts' banner](docs/screenshots/participant-correct.png) | ![Participant — red 'Wrong answer', distribution bars, 💡 explanation](docs/screenshots/participant-reveal-wrong.png) |
+| ![Admin lobby — session number, QR code, 0 joined](docs/screenshots/host-lobby.png) | ![Admin lobby — 1 joined, Launch Quiz button active](docs/screenshots/host-lobby-joined.png) |
 
 ### Editor
 
-| Single-answer question with image | Word cloud question |
-|---|---|
-| ![Editor — bucket question, image preview, four options with correct marked](docs/screenshots/editor-options.png) | ![Editor — word cloud type, explanation field, max words/chars settings](docs/screenshots/editor-wordcloud.png) |
+| Editing a question | Quiz Library — Bundled | Quiz Library — GitHub |
+|---|---|---|
+| ![Editor — single-answer question, answer choices, explanation](docs/screenshots/editor-question.png) | ![Editor — Quiz Library modal, bundled quizzes](docs/screenshots/editor-library.png) | ![Editor — Quiz Library modal, live GitHub quizzes](docs/screenshots/editor-library-github.png) |
 
 ### Analytics
 
-![Analytics — KPI scorecards, leaderboard, question difficulty table](docs/screenshots/analytics.png)
+![Analytics — KPI scorecards, leaderboard, question difficulty table, recent sessions](docs/screenshots/analytics.png)
+
+### Settings
+
+![Settings — default view toggle, poll title, Splunk index, version info](docs/screenshots/settings.png)
 
 ---
 
@@ -83,7 +81,7 @@ The session number is displayed prominently so the host can announce it to the r
 | **Self-paced mode** | Each participant runs at their own speed |
 | **Admin tab** | Unified control room for both modes — includes QR code, short URL, session badge |
 | **Editor** | WYSIWYG question editor — 6 types, drag-to-reorder, image support, explanations |
-| **Quiz library** | Bundled quizzes importable with one click; **🔄 GitHub** button syncs latest quizzes live |
+| **Quiz library** | Bundled quizzes importable with one click; **GitHub** button syncs latest quizzes live |
 | **Export / Import** | JSON file per quiz — portable between any Splunk instances |
 | **Random question subset** | Play N random questions from a larger pool each session |
 | **Analytics** | KPI scorecards, leaderboard, per-question difficulty, recent sessions — no SPL needed |
@@ -112,8 +110,8 @@ Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/late
 ### Step 3 — First run
 
 1. Open **Pony Poll** — you land on the **Poll** tab.
-2. Go to the **Editor** tab and create your first question, or click **📚 Library** to import a pre-built quiz.
-3. Go to **Settings** and set the **Active quiz** (the quiz participants will see).
+2. Go to the **Editor** tab and create your first question, or click **Library** to import a pre-built quiz.
+3. Go to the **Admin** tab, pick a quiz, and click **▶ Activate for Self-paced** (or start a Synchronized session).
 4. Share the **Play URL** with participants.
 
 ### Two entry points
@@ -158,7 +156,7 @@ Admin tab → pick a quiz → Mode: Self-paced → ▶ Activate for Self-paced
 The host controls the question flow for everyone simultaneously.
 
 ```
-Admin tab → pick a quiz → Mode: 🎙 Synchronized → ▶ Start Synchronized Session
+Admin tab → pick a quiz → Mode: Synchronized → ▶ Start Synchronized Session
   → a session number is auto-assigned (00001, 00002, …)
   → participants scan the QR code or open /play
   → they see the session number, enter a nickname, and appear in the lobby
@@ -198,8 +196,8 @@ The **Editor** tab is for building and managing quiz content.
 | **Delete** | Delete the selected question (with confirmation) |
 | **⬇ Export** | Download the current quiz as a JSON file |
 | **⬆ Import** | Load questions from a JSON file (Replace or Append) |
-| **📚 Library** | Import a bundled pre-built quiz |
-| **🔄 GitHub** | Sync and import quizzes from the GitHub repository |
+| **Library** | Import a bundled pre-built quiz |
+| **GitHub** | Sync and import quizzes from the GitHub repository |
 
 ### Question fields
 
@@ -220,7 +218,7 @@ Each question is saved individually to KV Store — there is no "Save All".
 
 The **Analytics** tab gives a live view of results without writing any SPL.
 
-![Analytics — KPI scorecards, leaderboard, question difficulty table](docs/screenshots/analytics.png)
+![Analytics — filters, KPI scorecards, leaderboard, question difficulty table, recent sessions](docs/screenshots/analytics.png)
 
 ### Filters
 
@@ -396,8 +394,10 @@ All settings are in the **Settings** tab inside the app.
 |---|---|---|
 | Poll title | `Pony Poll` | Shown on the start screen |
 | Answer index | `ponypoll` | Splunk index where answer events are written |
-| Active quiz | *(first quiz)* | Which quiz participants see in the Poll tab |
 | Default view | `Poll` | Switch to `Play` to make `/play` the default entry point |
+
+
+> **Active quiz** is set from the **Admin** tab — pick a quiz and click **▶ Activate for Self-paced**.
 
 Settings are stored in the `ponypoll_config` KV Store collection.
 

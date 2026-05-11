@@ -1,4 +1,15 @@
 import React from 'react';
+
+const IconMic = () => (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5 }}>
+        <rect x="5.5" y="1" width="5" height="8" rx="2.5" />
+        <path d="M3 8a5 5 0 0 0 10 0" />
+        <line x1="8" y1="13" x2="8" y2="15" />
+        <line x1="5.5" y1="15" x2="10.5" y2="15" />
+    </svg>
+);
 import { C } from '../../lib/theme';
 import {
     Card, Title, Subtitle, BigBtn, ActivateBadge,
@@ -14,6 +25,9 @@ export default function IdlePanel({
     modeSaved,
     questionCount,
     totalAvailable,
+    rangeFrom,
+    rangeTo,
+    randomCount,
     playUrl,
     shortUrl,
     copied,
@@ -22,11 +36,27 @@ export default function IdlePanel({
     onQuizChange,
     onModeChange,
     onQuestionCountChange,
+    onRangeFromChange,
+    onRangeToChange,
+    onRandomCountChange,
     onActivate,
     onStartSession,
     onShorten,
     onCopy,
 }) {
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, Number(v) || min));
+
+    const numInputStyle = {
+        width: 56,
+        padding: '4px 6px',
+        background: C.surface2,
+        border: `1px solid ${C.border}`,
+        borderRadius: 5,
+        color: C.text,
+        fontSize: 13,
+        textAlign: 'center',
+    };
+
     return (
         <Card>
             <Title>
@@ -80,29 +110,95 @@ export default function IdlePanel({
                             onClick={() => quizMode !== 'synchronized' && onModeChange('synchronized')}
                             title="You control the pace — everyone sees the same question at the same time"
                         >
-                            🎙 Synchronized
+                            <IconMic />Synchronized
                         </ModeBtn>
                     </ModeToggleWrap>
                     <SavedFlash $show={modeSaved}>✓ Saved</SavedFlash>
                 </div>
 
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <ControlLabel>Questions:</ControlLabel>
-                    <QuizPicker
-                        value={questionCount}
-                        onChange={(e) => onQuestionCountChange(e.target.value)}
-                        disabled={!selectedQuizId || totalAvailable === 0}
-                        title="Randomly pick a subset of questions"
-                    >
-                        <option value="all">All {totalAvailable > 0 ? `(${totalAvailable})` : ''}</option>
-                        {[3, 5, 6, 8, 10, 12, 15, 20, 25, 30]
-                            .filter((n) => n < totalAvailable)
-                            .map((n) => (
-                                <option key={n} value={String(n)}>
-                                    Random {n} of {totalAvailable}
-                                </option>
-                            ))}
-                    </QuizPicker>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <ControlLabel style={{ paddingTop: 6 }}>Questions:</ControlLabel>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <ModeToggleWrap>
+                            <ModeBtn
+                                $active={questionCount === 'all'}
+                                disabled={!selectedQuizId || totalAvailable === 0}
+                                onClick={() => onQuestionCountChange('all')}
+                                title="Use all questions in the quiz"
+                            >
+                                All {totalAvailable > 0 ? `(${totalAvailable})` : ''}
+                            </ModeBtn>
+                            <ModeBtn
+                                $active={questionCount === 'range'}
+                                disabled={!selectedQuizId || totalAvailable < 2}
+                                onClick={() => onQuestionCountChange('range')}
+                                title="Play a consecutive slice of questions"
+                            >
+                                From # – #
+                            </ModeBtn>
+                            <ModeBtn
+                                $active={questionCount === 'random'}
+                                disabled={!selectedQuizId || totalAvailable < 2}
+                                onClick={() => onQuestionCountChange('random')}
+                                title="Pick a random subset of questions"
+                            >
+                                Random #
+                            </ModeBtn>
+                        </ModeToggleWrap>
+
+                        {questionCount === 'range' && totalAvailable > 1 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={totalAvailable}
+                                    value={rangeFrom}
+                                    onChange={(e) => {
+                                        const v = clamp(e.target.value, 1, totalAvailable);
+                                        onRangeFromChange(v);
+                                        if (v > rangeTo) onRangeToChange(v);
+                                    }}
+                                    style={numInputStyle}
+                                    title="First question (1-based)"
+                                />
+                                <span style={{ fontSize: 12, color: C.muted }}>–</span>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={totalAvailable}
+                                    value={rangeTo}
+                                    onChange={(e) => {
+                                        const v = clamp(e.target.value, 1, totalAvailable);
+                                        onRangeToChange(v);
+                                        if (v < rangeFrom) onRangeFromChange(v);
+                                    }}
+                                    style={numInputStyle}
+                                    title="Last question (1-based, inclusive)"
+                                />
+                                <span style={{ fontSize: 12, color: C.muted }}>
+                                    of {totalAvailable}
+                                    {rangeTo >= rangeFrom ? ` · ${rangeTo - rangeFrom + 1} q` : ''}
+                                </span>
+                            </div>
+                        )}
+
+                        {questionCount === 'random' && totalAvailable > 1 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={totalAvailable - 1}
+                                    value={randomCount}
+                                    onChange={(e) => onRandomCountChange(clamp(e.target.value, 1, totalAvailable - 1))}
+                                    style={numInputStyle}
+                                    title="Number of questions to pick randomly"
+                                />
+                                <span style={{ fontSize: 12, color: C.muted }}>
+                                    of {totalAvailable} (shuffled)
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
             </div>

@@ -68,8 +68,11 @@ export default function AdminPage() {
     const [liveQuizId, setLiveQuizId]             = useState('');
     const [quizMode, setQuizMode]                 = useState('self_paced');
     const [modeSaved, setModeSaved]               = useState(false);
-    const [questionCount, setQuestionCount]       = useState('all');
+    const [questionCount, setQuestionCount]       = useState('all');  // 'all' | 'range' | 'random'
     const [totalAvailable, setTotalAvailable]     = useState(0);
+    const [rangeFrom, setRangeFrom]               = useState(1);
+    const [rangeTo,   setRangeTo]                 = useState(1);
+    const [randomCount, setRandomCount]           = useState(5);
 
     const [playUrl]        = useState(getPlayUrl);
     const [shortUrl, setShortUrl]             = useState('');
@@ -115,12 +118,19 @@ export default function AdminPage() {
             const list = quizList || quizzes;
             const meta = list.find((q) => q._key === quizId);
             const docs = await listQuestions(quizId);
-            setTotalAvailable(docs.length);
-            setQuestionCount(meta?.question_limit ? String(meta.question_limit) : 'all');
+            const n = docs.length;
+            setTotalAvailable(n);
+            setQuestionCount('all');
+            setRangeFrom(1);
+            setRangeTo(n);
+            setRandomCount(Math.min(5, Math.max(1, n - 1)));
             setQuizMode(meta?.quiz_mode || 'self_paced');
         } catch (_) {
             setTotalAvailable(0);
             setQuestionCount('all');
+            setRangeFrom(1);
+            setRangeTo(1);
+            setRandomCount(5);
             setQuizMode('self_paced');
         }
     };
@@ -254,8 +264,14 @@ export default function AdminPage() {
             if (!docs.length) { setStatus({ error: true, msg: 'The active quiz has no questions.' }); return; }
 
             let qs = docs.map(fromKvDoc);
-            const limit = questionCount !== 'all' ? Number(questionCount) : null;
-            if (limit && limit > 0 && limit < qs.length) qs = shuffle(qs).slice(0, limit);
+            if (questionCount === 'range') {
+                const from = Math.max(1, Number(rangeFrom)) - 1;
+                const to   = Math.min(qs.length, Math.max(Number(rangeFrom), Number(rangeTo)));
+                qs = qs.slice(from, to);
+            } else if (questionCount === 'random') {
+                const n = Math.min(Math.max(1, Number(randomCount)), qs.length);
+                qs = shuffle(qs).slice(0, n);
+            }
 
             setQuizName(meta?.name || 'Quiz');
             questionsRef.current = qs;
@@ -471,10 +487,16 @@ export default function AdminPage() {
                     modeSaved={modeSaved}
                     questionCount={questionCount}
                     totalAvailable={totalAvailable}
+                    rangeFrom={rangeFrom}
+                    rangeTo={rangeTo}
+                    randomCount={randomCount}
                     busy={busy}
                     onQuizChange={(id) => { setSelectedQuizId(id); loadQuizMeta(id); }}
                     onModeChange={handleModeChange}
                     onQuestionCountChange={setQuestionCount}
+                    onRangeFromChange={(v) => setRangeFrom(v)}
+                    onRangeToChange={(v) => setRangeTo(v)}
+                    onRandomCountChange={(v) => setRandomCount(v)}
                     onActivate={handleActivate}
                     onStartSession={handleStartSession}
                     {...joinProps}

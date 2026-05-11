@@ -1,4 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+
+const IconBook = () => (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, flexShrink: 0 }}>
+        <path d="M2 2h5a1 1 0 0 1 1 1v11a1 1 0 0 0-1-1H2V2Z"/>
+        <path d="M14 2H9a1 1 0 0 0-1 1v11a1 1 0 0 1 1-1h5V2Z"/>
+    </svg>
+);
+const IconSync = () => (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, flexShrink: 0 }}>
+        <path d="M13 3.5A6 6 0 1 0 14 8"/>
+        <polyline points="11,1 14,3.5 11,6"/>
+    </svg>
+);
 import {
     listQuestions, deleteQuestion, saveAllQuestions, saveQuestion,
     listQuizzes, createQuiz, renameQuiz, deleteQuiz, updateQuiz,
@@ -468,8 +485,8 @@ export default function EditorPage() {
                         onChange={handleImportFile}
                     />
                     <TBtn onClick={() => importInputRef.current.click()} disabled={!activeQuizId}>⬆ Import</TBtn>
-                    <TBtn onClick={() => openLibrary('bundled')} disabled={!activeQuizId} title="Import a pre-built quiz bundled with the app">📚 Library</TBtn>
-                    <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub">🔄 GitHub</TBtn>
+                    <TBtn onClick={() => openLibrary('bundled')} disabled={!activeQuizId} title="Import a pre-built quiz bundled with the app"><IconBook />Library</TBtn>
+                    <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub"><IconSync />GitHub</TBtn>
                 </Toolbar>
 
                 {active === null ? (

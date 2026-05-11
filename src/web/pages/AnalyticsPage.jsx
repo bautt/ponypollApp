@@ -3,6 +3,20 @@ import styled, { keyframes } from 'styled-components';
 import { runSearch } from '../lib/kvstore';
 import { C, FONTS } from '../lib/theme';
 
+// ── Icons ──────────────────────────────────────────────────────────────────────
+const ico = (children) => (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+        {children}
+    </svg>
+);
+const IconTrophy   = () => ico(<><path d="M4 2h8v5a4 4 0 0 1-8 0V2Z"/><path d="M4 4H2a2 2 0 0 0 2 2M12 4h2a2 2 0 0 1-2 2"/><line x1="8" y1="11" x2="8" y2="13"/><line x1="5" y1="14" x2="11" y2="14"/></>);
+const IconBarChart = () => ico(<><rect x="2"  y="9" width="3" height="5"/><rect x="6.5" y="5" width="3" height="9"/><rect x="11" y="2" width="3" height="12"/></>);
+const IconClock    = () => ico(<><circle cx="8" cy="8" r="6"/><polyline points="8,5 8,8 10.5,10"/></>);
+const IconCheck    = () => ico(<polyline points="3,8 6.5,12 13,5" strokeWidth="1.8"/>);
+const IconX        = () => ico(<><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></>);
+
 // ── Styled components ──────────────────────────────────────────────────────────
 const Page = styled.div`
     min-height: calc(100vh - 45px);
@@ -175,7 +189,9 @@ const Medal = styled.span`
     display: inline-block;
     width: 22px;
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: ${({ $color }) => $color || C.muted};
 `;
 
 const BarWrap = styled.div`
@@ -254,11 +270,11 @@ const TIME_OPTS = [
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-function medal(rank) {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return String(rank);
+function medalColor(rank) {
+    if (rank === 1) return C.yellow;
+    if (rank === 2) return '#9BA3AF';   // silver-grey
+    if (rank === 3) return C.orange;
+    return C.muted;
 }
 
 function num(v, fallback = 0) {
@@ -293,15 +309,22 @@ function quizListSpl() {
         | sort label`;
 }
 
+/** KV Store _key values are alphanumeric + hyphens; strip anything else before SPL interpolation. */
+function sanitizeId(id) {
+    return id ? id.replace(/[^a-zA-Z0-9_-]/g, '') : '';
+}
+
 function attemptBaseSpl(quizId) {
-    const qf = quizId ? ` quiz_id="${quizId}"` : '';
+    const safe = sanitizeId(quizId);
+    const qf = safe ? ` quiz_id="${safe}"` : '';
     return `index=ponypoll sourcetype=ponypoll_attempt${qf}
         | table _time event nickname session_id session_name total_score question_count quiz_id quiz_name
         | sort -_time`;
 }
 
 function answerBaseSpl(quizId) {
-    const qf = quizId ? ` quiz_id="${quizId}"` : '';
+    const safe = sanitizeId(quizId);
+    const qf = safe ? ` quiz_id="${safe}"` : '';
     return `index=ponypoll sourcetype=ponypoll_answer${qf}
         | table _time nickname session_id session_name question correct points type quiz_id
         | sort -_time`;
@@ -557,7 +580,7 @@ export default function AnalyticsPage() {
                     {/* ── Leaderboard + Question difficulty ── */}
                     <Row>
                         <Panel>
-                            <PanelHead>🏆 Leaderboard</PanelHead>
+                            <PanelHead><IconTrophy /> Leaderboard</PanelHead>
                             {leaderboard.length === 0 ? (
                                 <Empty>No completed quiz sessions yet.</Empty>
                             ) : (
@@ -575,7 +598,7 @@ export default function AnalyticsPage() {
                                         {leaderboard.map((r, i) => (
                                             <Tr key={r.nickname}>
                                                 <TdMuted>
-                                                    <Medal>{medal(i + 1)}</Medal>
+                                                    <Medal $color={medalColor(i + 1)}>{i + 1}</Medal>
                                                 </TdMuted>
                                                 <Td style={{ fontWeight: i < 3 ? 600 : 400 }}>
                                                     {r.nickname}
@@ -601,7 +624,7 @@ export default function AnalyticsPage() {
 
                         <Panel>
                             <PanelHead>
-                                📊 Question difficulty
+                                <IconBarChart /> Question difficulty
                                 <DataNote>(hardest first — % answered correctly)</DataNote>
                             </PanelHead>
                             {questions.length === 0 ? (
@@ -612,8 +635,8 @@ export default function AnalyticsPage() {
                                         <tr>
                                             <Th>Question</Th>
                                             <Th>% Correct</Th>
-                                            <ThRight>✓</ThRight>
-                                            <ThRight>✗</ThRight>
+                                            <ThRight><IconCheck /></ThRight>
+                                            <ThRight><IconX /></ThRight>
                                             <ThRight>Avg pts</ThRight>
                                         </tr>
                                     </thead>
@@ -655,7 +678,7 @@ export default function AnalyticsPage() {
 
                     {/* ── Recent sessions ── */}
                     <PanelWide>
-                        <PanelHead>🕒 Recent sessions</PanelHead>
+                        <PanelHead><IconClock /> Recent sessions</PanelHead>
                         {sessions.length === 0 ? (
                             <Empty>No sessions in this time range.</Empty>
                         ) : (
