@@ -76,7 +76,7 @@ The session number is displayed prominently so the host can announce it to the r
 
 | Feature | Detail |
 |---|---|
-| **6 question types** | Single correct · Multiple correct · Yes / No · Free text · Slider / Rating · **Word cloud** |
+| **6 question types** | Single correct · Multiple correct · Yes / No · Free text · Slider / Rating · Word cloud |
 | **Synchronized host mode** | Presenter controls pace; sessions auto-numbered `00001`, `00002`, …; server-authoritative timer; answer distribution + explanation callout + per-question leaderboard |
 | **Self-paced mode** | Each participant runs at their own speed |
 | **Admin tab** | Unified control room for both modes — includes QR code, short URL, session badge |
@@ -100,7 +100,7 @@ Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/late
 ### Step 2 — Install in Splunk
 
 1. Log in to Splunk Web as an administrator.
-2. Click the **⚙ gear icon** next to "Apps", or go to **Apps → Manage Apps**.
+2. Click the **gear icon** next to "Apps", or go to **Apps → Manage Apps**.
 3. Click **Install app from file** (top-right).
 4. Select the downloaded tarball and click **Upload**.
 5. Restart Splunk if prompted.
@@ -111,7 +111,7 @@ Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/late
 
 1. Open **Pony Poll** — you land on the **Poll** tab.
 2. Go to the **Editor** tab and create your first question, or click **Library** to import a pre-built quiz.
-3. Go to the **Admin** tab, pick a quiz, and click **▶ Activate for Self-paced** (or start a Synchronized session).
+3. Go to the **Admin** tab, pick a quiz, and click **Activate for Self-paced** (or start a Synchronized session).
 4. Share the **Play URL** with participants.
 
 ### Two entry points
@@ -127,7 +127,7 @@ Share `/play` with your audience. Both URLs appear in the Splunk navigation bar.
 
 | Method | How |
 |---|---|
-| **⚙ Admin link** | Hover the bottom-right corner of `/play` |
+| **Admin link** | Hover the bottom-right corner of `/play` |
 | **URL bypass** | Navigate to `/app/ponypollapp/poll?admin` — skips the redirect for that session |
 
 ### Requirements
@@ -135,7 +135,7 @@ Share `/play` with your audience. Both URLs appear in the Splunk navigation bar.
 | Requirement | Notes |
 |---|---|
 | Splunk Enterprise ≥ 8.x | KV Store must be enabled (requires a valid non-free license) |
-| Splunk Cloud ✓ | Tested and working — AppInspect approved |
+| Splunk Cloud | Tested and working — AppInspect approved |
 | Browser | Any modern browser (Chrome, Firefox, Edge, Safari) |
 
 > No Node.js, Python, or build tools are needed to run the app — the pre-built JavaScript bundle is included in the tarball.
@@ -147,7 +147,7 @@ Share `/play` with your audience. Both URLs appear in the Splunk navigation bar.
 ### Self-paced mode
 
 ```
-Admin tab → pick a quiz → Mode: Self-paced → ▶ Activate for Self-paced
+Admin tab → pick a quiz → Mode: Self-paced → Activate for Self-paced
   → participants open /play and run the quiz at their own pace
 ```
 
@@ -156,16 +156,16 @@ Admin tab → pick a quiz → Mode: Self-paced → ▶ Activate for Self-paced
 The host controls the question flow for everyone simultaneously.
 
 ```
-Admin tab → pick a quiz → Mode: Synchronized → ▶ Start Synchronized Session
+Admin tab → pick a quiz → Mode: Synchronized → Start Synchronized Session
   → a session number is auto-assigned (00001, 00002, …)
   → participants scan the QR code or open /play
   → they see the session number, enter a nickname, and appear in the lobby
-  → host clicks ▶ Launch Quiz (N joined)
+  → host clicks Launch Quiz (N joined)
   → questions advance on the host's command — all participants see the same question at the same second
-  → host clicks ⏹ Reveal Answers → distribution bars + explanation + interim leaderboard shown to all
-  → host clicks ▶ Next Question … repeat until done
+  → host clicks Reveal Answers → distribution bars + explanation + interim leaderboard shown to all
+  → host clicks Next Question … repeat until done
   → final podium shown to all participants
-  → ▶ Start New Session returns to the control room
+  → Start New Session returns to the control room
 ```
 
 ### Key features
@@ -177,7 +177,7 @@ Admin tab → pick a quiz → Mode: Synchronized → ▶ Start Synchronized Sess
 | **"Tell participants" cue** | JoinInfo panel shows `Tell participants: session #NNNNN` next to the QR code |
 | **Server-authoritative timer** | All clients compute remaining time from `question_started_at` in KV Store — no clock drift |
 | **Answer distribution** | Horizontal bars per option shown after reveal on both host and participant screens |
-| **Explanation callout** | Optional "why" text per question shown as a 💡 callout after reveal |
+| **Explanation callout** | Optional "why" text per question shown as a callout after reveal |
 | **Podium** | Top 3 players shown on a visual podium at the end of a synchronized session |
 | **Random question subset** | Choose how many questions to play at session-start |
 | **Auto-switch on /play** | The `/play` URL detects a live sync session every 1.5 s — participants are routed automatically |
@@ -194,8 +194,8 @@ The **Editor** tab is for building and managing quiz content.
 |---|---|
 | **Drag handle** | Drag questions to reorder — order is auto-saved |
 | **Delete** | Delete the selected question (with confirmation) |
-| **⬇ Export** | Download the current quiz as a JSON file |
-| **⬆ Import** | Load questions from a JSON file (Replace or Append) |
+| **Export** | Download the current quiz as a JSON file |
+| **Import** | Load questions from a JSON file (Replace or Append) |
 | **Library** | Import a bundled pre-built quiz |
 | **GitHub** | Sync and import quizzes from the GitHub repository |
 
@@ -207,8 +207,8 @@ The **Editor** tab is for building and managing quiz content.
 | **Type** | Single · Multi · Yes/No · Free text · Slider · Word cloud |
 | **Time limit** | Countdown in seconds |
 | **Image** | Optional image URL displayed above the question |
-| **Answers** | Options with ✓ correct marking (not for slider / freetext) |
-| **Explanation** | Optional "why" text shown as a 💡 callout after reveal |
+| **Answers** | Options with correct marking (not for slider / freetext) |
+| **Explanation** | Optional "why" text shown as a callout after reveal |
 
 Each question is saved individually to KV Store — there is no "Save All".
 
@@ -237,9 +237,9 @@ The **Analytics** tab gives a live view of results without writing any SPL.
 | **Unique players** | Distinct nicknames across completed quizzes |
 | **Avg / Top score** | Mean and single highest `total_score` |
 | **Answers submitted** | Total `ponypoll_answer` event count |
-| **🏆 Leaderboard** | Top 20 players ranked by best score, with 🥇🥈🥉 medals |
-| **📊 Question difficulty** | % correct and avg points per question, colour-coded 🟢🟡🔴 |
-| **🕒 Recent sessions** | Last 50 session events with timestamp, player, score |
+| **Leaderboard** | Top 20 players ranked by best score, with gold/silver/bronze medals |
+| **Question difficulty** | % correct and avg points per question |
+| **Recent sessions** | Last 50 session events with timestamp, player, score |
 
 A matching **Splunk dashboard** (Simple XML) is also available at `/app/ponypollapp/analytics_dashboard` for further SPL-level analysis.
 
@@ -396,8 +396,7 @@ All settings are in the **Settings** tab inside the app.
 | Answer index | `ponypoll` | Splunk index where answer events are written |
 | Default view | `Poll` | Switch to `Play` to make `/play` the default entry point |
 
-
-> **Active quiz** is set from the **Admin** tab — pick a quiz and click **▶ Activate for Self-paced**.
+> **Active quiz** is set from the **Admin** tab — pick a quiz and click **Activate for Self-paced**.
 
 Settings are stored in the `ponypoll_config` KV Store collection.
 
@@ -447,158 +446,11 @@ index=ponypoll type=wordcloud question="Name one thing*"
 
 ---
 
-## Building from source
-
-Only needed if you want to modify the frontend.
-
-### Prerequisites
-
-| Requirement | Notes |
-|---|---|
-| Node.js ≥ 16 + Yarn | For building the frontend |
-| `make` | For convenience build targets |
-
-```bash
-cd src
-yarn install        # install JS dependencies
-make build          # webpack production build → dist/
-make package        # bundle into ponypollapp.tar.gz
-```
-
-Install the resulting tarball via Splunk UI as described above.
-
-### Development workflow
-
-```bash
-cd src && yarn dev              # webpack watch mode
-
-# After each change, copy the bundle and bump the cache:
-sudo cp dist/appserver/static/poll.bundle.js /opt/splunk/etc/apps/ponypollapp/appserver/static/
-# then open /_bump in browser
-```
-
----
-
-## Architecture
-
-<details>
-<summary>Project structure</summary>
-
-```
-ponypollApp/
-├── Makefile
-└── src/
-    ├── package.json
-    ├── webpack.config.mjs
-    ├── package/                    # Splunk app skeleton
-    │   ├── appserver/
-    │   │   ├── static/             # JS bundle, icons, Buttercup image, quiz JSONs
-    │   │   └── templates/poll.html # Mako template — React mount point
-    │   └── default/
-    │       ├── app.conf            # App identity & metadata
-    │       ├── collections.conf    # KV Store collection definitions
-    │       ├── indexes.conf        # ponypoll index
-    │       ├── web.conf            # Splunk Web proxy stanzas
-    │       └── data/ui/views/
-    │           ├── poll.xml        # Full host view
-    │           ├── play.xml        # Participant-only view
-    │           └── analytics.xml   # Simple XML analytics dashboard
-    └── web/                        # React frontend
-        ├── index.js
-        ├── App.jsx                 # Navigation with hash-based tab URLs
-        ├── components/
-        ├── lib/
-        │   ├── kvstore.js          # KV Store REST helpers, runSearch()
-        │   ├── questions.js        # Question model, types, seed data
-        │   └── utils.js
-        └── pages/
-            ├── AdminPage/          # Synchronized quiz control room
-            ├── PollPage/           # Self-paced quiz runner
-            ├── SyncPollPage/       # Synchronized participant view
-            ├── AnalyticsPage.jsx
-            ├── EditorPage/
-            └── SettingsPage.jsx
-```
-
-</details>
-
-<details>
-<summary>Data flow</summary>
-
-```
-Browser (React)
-  GET  /splunkd/__raw/.../ponypoll_quizzes         → quiz catalogue
-  GET  /splunkd/__raw/.../ponypoll_questions?...   → questions for active quiz
-  POST /splunkd/__raw/services/receivers/simple    → answer event → ponypoll index
-  POST /splunkd/__raw/services/search/jobs         → Analytics SPL queries
-  POST /splunkd/__raw/.../ponypoll_questions/batch_save → save edited questions
-```
-
-</details>
-
-<details>
-<summary>KV Store collections</summary>
-
-| Collection | Purpose |
-|---|---|
-| `ponypoll_questions` | Question list per quiz |
-| `ponypoll_quizzes` | Named quiz catalogue |
-| `ponypoll_config` | Poll title, index, active quiz |
-| `ponypoll_session` | Active synchronized session state |
-| `ponypoll_presence` | Participant lobby presence |
-
-</details>
-
----
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Splunk app | XML views, Mako templates, KV Store, `receivers/simple`, `search/jobs` |
-| Frontend | React 16, styled-components v5 |
-| Build | Webpack 5, Babel, Yarn |
-
----
-
-## Changelog
-
-### v1.3.28 — Analytics Simple XML dashboard (2026-05-11)
-
-- Replaced Dashboard Studio analytics with a Simple XML dashboard mirroring the React Analytics page
-- Removed DS link from the Analytics tab
-
-### v1.3.19 — Synchronized mode UX improvements (2026-05-11)
-
-- **Auto-numbered sessions**: zero-padded 5-digit numbers assigned automatically (`00001`, `00002`, …)
-- **Session visibility**: number shown prominently to both host and participants; "Tell participants" cue in lobby
-- **Nickname field empty by default**: accent-coloured border + required hint before joining
-- **Analytics defaults to latest session**: pre-selected on load; sessions listed newest-first with `(latest)` tag
-- **Podium display**: visual top-3 podium at end of synchronized sessions
-- **Drag-to-reorder in Editor**: native HTML5 drag handles to reorder questions
-- **Splunk4Champions2 workshop quiz**: 42-question quiz covering all workshop chapters (all 6 question types)
-- **Version info in Settings**: Splunk and app version displayed on the Settings tab
-
-### v1.3.14 — Word cloud & participant permissions (2026-05-10)
-
-- New `wordcloud` question type — live SVG word cloud sized by submission frequency
-- `ponypoll_user` role now includes `edit_tcp` + `edit_kvstore` so non-admin users can play without 403 errors
-
----
-
-## Contributing
-
-1. Fork the repo
-2. `cd src && yarn install && yarn dev`
-3. Make changes in `src/web/`
-4. `make package` and test against a local Splunk instance
-5. Open a pull request
-
----
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+> For developer documentation — build setup, architecture, file structure, key functions, and contribution guide — see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ---
 
