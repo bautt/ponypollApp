@@ -78,6 +78,27 @@ export const StatusBanner = styled.div`
     margin-bottom: 16px;
 `;
 
+export const SessionBadge = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: ${C.surface2};
+    border: 1px solid ${C.border};
+    border-radius: 8px;
+    padding: 6px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: ${C.muted};
+    font-weight: 500;
+    span {
+        font-size: 22px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: ${C.accent};
+        letter-spacing: 0.05em;
+    }
+`;
+
 export const PhaseTag = styled.span`
     display: inline-block;
     padding: 3px 10px;

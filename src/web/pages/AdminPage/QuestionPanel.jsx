@@ -2,11 +2,12 @@ import React from 'react';
 import { C } from '../../lib/theme';
 import {
     Card, PhaseTag, BigBtn, TimerBar, TimerFill, TimerLabel,
-    QuestionBox, QuestionImage, Grid2, OptionPill, OptionBadge,
+    QuestionBox, QuestionImage, Grid2, OptionPill, OptionBadge, SessionBadge,
 } from './styles';
 import WordCloud from './WordCloud';
 
 export default function QuestionPanel({
+    sessionName,
     qIdx,
     total,
     participantCount,
@@ -25,6 +26,11 @@ export default function QuestionPanel({
                 <span style={{ fontSize: 13, color: C.muted }}>
                     Q {qIdx + 1} / {total}
                     <PhaseTag $phase="question">Live</PhaseTag>
+                    {sessionName && (
+                        <SessionBadge style={{ display: 'inline-flex', marginBottom: 0, marginLeft: 10, padding: '3px 10px' }}>
+                            Session <span style={{ fontSize: 14 }}>#{sessionName}</span>
+                        </SessionBadge>
+                    )}
                 </span>
                 <span style={{ fontSize: 13, color: C.muted }}>
                     {participantCount} participant{participantCount !== 1 ? 's' : ''}

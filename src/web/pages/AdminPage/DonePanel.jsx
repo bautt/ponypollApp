@@ -1,10 +1,13 @@
 import React from 'react';
 import { C } from '../../lib/theme';
-import { Card, Title, Subtitle, BigBtn, LbTable, LbRow, LbTh, LbTd, MEDALS } from './styles';
+import { Card, Title, Subtitle, BigBtn, LbTable, LbRow, LbTh, LbTd, MEDALS, SessionBadge } from './styles';
 
-export default function DonePanel({ participantCount, leaderboard, busy, onNewSession }) {
+export default function DonePanel({ sessionName, participantCount, leaderboard, busy, onNewSession }) {
     return (
         <Card>
+            {sessionName && (
+                <SessionBadge>Session <span>#{sessionName}</span></SessionBadge>
+            )}
             <Title>🏁 Quiz Complete!</Title>
             <Subtitle>Session finished — {participantCount} participant{participantCount !== 1 ? 's' : ''}.</Subtitle>
 

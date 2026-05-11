@@ -3,12 +3,13 @@ import { C } from '../../lib/theme';
 import {
     Card, Title, PhaseTag, BigBtn, SmallBtn,
     QuestionBox, QuestionImage, Grid2, OptionPill, OptionBadge,
-    LbTable, LbRow, LbTh, LbTd, MEDALS,
+    LbTable, LbRow, LbTh, LbTd, MEDALS, SessionBadge,
 } from './styles';
 import DistBars from '../../components/DistBars';
 import WordCloud from './WordCloud';
 
 export default function RevealPanel({
+    sessionName,
     qIdx,
     total,
     currQ,
@@ -22,6 +23,9 @@ export default function RevealPanel({
 }) {
     return (
         <Card>
+            {sessionName && (
+                <SessionBadge>Session <span>#{sessionName}</span></SessionBadge>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <Title style={{ margin: 0 }}>
                     Answer Revealed

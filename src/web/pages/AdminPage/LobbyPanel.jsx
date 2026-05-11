@@ -1,9 +1,10 @@
 import React from 'react';
 import { C } from '../../lib/theme';
-import { Card, Title, Subtitle, PhaseTag, BigBtn, SmallBtn, Grid2, Stat, StatVal, StatLabel } from './styles';
+import { Card, Title, Subtitle, PhaseTag, BigBtn, SmallBtn, Grid2, Stat, StatVal, StatLabel, SessionBadge } from './styles';
 import JoinInfo from './JoinInfo';
 
 export default function LobbyPanel({
+    sessionName,
     quizName,
     total,
     participantCount,
@@ -19,6 +20,9 @@ export default function LobbyPanel({
 }) {
     return (
         <Card>
+            {sessionName && (
+                <SessionBadge>Session <span>#{sessionName}</span></SessionBadge>
+            )}
             <Title>
                 Waiting for participants
                 <PhaseTag $phase="waiting">Lobby</PhaseTag>

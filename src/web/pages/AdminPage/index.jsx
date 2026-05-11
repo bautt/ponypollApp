@@ -484,6 +484,7 @@ export default function AdminPage() {
 
             {phase === 'waiting' && (
                 <LobbyPanel
+                    sessionName={session?.session_name}
                     quizName={quizName}
                     total={total}
                     participantCount={participantCount}
@@ -496,6 +497,7 @@ export default function AdminPage() {
 
             {phase === 'question' && currQ && (
                 <QuestionPanel
+                    sessionName={session?.session_name}
                     qIdx={qIdx}
                     total={total}
                     participantCount={participantCount}
@@ -510,6 +512,7 @@ export default function AdminPage() {
 
             {phase === 'reveal' && currQ && (
                 <RevealPanel
+                    sessionName={session?.session_name}
                     qIdx={qIdx}
                     total={total}
                     currQ={currQ}
@@ -525,6 +528,7 @@ export default function AdminPage() {
 
             {phase === 'done' && (
                 <DonePanel
+                    sessionName={session?.session_name}
                     participantCount={participantCount}
                     leaderboard={leaderboard}
                     busy={busy}
