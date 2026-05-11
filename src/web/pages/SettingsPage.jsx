@@ -307,10 +307,10 @@ export default function SettingsPage() {
                 }}>
                     Have a suggestion or found a bug?{' '}
                     <a
-                        href="mailto:tbaublys@splunk.com"
+                        href="https://github.com/bautt/ponypollApp/issues"
                         style={{ color: C.blue, textDecoration: 'none' }}
                     >
-                        tbaublys@splunk.com
+                        Open an issue
                     </a>
                 </div>
             </Card>

@@ -15,6 +15,8 @@
 
 Pony Poll turns any Splunk instance into a live interactive quiz. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. All answers are stored as native Splunk events — no external database or middleware required.
 
+Wondering why there is a pony? Meet Buttercup in Splunk's own story: [The Story of Buttercup, the Splunk Pwny](https://www.splunk.com/en_us/blog/splunklife/the-story-of-buttercup-the-splunk-pwny.html).
+
 ---
 
 ## Quick start
@@ -264,6 +266,8 @@ A matching **Splunk dashboard** (Simple XML) is also available at `/app/ponypoll
 4. Run `make build` — webpack copies static files automatically
 5. Commit and push — the GitHub sync button serves the new quiz without a new app deployment
 
+Created an interesting quiz and want to share it with others? Open a GitHub issue or contact the project maintainer.
+
 ---
 
 ## Question types reference
@@ -322,13 +326,32 @@ The exported JSON is an array of question objects.
 **single**
 ```json
 {
-  "text": "What port does Splunk Web use by default?",
-  "type": "single", "timeLimit": 25,
+  "text": "In Splunk Metrics, dimensions are…",
+  "type": "single",
+  "timeLimit": 25,
+  "explanation": "Dimensions are key-value metadata pairs stored alongside metric measurements (e.g. host=web01, region=eu-west). Metric values themselves are numeric measurements under dot-separated names.",
+  "image": "",
   "options": [
-    { "id": "A", "text": "80",   "correct": false },
-    { "id": "B", "text": "443",  "correct": false },
-    { "id": "C", "text": "8000", "correct": true  },
-    { "id": "D", "text": "8089", "correct": false }
+    {
+      "id": "A",
+      "text": "Numeric measurement values at a point in time",
+      "correct": false
+    },
+    {
+      "id": "B",
+      "text": "Dot-separated segments of a metric name",
+      "correct": false
+    },
+    {
+      "id": "C",
+      "text": "Key-value pairs that add contextual metadata to a measurement",
+      "correct": true
+    },
+    {
+      "id": "D",
+      "text": "Index configuration parameters in indexes.conf",
+      "correct": false
+    }
   ]
 }
 ```

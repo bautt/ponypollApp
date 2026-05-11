@@ -1,4 +1,4 @@
-.PHONY: deps dev build package deploy
+.PHONY: deps dev build package
 
 APP_NAME = ponypollapp
 
@@ -27,11 +27,3 @@ package: build
 	-cvzf $(APP_NAME).tar.gz \
 	-C /tmp \
 	$(APP_NAME)/
-
-deploy: package
-	scp $(APP_NAME).tar.gz tbaublys@v37823.1blu.de:~
-	ssh tbaublys@v37823.1blu.de "\
-		cd /opt/splunk/etc/apps && \
-		sudo tar xzf ~/$(APP_NAME).tar.gz && \
-		sudo chown -R splunk:splunk /opt/splunk/etc/apps/$(APP_NAME) && \
-		echo 'done - restart Splunk manually if needed'"

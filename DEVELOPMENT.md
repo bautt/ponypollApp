@@ -104,7 +104,7 @@ Install the tarball via **Apps → Manage Apps → Install app from file** in Sp
 
 ```
 ponypollApp/
-├── Makefile                    # build, package, deploy shortcuts
+├── Makefile                    # build and package shortcuts
 ├── README.md                   # end-user documentation
 ├── DEVELOPMENT.md              # this file
 ├── quizzes/                    # bundled quiz JSON files + manifest.json
@@ -114,8 +114,7 @@ ponypollApp/
 │   ├── splunk-basics.json
 │   └── greek-mythology.json
 ├── docs/
-│   ├── screenshots/            # README screenshots (processed for privacy)
-│   └── icons/                  # icon design proposals and source SVGs
+│   └── screenshots/            # README screenshots (processed for privacy)
 └── src/
     ├── package.json            # JS dependencies and scripts
     ├── webpack.config.mjs      # Webpack 5 config
@@ -468,16 +467,6 @@ For Splunk conf changes (`app.conf`, `collections.conf`, etc.), you need to rest
 sudo /opt/splunk/bin/splunk restart
 # or for conf-only changes:
 sudo /opt/splunk/bin/splunk reload deploy-server
-```
-
-### Deploying to a remote Splunk server
-
-```bash
-make package
-scp ponypollapp.tar.gz user@your-splunk-host:~
-# then on the remote host:
-sudo /opt/splunk/bin/splunk install app ~/ponypollapp.tar.gz -update 1 -auth admin:password
-sudo systemctl restart Splunkd
 ```
 
 ---
