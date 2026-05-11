@@ -398,7 +398,6 @@ export default function AdminPage() {
         questionsRef.current = [];
         setLeaderboard([]);
         setParticipants(0);
-        setSessionName('');
     };
 
     const handleEndSession = async () => {
