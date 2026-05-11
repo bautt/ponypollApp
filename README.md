@@ -52,9 +52,9 @@ The session number is displayed prominently so the host can announce it to the r
 
 ![Admin reveal — correct option highlighted, answer distribution bars, leaderboard](docs/screenshots/host-reveal.png)
 
-### Participant — live question
+### Participant — question with answer reveal
 
-![Participant question screen — SmartStore diagram image, four answer options, timer bar](docs/screenshots/participant-question.png)
+![Participant — question answered correctly, Correct! +700 pts banner, explanation callout](docs/screenshots/participant-question.png)
 
 ### Participant — feedback after answering
 
