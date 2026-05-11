@@ -231,11 +231,11 @@ export default function AdminPage() {
         setSession({ ...doc });
     }, []);
 
-    /** Auto-generate the next session name using a localStorage counter. */
+    /** Auto-generate the next session name using a localStorage counter (zero-padded 5 digits). */
     const nextSessionName = () => {
         const n = Number(localStorage.getItem('ponypoll_session_counter') || 0) + 1;
         localStorage.setItem('ponypoll_session_counter', String(n));
-        return `Session ${n}`;
+        return String(n).padStart(5, '0');
     };
 
     const handleStartSession = async () => {

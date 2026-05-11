@@ -307,13 +307,12 @@ function answerBaseSpl(quizId) {
         | sort -_time`;
 }
 
-// Distinct sync session names from ponypoll_answer events.
-// Uses stats count by (one pass) instead of dedup.
+// Distinct sync session names from ponypoll_answer events — latest first.
 function sessionListSpl() {
     return `index=ponypoll sourcetype=ponypoll_answer session_name=*
         | stats count by session_name
         | fields session_name
-        | sort session_name`;
+        | sort -session_name`;
 }
 
 // ── In-browser aggregation functions ──────────────────────────────────────────
@@ -423,13 +422,18 @@ export default function AnalyticsPage() {
 
     const maxLbPts = Math.max(...leaderboard.map((r) => r.best_score), 1);
 
-    // Load quiz list + sync session list from the index (all-time)
+    // Load quiz list + sync session list from the index (all-time).
+    // Sessions are sorted latest-first; auto-select the most recent one.
     useEffect(() => {
         runSearch(quizListSpl(), { earliest: '0', latest: 'now', count: 200 })
             .then((rows) => setQuizzes(rows.filter((r) => r.quiz_id)))
             .catch(() => {});
         runSearch(sessionListSpl(), { earliest: '0', latest: 'now', count: 500 })
-            .then((rows) => setSyncSessions(rows.filter((r) => r.session_name)))
+            .then((rows) => {
+                const valid = rows.filter((r) => r.session_name);
+                setSyncSessions(valid);
+                if (valid.length > 0) setSessionFilter(valid[0].session_name);
+            })
             .catch(() => {});
     }, []);
 
@@ -482,8 +486,10 @@ export default function AnalyticsPage() {
                         <FilterLabel>Session</FilterLabel>
                         <Select value={sessionFilter} onChange={(e) => setSessionFilter(e.target.value)}>
                             <option value="">All sessions</option>
-                            {syncSessions.map((s) => (
-                                <option key={s.session_name} value={s.session_name}>{s.session_name}</option>
+                            {syncSessions.map((s, i) => (
+                                <option key={s.session_name} value={s.session_name}>
+                                    {s.session_name}{i === 0 ? ' (latest)' : ''}
+                                </option>
                             ))}
                         </Select>
                     </>
