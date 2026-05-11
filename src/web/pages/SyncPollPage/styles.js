@@ -50,14 +50,15 @@ export const Sub = styled.p`
 export const NicknameInput = styled.input`
     width: 100%;
     background: ${C.surface2};
-    border: 1px solid ${C.border};
+    border: 1px solid ${({ $empty }) => $empty ? C.accent : C.border};
     border-radius: 8px;
     color: ${C.text};
     font-size: 16px;
     padding: 12px 16px;
     outline: none;
     box-sizing: border-box;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
     &:focus { border-color: ${C.blue}; }
 `;
 

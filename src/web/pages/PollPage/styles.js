@@ -252,7 +252,7 @@ export const NicknameLabel = styled.label`
 export const NicknameInput = styled.input`
     width: 100%;
     background: ${C.surface};
-    border: 2px solid ${C.border};
+    border: 2px solid ${({ $empty }) => $empty ? C.accent : C.border};
     border-radius: 10px;
     color: #fff;
     font-size: 18px;

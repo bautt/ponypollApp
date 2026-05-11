@@ -52,7 +52,7 @@ export default function PollPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nickname, setNickname] = useState('');
-    const splunkUser = useRef('');
+    const [splunkUser, setSplunkUser] = useState('');
 
     const [qIndex, setQIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -73,7 +73,7 @@ export default function PollPage() {
         Promise.all([loadConfig(), getCurrentUser()])
             .then(async ([cfg, user]) => {
                 setConfig(cfg);
-                if (user) { setNickname(user); splunkUser.current = user; }
+                if (user) { setSplunkUser(user); }
                 const quizId = cfg.active_quiz_id || null;
                 const [docs, quizMeta] = await Promise.all([
                     listQuestions(quizId),
@@ -147,7 +147,7 @@ export default function PollPage() {
         submitAnswer({
             session_id: sessionId.current,
             nickname: nickname || 'anonymous',
-            splunk_user: splunkUser.current || '',
+            splunk_user: splunkUser || '',
             question_index: qIndex,
             question: currentQ.text,
             type: currentQ.type,
@@ -188,7 +188,7 @@ export default function PollPage() {
         submitQuizAttempt({
             session_id: sessionId.current,
             nickname: nickname || 'anonymous',
-            splunk_user: splunkUser.current || '',
+            splunk_user: splunkUser || '',
             quiz_id: config.active_quiz_id || 'default',
             question_count: questions.length,
             event: 'quiz_start',
@@ -223,7 +223,7 @@ export default function PollPage() {
             submitQuizAttempt({
                 session_id: sessionId.current,
                 nickname: nickname || 'anonymous',
-                splunk_user: splunkUser.current || '',
+                splunk_user: splunkUser || '',
                 quiz_id: config.active_quiz_id || 'default',
                 total_score: score,
                 question_count: questions.length,
@@ -254,6 +254,7 @@ export default function PollPage() {
                 tagline={TAGLINE}
                 nickname={nickname}
                 setNickname={setNickname}
+                splunkUser={splunkUser}
                 onStart={startPoll}
                 loading={loading}
                 error={error}

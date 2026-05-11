@@ -77,13 +77,12 @@ export default function SyncPollPage() {
     const [distTotal, setDistTotal]     = useState(0);
 
     const nicknameRef = useRef('');
+    const [splunkUser, setSplunkUser] = useState('');
 
-    // ── Load default nickname ─────────────────────────────────────────────────
+    // ── Load Splunk username for placeholder hint only (never pre-fill) ───────
     useEffect(() => {
-        const saved = sessionStorage.getItem('ponypoll_nickname');
-        if (saved) { setNickname(saved); nicknameRef.current = saved; return; }
         getCurrentUser().then((u) => {
-            if (u) { setNickname(u); nicknameRef.current = u; }
+            if (u) setSplunkUser(u);
         }).catch(() => {});
     }, []);
 
@@ -291,6 +290,7 @@ export default function SyncPollPage() {
                 joined={joined}
                 nickname={nickname}
                 setNickname={setNickname}
+                splunkUser={splunkUser}
                 onJoin={handleJoin}
                 joinBusy={joinBusy}
                 nicknameRef={nicknameRef}

@@ -5,7 +5,7 @@ import {
     NicknameWrap, NicknameLabel, NicknameInput,
 } from './styles';
 
-export default function SetupScreen({ config, questionCount, tagline, nickname, setNickname, onStart, loading, error }) {
+export default function SetupScreen({ config, questionCount, tagline, nickname, setNickname, splunkUser, onStart, loading, error }) {
     if (loading) {
         return (
             <SetupCard>
@@ -36,21 +36,31 @@ export default function SetupScreen({ config, questionCount, tagline, nickname, 
                 as you can to maximise your score!
             </SetupSubtitle>
             <NicknameWrap>
-                <NicknameLabel htmlFor="nickname-input">Your nickname</NicknameLabel>
+                <NicknameLabel htmlFor="nickname-input">
+                    Your nickname <span style={{ color: C.red }}>*</span>
+                </NicknameLabel>
                 <NicknameInput
                     id="nickname-input"
                     type="text"
                     maxLength={32}
-                    placeholder="Enter your nickname…"
+                    placeholder={splunkUser ? `e.g. ${splunkUser}` : 'e.g. jane_doe'}
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && nickname.trim() && onStart()}
                     autoComplete="off"
+                    autoFocus
+                    $empty={!nickname.trim()}
                 />
+                {!nickname.trim() && (
+                    <p style={{ margin: '4px 0 0', fontSize: 11, color: C.muted, textAlign: 'left' }}>
+                        Required — your name will appear on the leaderboard.
+                    </p>
+                )}
             </NicknameWrap>
             <StartBtn
                 onClick={onStart}
                 disabled={!nickname.trim()}
-                style={{ opacity: nickname.trim() ? 1 : 0.45 }}
+                style={{ opacity: nickname.trim() ? 1 : 0.4 }}
             >
                 Start Poll
             </StartBtn>

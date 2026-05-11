@@ -1,7 +1,8 @@
 import React from 'react';
+import { C } from '../../lib/theme';
 import { Page, Card, Title, Sub, NicknameInput, JoinBtn, Waiting } from './styles';
 
-export default function LobbyScreen({ phase, joined, nickname, setNickname, onJoin, joinBusy, nicknameRef }) {
+export default function LobbyScreen({ phase, joined, nickname, setNickname, splunkUser, onJoin, joinBusy, nicknameRef }) {
     // No active session
     if (!phase || phase === 'idle') {
         return (
@@ -20,16 +21,22 @@ export default function LobbyScreen({ phase, joined, nickname, setNickname, onJo
             <Page>
                 <Card>
                     <Title>Join the Quiz</Title>
-                    <Sub>Enter your nickname and wait for the host to launch.</Sub>
+                    <Sub>Choose a nickname — it will appear on the leaderboard.</Sub>
                     <NicknameInput
                         type="text"
                         maxLength={32}
-                        placeholder="Your nickname…"
+                        placeholder={splunkUser ? `e.g. ${splunkUser}` : 'e.g. jane_doe'}
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && nickname.trim() && onJoin()}
+                        $empty={!nickname.trim()}
                         autoFocus
                     />
+                    {!nickname.trim() && (
+                        <p style={{ margin: '4px 0 0', fontSize: 11, color: C.muted }}>
+                            Required to join the session.
+                        </p>
+                    )}
                     <JoinBtn onClick={onJoin} disabled={!nickname.trim() || joinBusy}>
                         {joinBusy ? 'Joining…' : 'Join →'}
                     </JoinBtn>
