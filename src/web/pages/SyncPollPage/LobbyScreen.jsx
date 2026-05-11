@@ -1,8 +1,8 @@
 import React from 'react';
 import { C } from '../../lib/theme';
-import { Page, Card, Title, Sub, NicknameInput, JoinBtn, Waiting } from './styles';
+import { Page, Card, Title, Sub, NicknameInput, JoinBtn, Waiting, SessionNumber } from './styles';
 
-export default function LobbyScreen({ phase, joined, nickname, setNickname, splunkUser, onJoin, joinBusy, nicknameRef }) {
+export default function LobbyScreen({ phase, sessionName, joined, nickname, setNickname, splunkUser, onJoin, joinBusy, nicknameRef }) {
     // No active session
     if (!phase || phase === 'idle') {
         return (
@@ -20,6 +20,12 @@ export default function LobbyScreen({ phase, joined, nickname, setNickname, splu
         return (
             <Page>
                 <Card>
+                    {sessionName && (
+                        <SessionNumber>
+                            Session
+                            <span>#{sessionName}</span>
+                        </SessionNumber>
+                    )}
                     <Title>Join the Quiz</Title>
                     <Sub>Choose a nickname — it will appear on the leaderboard.</Sub>
                     <NicknameInput
@@ -49,6 +55,12 @@ export default function LobbyScreen({ phase, joined, nickname, setNickname, splu
     return (
         <Page>
             <Card>
+                {sessionName && (
+                    <SessionNumber>
+                        Session
+                        <span>#{sessionName}</span>
+                    </SessionNumber>
+                )}
                 <Title>You're in, {nicknameRef.current}! 🎉</Title>
                 <Waiting>Waiting for the host to launch the quiz…</Waiting>
             </Card>

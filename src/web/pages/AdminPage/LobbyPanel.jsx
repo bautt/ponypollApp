@@ -33,6 +33,7 @@ export default function LobbyPanel({
 
             <JoinInfo
                 large
+                sessionName={sessionName}
                 playUrl={playUrl}
                 shortUrl={shortUrl}
                 copied={copied}

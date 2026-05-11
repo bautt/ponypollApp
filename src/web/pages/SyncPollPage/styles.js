@@ -46,6 +46,31 @@ export const Sub = styled.p`
     text-align: center;
 `;
 
+// ── Session number badge (participant view) ───────────────────────────────────
+export const SessionNumber = styled.div`
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 12px 20px;
+    background: ${C.surface2};
+    border: 1px solid ${C.border};
+    border-radius: 10px;
+    color: ${C.muted};
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    span {
+        display: block;
+        font-size: 36px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: ${C.blue};
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+        margin-top: 2px;
+    }
+`;
+
 // ── Inputs ────────────────────────────────────────────────────────────────────
 export const NicknameInput = styled.input`
     width: 100%;

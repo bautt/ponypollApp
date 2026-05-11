@@ -287,6 +287,7 @@ export default function SyncPollPage() {
         return (
             <LobbyScreen
                 phase={phase}
+                sessionName={session?.session_name}
                 joined={joined}
                 nickname={nickname}
                 setNickname={setNickname}

@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { C } from '../../lib/theme';
 import { JoinPanel, JoinPanelLarge, JoinUrl, ShortUrlRow, CopyBtn } from './styles';
 
-export default function JoinInfo({ large, playUrl, shortUrl, copied, shorteningUrl, onShorten, onCopy }) {
+export default function JoinInfo({ large, sessionName, playUrl, shortUrl, copied, shorteningUrl, onShorten, onCopy }) {
     const Panel = large ? JoinPanelLarge : JoinPanel;
     const qrSize = large ? 180 : 110;
 
@@ -23,6 +23,26 @@ export default function JoinInfo({ large, playUrl, shortUrl, copied, shorteningU
                 <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
                     Participants — scan or open
                 </div>
+                {sessionName && (
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'baseline',
+                        gap: 6,
+                        background: C.surface,
+                        border: `1px solid ${C.border}`,
+                        borderRadius: 6,
+                        padding: '4px 12px',
+                        marginBottom: 10,
+                        fontSize: 11,
+                        color: C.muted,
+                        fontWeight: 600,
+                    }}>
+                        Tell participants: session
+                        <span style={{ fontSize: 20, fontWeight: 800, color: C.blue, letterSpacing: '0.1em', fontVariantNumeric: 'tabular-nums' }}>
+                            #{sessionName}
+                        </span>
+                    </div>
+                )}
 
                 <JoinUrl style={large ? { fontSize: 17 } : {}}>{playUrl}</JoinUrl>
 
