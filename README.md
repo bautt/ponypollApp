@@ -2,7 +2,7 @@
 
 <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
-> **v1.3.16** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.3.19** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports six question types (single choice, multiple choice, yes/no, free text, slider, and **word cloud**), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -32,6 +32,16 @@ Install app → create questions in the Editor → share the **`/play`** URL wit
 
 ## Changelog
 
+### v1.3.19 — Synchronized mode UX improvements (2026-05-11)
+
+- **Auto-numbered sessions**: sessions are assigned a zero-padded 5-digit number (`00001`, `00002`, …) automatically — the admin no longer needs to enter a session name
+- **Session number displayed prominently**: visible on every admin panel (lobby, live question, reveal, done screen) and in the join info area with a "Tell participants: session #NNNNN" cue
+- **Session number for participants**: shown large on the lobby screen before and after joining, so participants can verbally confirm the right session with the host
+- **Nickname field empty by default**: the nickname input now starts empty (accent-coloured border) with a placeholder hint; pressing Enter submits when filled
+- **Analytics defaults to latest session**: the session filter pre-selects the most recent session on load; sessions are listed newest-first with a `(latest)` tag
+- **Splunk4Champions2 workshop quiz**: a 42-question quiz covering all workshop chapters is now available in the Library (all 6 question types, workshop images)
+- **Version info in Settings**: the Settings tab now displays the Splunk version and Pony Poll app version
+
 ### v1.3.14 — Word cloud & participant permissions (2026-05-10)
 
 **New: Word cloud question type**
@@ -56,45 +66,49 @@ Previously, participants assigned only the `user` Splunk role received `403 Unau
 
 ---
 
-**Poll — start screen**
+## Screenshots
 
-![Start screen — Buttercup mascot, quiz title, and nickname input](docs/screenshots/start.png)
+### Admin — quiz control room
 
-**Poll — live question (slider type)**
+![Admin tab — quiz picker, mode toggle (Synchronized selected), Start Synchronized Session button, QR code](docs/screenshots/host-idle.png)
 
-![Slider question — numeric range with countdown timer](docs/screenshots/question-slider.png)
+### Admin — lobby (waiting for participants)
 
-**Poll — answer revealed (multi-select)**
+Session number is displayed prominently. The host can announce it to the room so participants can verify they are on the right session.
 
-![Multi-select answer reveal — correct options highlighted in green, points awarded](docs/screenshots/question-reveal.png)
-
-**Editor — question WYSIWYG**
-
-| Single-answer with options | Active quiz indicator |
+| Waiting for participants | First participant joined |
 |---|---|
-| ![Editor — AI Toolkit quiz, single-answer question with 4 options](docs/screenshots/editor-options.png) | ![Editor — Greek Mythology quiz active, question list and toolbar](docs/screenshots/editor.png) |
+| ![Admin lobby — Session #00002, QR code, 'Tell participants: session #00002', 0 joined](docs/screenshots/host-lobby.png) | ![Admin lobby — Session #00001, 1 joined, Launch Quiz (1 joined) button](docs/screenshots/host-lobby-joined.png) |
 
-**Analytics**
+### Admin — answer reveal with leaderboard
 
-![Analytics — KPI scorecards, leaderboard ranked by best score, question difficulty table](docs/screenshots/analytics.png)
+![Admin reveal — Session #00003, correct option highlighted, answer distribution bars, leaderboard](docs/screenshots/host-reveal.png)
 
-**Settings**
+### Participant — live question
 
-![Settings — active quiz selector, random subset control, default view, poll title](docs/screenshots/settings.png)
+![Participant question screen — SmartStore diagram image, four answer options, timer bar](docs/screenshots/participant-question.png)
 
-**Admin — quiz control room (QR code and URL masked)**
+### Participant — feedback after answering
 
-![Admin tab — quiz picker, mode toggle, session name input, QR code for participants](docs/screenshots/host-idle.png)
+| Correct answer | Wrong answer + explanation |
+|---|---|
+| ![Participant — green 'Correct! +784 pts' banner, 'Waiting for host to reveal…'](docs/screenshots/participant-correct.png) | ![Participant — red 'Wrong answer' banner, answer distribution, 💡 explanation callout, leaderboard](docs/screenshots/participant-reveal-wrong.png) |
 
-**Admin — answer reveal with distribution and leaderboard**
+### Editor
 
-![Admin tab — answer revealed, explanation callout, answer distribution bars per option, leaderboard](docs/screenshots/host-reveal.png)
+| Single-answer with image | Word cloud question |
+|---|---|
+| ![Editor — bucket question, image preview, four answer options with correct marked](docs/screenshots/editor-options.png) | ![Editor — word cloud type selected, explanation field, max words and chars settings](docs/screenshots/editor-wordcloud.png) |
+
+### Analytics
+
+![Analytics — KPI scorecards (3 completions, 2 players, 989 avg score), leaderboard, question difficulty table](docs/screenshots/analytics.png)
 
 ---
 
 ## Admin Tab
 
-The **Admin** tab is the quiz control room. It handles both modes from one place:
+The **Admin** tab is the quiz control room. It handles both modes from one place.
 
 ### Self-paced mode
 
@@ -110,20 +124,23 @@ In synchronized mode the presenter controls the pace for everyone simultaneously
 
 ```
 Admin tab → pick a quiz → Mode: 🎙 Synchronized
-  → enter a Session Name (e.g. "Workshop Berlin May 2026")
   → set question count (all or a random subset)
-  → ▶ Start Synchronized Session   (opens a lobby)
+  → ▶ Start Synchronized Session
+
+A session number is automatically assigned (00001, 00002, …).
+It is shown prominently to the host and announced to participants.
 
 Participants open /play in their browser or scan the QR code
-  → enter their nickname → they appear in the lobby
+  → they see the session number on screen and enter their nickname
+  → they appear in the lobby (joined count increments live)
 
-Host clicks ▶ Launch Quiz
+Host clicks ▶ Launch Quiz (N joined)
   → Q1 appears on every participant screen at exactly the same second
   → timer counts down from a server-authoritative timestamp (no clock drift)
   → host clicks ⏹ Reveal Answers when ready
   → answer distribution bars + explanation + interim leaderboard shown to everyone
   → host clicks ▶ Next Question … repeat until done
-  → final leaderboard shown
+  → final leaderboard shown to host and participants
   → ▶ Start New Session returns to the control room
 ```
 
@@ -132,7 +149,9 @@ Host clicks ▶ Launch Quiz
 | Feature | Detail |
 |---|---|
 | **Unified control room** | One tab for both self-paced activation and synchronized session management |
-| **Session name** | Required for synchronized sessions; appears in the Analytics **Session** filter so results are always traceable (e.g. `"Workshop Berlin May 2026"`) |
+| **Auto-numbered sessions** | Sessions are named `00001`, `00002`, … automatically — no manual entry needed; number appears on every admin panel and on the participant join screen |
+| **Session visibility for participants** | The session number is displayed large on the participant lobby before and after joining — makes it easy to confirm the right session verbally |
+| **"Tell participants" cue** | JoinInfo panel shows `Tell participants: session #00002` next to the QR code so the host knows what to announce |
 | **QR code** | Shown in the Admin tab; white-on-black, always scannable on a projector |
 | **Short URL** | TinyURL auto-generated client-side for easy typing on laptops |
 | **Server-authoritative timer** | All clients compute remaining time from `question_started_at` in KV Store — no clock drift |
@@ -140,7 +159,7 @@ Host clicks ▶ Launch Quiz
 | **Answer explanation** | Optional "why" text written in the Editor; shown as a 💡 callout after reveal on all screens |
 | **Leaderboard after each question** | Runs a live SPL query against the Splunk index per reveal |
 | **Random question subset** | Choose how many questions to play at session-start (overrides the quiz default) |
-| **Auto-switch on /play** | The `/play` URL detects a live sync session every 4 s — participants are automatically routed without a reload |
+| **Auto-switch on /play** | The `/play` URL detects a live sync session every 1.5 s — participants are automatically routed without a reload |
 | **Full rollback** | Self-paced `PollPage` is completely untouched; switching back to self-paced is instant |
 
 ### Mode toggle
@@ -148,7 +167,7 @@ Host clicks ▶ Launch Quiz
 In the **Admin** tab, each quiz has a **Mode** toggle that is saved immediately to KV Store:
 
 - **Self-paced** — each participant runs the quiz independently (default)
-- **🎙 Synchronized** — host controls the pace; a session name is required before starting
+- **🎙 Synchronized** — host controls the pace; a session number is assigned automatically on start
 
 ---
 
@@ -158,14 +177,14 @@ In the **Admin** tab, each quiz has a **Mode** toggle that is saved immediately 
 |---|---|
 | **Question types** | Single correct answer · Multiple correct answers · Yes / No · Free text · Slider / Rating · **Word cloud** |
 | **Multiple quizzes** | Create, rename, and delete any number of named quizzes; one quiz is set as *live* for participants at a time |
-| **Admin tab** | Unified quiz control room — activate self-paced quizzes or start synchronized sessions; includes QR code, short URL, and session name input |
-| **Synchronized host mode** | Presenter-led quiz: host controls question flow, all participants see the same question simultaneously with server-authoritative timer, answer distribution, explanation callout, and per-question leaderboard |
+| **Admin tab** | Unified quiz control room — activate self-paced quizzes or start synchronized sessions; includes QR code, short URL, and auto-numbered session badge |
+| **Synchronized host mode** | Presenter-led quiz: sessions are auto-numbered (`00001`, `00002`, …); host controls question flow, all participants see the same question simultaneously with server-authoritative timer, answer distribution, explanation callout, and per-question leaderboard |
 | **Answer explanation** | Optional "why" text per question shown as a 💡 callout after revealing the correct answer (self-paced and synchronized) |
 | **Random question subset** | Set a quiz to play a random N questions from its full pool (e.g. 12 of 34) — each participant gets a different draw |
 | **Export / Import** | Download any quiz as a JSON file; import to replace or append questions — great for sharing question sets between Splunk instances |
 | **Quiz library** | Bundled pre-built quizzes (Splunk4Champions, Splunk Basics) importable with one click via **📚 Library**; **🔄 GitHub** button syncs the latest quizzes live from the repo |
 | **Live timer** | Per-question countdown with speed-bonus scoring |
-| **Nickname** | Pre-filled from the Splunk username, editable before starting |
+| **Nickname** | Empty by default with a contextual hint; required before starting or joining — a clear visual cue highlights the field until filled |
 | **WYSIWYG editor** | Built-in question editor with reorder, delete, and type switching |
 | **KV Store backed** | Questions, quizzes, and config stored in Splunk KV Store — no external database needed |
 | **Analytics dashboard** | Built-in **📊 Analytics** tab — KPI scorecards, leaderboard, per-question difficulty bars, recent sessions; filterable by time range, quiz, session name, and nickname |
@@ -571,6 +590,7 @@ After choosing a quiz, clicking **Import** shows the same Replace / Append confi
 
 | File | Name | Questions | Difficulty | Topics |
 |---|---|---|---|---|
+| [`splunk4champions2-workshop.json`](quizzes/splunk4champions2-workshop.json) | Splunk4Champions2 — Full Workshop Quiz | 42 | Intermediate–Advanced | SmartStore, buckets, tstats, search modes, pipeline, lookups, CIM, Dashboard Studio, SPL optimisation — all 6 question types |
 | [`splunk4champions.json`](quizzes/splunk4champions.json) | Splunk4Champions — Advanced Topics | 22 | Advanced | tstats, buckets, bloom filters, Dashboard Studio, SmartStore, search performance, metrics |
 | [`splunk-basics.json`](quizzes/splunk-basics.json) | Splunk Basics | 15 | Beginner | Components, ports, SPL commands, data lifecycle, HEC, forwarders, KV Store |
 
@@ -890,7 +910,7 @@ The built-in **📊 Analytics** tab gives you a live view of quiz results withou
 |---|---|
 | **Time range** | Last 15 min / 1h / 4h / 24h / 7 days / 30 days / All time |
 | **Quiz** | Any named quiz from the KV Store catalogue, or *All quizzes* |
-| **Session** | Any named synchronized session (e.g. `"Workshop Berlin May 2026"`), or *All sessions*; only shown when sync session data exists in the index |
+| **Session** | Any synchronized session number (e.g. `00003`), or *All sessions*; defaults to the most recent session; only shown when sync session data exists in the index |
 | **Nickname** | Any individual player (auto-populated from the index), or *All players* |
 
 ### Panels
