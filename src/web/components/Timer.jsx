@@ -25,10 +25,10 @@ const Fill = styled.div`
     height: 100%;
     border-radius: 4px;
     transition: width 0.5s linear, background 0.5s;
-    background: ${({ pct }) =>
-        pct > 50 ? '#65A637' : pct > 25 ? '#ED8B00' : '#DC4E41'};
-    width: ${({ pct }) => pct}%;
-    ${({ pct }) => pct <= 15 && css`animation: ${pulse} 0.6s ease-in-out infinite;`}
+    background: ${({ $pct }) =>
+        $pct > 50 ? '#65A637' : $pct > 25 ? '#ED8B00' : '#DC4E41'};
+    width: ${({ $pct }) => $pct}%;
+    ${({ $pct }) => $pct <= 15 && css`animation: ${pulse} 0.6s ease-in-out infinite;`}
 `;
 
 const Num = styled.span`
@@ -36,8 +36,8 @@ const Num = styled.span`
     font-weight: 700;
     min-width: 32px;
     text-align: right;
-    color: ${({ pct }) =>
-        pct > 50 ? '#65A637' : pct > 25 ? '#ED8B00' : '#DC4E41'};
+    color: ${({ $pct }) =>
+        $pct > 50 ? '#65A637' : $pct > 25 ? '#ED8B00' : '#DC4E41'};
 `;
 
 /**
@@ -101,9 +101,9 @@ export default function Timer({ duration, running, onExpire, onTick }) {
     return (
         <Root>
             <Track>
-                <Fill pct={pct} />
+                <Fill $pct={pct} />
             </Track>
-            <Num pct={pct}>{remaining}</Num>
+            <Num $pct={pct}>{remaining}</Num>
         </Root>
     );
 }

@@ -166,23 +166,28 @@ export async function saveAllQuestions(questions, quizId) {
 }
 
 // ── Config collection ─────────────────────────────────────────────────────────
-// loadConfig() result is cached in-memory so submitEvent can check the HEC
-// settings without a round-trip on every event.  saveConfig() invalidates it.
+// loadConfig() result is cached in-memory to avoid redundant round-trips.
+// Cache expires after CONFIG_TTL_MS; saveConfig() also invalidates it immediately.
 
-let _cachedConfig = null;
-let _configLoading = null;
+const CONFIG_TTL_MS = 60_000; // 60 seconds
+let _cachedConfig   = null;
+let _cachedAt       = 0;
+let _configLoading  = null;
 
 export async function loadConfig() {
-    if (_cachedConfig) return _cachedConfig;
+    const now = Date.now();
+    if (_cachedConfig && (now - _cachedAt) < CONFIG_TTL_MS) return _cachedConfig;
     if (_configLoading) return _configLoading;
     _configLoading = (async () => {
         try {
             const c = await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`);
             _cachedConfig = c;
+            _cachedAt     = Date.now();
             return c;
         } catch (_) {
             const fallback = { poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' };
             _cachedConfig = fallback;
+            _cachedAt     = Date.now();
             return fallback;
         } finally {
             _configLoading = null;
@@ -192,7 +197,8 @@ export async function loadConfig() {
 }
 
 export async function saveConfig(cfg) {
-    _cachedConfig = null; // invalidate cache so next submitEvent re-reads
+    _cachedConfig = null; // invalidate immediately so next read fetches fresh data
+    _cachedAt     = 0;
     try {
         await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`, {
             method: 'POST',
@@ -206,12 +212,6 @@ export async function saveConfig(cfg) {
     }
 }
 
-/** Default HEC URL inferred from the current Splunk Web hostname (port 8088). */
-export function defaultHecUrl() {
-    const { protocol, hostname } = window.location;
-    return `${protocol}//${hostname}:8088/services/collector/event`;
-}
-
 // ── Current Splunk user ───────────────────────────────────────────────────────
 
 export async function getCurrentUser() {
@@ -223,6 +223,30 @@ export async function getCurrentUser() {
     } catch (_) {
         return '';
     }
+}
+
+// ── Version info ──────────────────────────────────────────────────────────────
+
+/**
+ * Returns { splunkVersion, splunkBuild, appVersion } from the Splunk REST API.
+ * Both calls are made in parallel; individual failures return '—'.
+ */
+export async function getVersionInfo() {
+    const [serverData, appData] = await Promise.allSettled([
+        kvFetch(`${splunkdBase()}/services/server/info?output_mode=json`),
+        kvFetch(`${splunkdBase()}/services/apps/local/${APP}?output_mode=json`),
+    ]);
+    const serverContent = serverData.status === 'fulfilled'
+        ? serverData.value?.entry?.[0]?.content
+        : null;
+    const appContent = appData.status === 'fulfilled'
+        ? appData.value?.entry?.[0]?.content
+        : null;
+    return {
+        splunkVersion: serverContent?.version || '—',
+        splunkBuild:   serverContent?.build   || '',
+        appVersion:    appContent?.version    || '—',
+    };
 }
 
 // ── Bundled quiz library ──────────────────────────────────────────────────────
@@ -267,31 +291,9 @@ export async function listIndexes() {
 }
 
 // ── Write events ─────────────────────────────────────────────────────────────
-// Two paths, in order of preference:
-//   1. HEC (HTTP Event Collector) — works for ANY Splunk role (including
-//      ponypoll_user) because the HEC token authenticates independently of
-//      the user's session.  Required for non-admin participants.  Configured
-//      by the admin in Settings.  Works on Splunk Enterprise AND Splunk Cloud.
-//   2. receivers/simple — falls back when HEC isn't configured.  Only works
-//      for users whose role can write to /services/receivers/simple (admins).
-
-async function submitViaHec(eventData, { index, sourcetype, source }, { hec_url, hec_token }) {
-    const body = { event: eventData, sourcetype, source, index };
-    const res = await fetch(hec_url, {
-        method: 'POST',
-        // HEC uses its own token in the header; do NOT send Splunk Web cookies
-        // (they could be rejected on the cross-port HEC endpoint).
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Splunk ${hec_token}`,
-        },
-        body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-        const t = await res.text();
-        throw new Error(`HEC ${res.status}: ${t.slice(0, 200)}`);
-    }
-}
+// Events are written via receivers/simple using the user's Splunk session cookie.
+// The ponypoll_user role ships with the edit_tcp capability so all authenticated
+// users (not just admins) can POST to this endpoint.
 
 async function submitViaReceiver(eventData, { index, sourcetype, source }) {
     const params = new URLSearchParams({ index, sourcetype, source, output_mode: 'json' });
@@ -320,46 +322,7 @@ async function submitEvent(eventData, opts = {}) {
         sourcetype: opts.sourcetype || 'ponypoll_answer',
         source: opts.source || 'ponypoll_app',
     };
-    let cfg = null;
-    try { cfg = await loadConfig(); } catch (_) {}
-    if (cfg?.hec_token && cfg?.hec_url) {
-        try {
-            await submitViaHec(eventData, meta, cfg);
-            return;
-        } catch (e) {
-            // HEC failed (token bad, CORS, network) — fall through to receivers
-            // for admins; for non-admins the next call will also fail and
-            // surface the error.  We do NOT swallow silently here.
-            // eslint-disable-next-line no-console
-            console.warn('HEC submit failed, falling back to receivers/simple:', e.message);
-        }
-    }
     await submitViaReceiver(eventData, meta);
-}
-
-/** Send a tiny test event to HEC; throws on any failure. */
-export async function testHec(hec_url, hec_token) {
-    if (!hec_url || !hec_token) throw new Error('Both URL and token are required.');
-    const body = {
-        event: { event: 'hec_test', source_app: 'ponypoll', ts: new Date().toISOString() },
-        sourcetype: 'ponypoll_test',
-        source: 'ponypoll_app',
-        index: 'ponypoll',
-    };
-    const res = await fetch(hec_url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Splunk ${hec_token}`,
-        },
-        body: JSON.stringify(body),
-    });
-    const text = await res.text();
-    if (!res.ok) throw new Error(`HEC ${res.status}: ${text.slice(0, 300)}`);
-    try {
-        const data = JSON.parse(text);
-        if (data.code !== 0) throw new Error(`HEC code ${data.code}: ${data.text || text}`);
-    } catch (_) { /* not JSON, but 2xx is good enough */ }
 }
 
 export async function submitAnswer(eventData) {

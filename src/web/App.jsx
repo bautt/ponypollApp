@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import styled from 'styled-components';
+import { C, FONTS } from './lib/theme';
 import PollPage from './pages/PollPage';
 import AdminPage from './pages/AdminPage';
 import SyncPollPage from './pages/SyncPollPage';
@@ -19,7 +20,32 @@ class ErrorBoundary extends Component {
     }
     render() {
         if (this.state.error) {
-            const err = this.state.error;
+            const err  = this.state.error;
+            const reset = () => this.setState({ error: null });
+
+            // Compact variant: shown inside a tab so the nav stays visible
+            if (this.props.compact) {
+                return (
+                    <div style={{
+                        margin: 32, padding: 24,
+                        background: '#2a1010', border: '1px solid #DC4E41',
+                        borderRadius: 10, color: '#DC4E41', fontFamily: 'monospace',
+                    }}>
+                        <strong>⚠ {this.props.label || 'Tab'} error</strong>
+                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#FF8C8C', fontSize: 12, margin: '10px 0' }}>
+                            {err.message}
+                        </pre>
+                        <button
+                            onClick={reset}
+                            style={{ padding: '6px 16px', background: '#009CDE', border: 'none', borderRadius: 5, color: '#fff', cursor: 'pointer', fontSize: 13 }}
+                        >
+                            Retry
+                        </button>
+                    </div>
+                );
+            }
+
+            // Full-page variant: shown when the entire app fails to render
             return (
                 <div style={{
                     padding: 32, background: '#1B1D22', color: '#DC4E41',
@@ -30,7 +56,7 @@ class ErrorBoundary extends Component {
                         {err.message}{'\n\n'}{err.stack}
                     </pre>
                     <button
-                        onClick={() => this.setState({ error: null })}
+                        onClick={reset}
                         style={{ marginTop: 16, padding: '8px 20px', background: '#009CDE', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', fontSize: 14 }}
                     >
                         Reload component
@@ -41,15 +67,6 @@ class ErrorBoundary extends Component {
         return this.props.children;
     }
 }
-
-const C = {
-    surface: '#23262F',
-    border: '#3C3F4A',
-    text: '#D0D4E3',
-    muted: '#868A9C',
-    blue: '#009CDE',
-    bg: '#1B1D22',
-};
 
 const NavBar = styled.nav`
     display: flex;
@@ -63,11 +80,11 @@ const NavBar = styled.nav`
 const NavTab = styled.button`
     padding: 11px 20px;
     border: none;
-    border-bottom: 3px solid ${({ active }) => (active ? C.blue : 'transparent')};
+    border-bottom: 3px solid ${({ $active }) => ($active ? C.blue : 'transparent')};
     background: transparent;
-    color: ${({ active }) => (active ? '#fff' : C.muted)};
+    color: ${({ $active }) => ($active ? '#fff' : C.muted)};
     font-size: 14px;
-    font-weight: ${({ active }) => (active ? '700' : '500')};
+    font-weight: ${({ $active }) => ($active ? '700' : '500')};
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
     &:hover { color: #fff; }
@@ -110,6 +127,14 @@ const TABS = [
     { id: 'editor',    label: '✏ Editor' },
     { id: 'settings',  label: '⚙ Settings' },
 ];
+
+const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
+
+/** Read the active tab id from the URL hash, falling back to a default. */
+function tabFromHash(fallback = 'poll') {
+    const hash = window.location.hash.replace('#', '');
+    return VALID_TAB_IDS.has(hash) ? hash : fallback;
+}
 
 /** Seed sample quiz on first install (runs once, app-wide). */
 function useSeedOnFirstInstall() {
@@ -197,23 +222,35 @@ function FullApp() {
         }).catch(() => {});
     }, []);
 
-    const [tab, setTab] = useState('poll');
+    const [tab, setTab] = useState(() => tabFromHash('poll'));
+
+    // Keep state in sync with browser back/forward navigation.
+    useEffect(() => {
+        const onHashChange = () => setTab(tabFromHash('poll'));
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, []);
+
+    const switchTab = (id) => {
+        window.location.hash = id;
+        setTab(id);
+    };
 
     return (
         <>
             <NavBar>
                 {TABS.map((t) => (
-                    <NavTab key={t.id} active={tab === t.id} onClick={() => setTab(t.id)}>
+                    <NavTab key={t.id} $active={tab === t.id} onClick={() => switchTab(t.id)}>
                         {t.label}
                     </NavTab>
                 ))}
             </NavBar>
 
-            {tab === 'poll'      && <PollPage />}
-            {tab === 'host'      && <AdminPage />}
-            {tab === 'analytics' && <AnalyticsPage />}
-            {tab === 'editor'    && <EditorPage />}
-            {tab === 'settings'  && <SettingsPage />}
+            {tab === 'poll'      && <ErrorBoundary compact label="Poll"><PollPage /></ErrorBoundary>}
+            {tab === 'host'      && <ErrorBoundary compact label="Host"><AdminPage /></ErrorBoundary>}
+            {tab === 'analytics' && <ErrorBoundary compact label="Analytics"><AnalyticsPage /></ErrorBoundary>}
+            {tab === 'editor'    && <ErrorBoundary compact label="Editor"><EditorPage /></ErrorBoundary>}
+            {tab === 'settings'  && <ErrorBoundary compact label="Settings"><SettingsPage /></ErrorBoundary>}
         </>
     );
 }

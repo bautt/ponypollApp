@@ -7,13 +7,10 @@
     "dev": "NODE_ENV=development webpack --config webpack.config.mjs --watch"
   },
   "dependencies": {
-    "@emoji-mart/data": "^1.2.1",
-    "@emoji-mart/react": "^1.1.1",
     "@splunk/react-page": "^8.3.1",
     "@splunk/react-toast-notifications": "^0.13.0",
     "@splunk/react-ui": "^5.9.1",
     "@splunk/themes": "*",
-    "emoji-mart": "^5",
     "qrcode.react": "^4.2.0",
     "react": "^16",
     "react-dom": "^16",

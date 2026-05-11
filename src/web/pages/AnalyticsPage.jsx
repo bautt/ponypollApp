@@ -1,28 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { runSearch } from '../lib/kvstore';
-
-// ── Colour palette ─────────────────────────────────────────────────────────────
-const C = {
-    bg:      '#1B1D22',
-    surface: '#23262F',
-    surface2:'#2B2E38',
-    border:  '#3C3F4A',
-    text:    '#D0D4E3',
-    muted:   '#868A9C',
-    blue:    '#009CDE',
-    green:   '#5CC05C',
-    orange:  '#FF6D00',
-    red:     '#E84545',
-    yellow:  '#F5A623',
-};
+import { C, FONTS } from '../lib/theme';
 
 // ── Styled components ──────────────────────────────────────────────────────────
 const Page = styled.div`
     min-height: calc(100vh - 45px);
     background: ${C.bg};
     color: ${C.text};
-    font-family: 'Splunk Platform Sans', 'Inter', system-ui, sans-serif;
+    font-family: ${FONTS.sans};
     padding: 20px 24px 40px;
 `;
 

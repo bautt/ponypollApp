@@ -1,0 +1,400 @@
+[
+  {
+    "text": "What is stored inside a Splunk Enterprise index bucket?",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/inabucket.png",
+    "explanation": "A bucket contains compressed raw data (.gz), a tsidx (time-series index) for fast field lookup, and a Bloom filter for quick term-presence checks. There is no SQL, BKD tree, or KV Store involved.",
+    "options": [
+      { "id": "A", "text": "KV Store, index files and NoSQL database files", "correct": false },
+      { "id": "B", "text": "Bloom filter, tsidx and compressed raw data", "correct": true },
+      { "id": "C", "text": "Inverted indices and BKD trees", "correct": false },
+      { "id": "D", "text": "B-tree, data pages and SQL indices", "correct": false }
+    ]
+  },
+  {
+    "text": "A Bloom filter tells you that a search term…",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/bloomfilter.png",
+    "explanation": "A Bloom filter is a probabilistic structure. A negative answer is definitive — the term is definitely absent. A positive answer means the term MAY be present, so the tsidx still needs checking.",
+    "options": [
+      { "id": "A", "text": "Definitely exists in the bucket", "correct": false },
+      { "id": "B", "text": "Definitely does not exist in the bucket", "correct": false },
+      { "id": "C", "text": "Might exist — or definitely does not exist — in the bucket", "correct": true },
+      { "id": "D", "text": "Is an indexed field with high cardinality", "correct": false }
+    ]
+  },
+  {
+    "text": "What is the correct order of the Splunk bucket lifecycle?",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/hot_warm1.png",
+    "explanation": "Buckets move Hot → Warm → Cold → Frozen as they age. Hot buckets are open for writes; warm and cold are read-only; frozen is archived/deleted.",
+    "options": [
+      { "id": "A", "text": "Hot → Cold → Warm → Frozen", "correct": false },
+      { "id": "B", "text": "Warm → Hot → Cold → Frozen", "correct": false },
+      { "id": "C", "text": "Hot → Warm → Cold → Frozen", "correct": true },
+      { "id": "D", "text": "Hot → Warm → Frozen → Cold", "correct": false }
+    ]
+  },
+  {
+    "text": "In SmartStore, the cache manager on an indexer mainly…",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/Cache_manager.jpg",
+    "explanation": "The cache manager fetches warm/cold buckets from the remote object store into local cache on demand, and evicts them by policy when space is needed. Hot buckets are still written locally.",
+    "options": [
+      { "id": "A", "text": "Fetches buckets from remote object storage into local cache and evicts by policy", "correct": true },
+      { "id": "B", "text": "Runs all user searches so the search head stays idle", "correct": false },
+      { "id": "C", "text": "Replaces the license manager", "correct": false },
+      { "id": "D", "text": "Only moves frozen archives to object storage", "correct": false }
+    ]
+  },
+  {
+    "text": "In SmartStore, hot buckets are stored remotely in object storage from the start",
+    "type": "yesno",
+    "timeLimit": 20,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/smartstore_classic_vs_modern.png",
+    "explanation": "No — hot buckets are still written locally. Only when a bucket rolls from hot to warm does SmartStore upload it to the remote store (e.g. S3). This is the key architectural difference from classic Splunk.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No", "correct": true }
+    ]
+  },
+  {
+    "text": "Which components are part of a distributed Splunk Enterprise deployment? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 40,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/architecture.png",
+    "explanation": "A distributed deployment typically includes Universal Forwarders (collect data), Indexers (store and index), Search Heads (run searches), and a Deployment Server (manage UF configs). The License Manager handles licensing.",
+    "options": [
+      { "id": "A", "text": "Universal Forwarder", "correct": true },
+      { "id": "B", "text": "Indexer", "correct": true },
+      { "id": "C", "text": "Search Head", "correct": true },
+      { "id": "D", "text": "Deployment Server", "correct": true }
+    ]
+  },
+  {
+    "text": "The Splunk data pipeline processes data in which order?",
+    "type": "single",
+    "timeLimit": 35,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/pipeline.png",
+    "explanation": "Data flows: Parsing Queue → Parsing Pipeline (line breaking, charset, timestamps) → Index Queue → Index Pipeline (write to disk). Queues buffer events between pipeline stages.",
+    "options": [
+      { "id": "A", "text": "Index Pipeline → Parsing Pipeline → Index Queue → Parsing Queue", "correct": false },
+      { "id": "B", "text": "Parsing Queue → Index Queue → Parsing Pipeline → Index Pipeline", "correct": false },
+      { "id": "C", "text": "Parsing Queue → Parsing Pipeline → Index Queue → Index Pipeline", "correct": true },
+      { "id": "D", "text": "Index Queue → Parsing Queue → Index Pipeline → Parsing Pipeline", "correct": false }
+    ]
+  },
+  {
+    "text": "Streaming commands run on indexers in a distributed deployment",
+    "type": "yesno",
+    "timeLimit": 20,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/Streaming_flow.png",
+    "explanation": "Yes — streaming commands (like eval, where, regex) can run on indexers in parallel before results are sent to the search head. This is why placing them early in the pipeline improves performance.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true },
+      { "id": "B", "text": "No", "correct": false }
+    ]
+  },
+  {
+    "text": "Which search mode skips non-essential field discovery for the fastest possible results?",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/lab1_task2_fast.png",
+    "explanation": "Fast mode skips field discovery and event data unless specifically needed. Smart mode adjusts automatically based on the command used. Verbose mode returns everything.",
+    "options": [
+      { "id": "A", "text": "Verbose mode", "correct": false },
+      { "id": "B", "text": "Smart mode", "correct": false },
+      { "id": "C", "text": "Night mode", "correct": false },
+      { "id": "D", "text": "Fast mode", "correct": true }
+    ]
+  },
+  {
+    "text": "In Verbose mode, Splunk returns all fields and tags for every event",
+    "type": "yesno",
+    "timeLimit": 20,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/lab1_task2_verbose.png",
+    "explanation": "Yes — Verbose mode extracts all fields, tags, and event types for every result. It gives the most complete view but is the slowest of the three modes.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": true },
+      { "id": "B", "text": "No", "correct": false }
+    ]
+  },
+  {
+    "text": "The TERM() directive can match terms that span across major breakers like whitespace",
+    "type": "yesno",
+    "timeLimit": 20,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/segmentation.png",
+    "explanation": "No — TERM() only works within a single segment (between major breakers like space, comma, etc.). If your term contains whitespace, TERM() won't match it. Use quotes instead.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No", "correct": true }
+    ]
+  },
+  {
+    "text": "Using a wildcard at the START of a search term (e.g. *error) is…",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Leading wildcards force Splunk to scan every term in every event — the Bloom filter and tsidx cannot help at all. This is one of the most expensive things you can do in a search.",
+    "options": [
+      { "id": "A", "text": "Fine — wildcards are fully optimised in all positions", "correct": false },
+      { "id": "B", "text": "Slightly slower than a trailing wildcard", "correct": false },
+      { "id": "C", "text": "A major performance killer — bypasses all index optimisations", "correct": true },
+      { "id": "D", "text": "Only a problem on Splunk Cloud", "correct": false }
+    ]
+  },
+  {
+    "text": "Which of these are the 'four horsemen' of bad Splunk searches? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 40,
+    "explanation": "All four are classic performance anti-patterns: searching all indexes wastes I/O; All Time scans everything; leading/mid wildcards bypass the tsidx; JOIN is expensive and serial.",
+    "options": [
+      { "id": "A", "text": "index=* or no index filter at all", "correct": true },
+      { "id": "B", "text": "All Time as the search time range", "correct": true },
+      { "id": "C", "text": "Wildcards at the start or middle of a search term", "correct": true },
+      { "id": "D", "text": "Using JOIN to combine data sources", "correct": true }
+    ]
+  },
+  {
+    "text": "Your best tool for diagnosing exactly where a search spends its time is…",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/inspector-dall-e.png",
+    "explanation": "The Job Inspector breaks down search execution into phases (command.search, command.eval, etc.) with timing, giving you precise insight into bottlenecks.",
+    "options": [
+      { "id": "A", "text": "Monitoring Console", "correct": false },
+      { "id": "B", "text": "Job Inspector", "correct": true },
+      { "id": "C", "text": "SPL Profiler", "correct": false },
+      { "id": "D", "text": "The search.log file", "correct": false }
+    ]
+  },
+  {
+    "text": "Which of the following are valid search optimisation tips? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 40,
+    "explanation": "Always specify the index, restrict time range, and place streaming (filtering) commands early. Wildcards as prefixes are an anti-pattern — they prevent index optimisation.",
+    "options": [
+      { "id": "A", "text": "Always specify the index you need", "correct": true },
+      { "id": "B", "text": "Restrict the time range as much as possible", "correct": true },
+      { "id": "C", "text": "Use wildcards as prefixes for flexible matching", "correct": false },
+      { "id": "D", "text": "Place streaming commands early in the pipeline", "correct": true }
+    ]
+  },
+  {
+    "text": "tstats is best used at the END of a search pipeline, after streaming commands",
+    "type": "yesno",
+    "timeLimit": 20,
+    "explanation": "No — tstats is a generating command and must be FIRST (or only) in the pipeline. It reads directly from tsidx files, bypassing raw event scanning entirely.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No — tstats is a generating command and must be FIRST", "correct": true }
+    ]
+  },
+  {
+    "text": "Which search is faster and why?",
+    "type": "single",
+    "timeLimit": 35,
+    "explanation": "tstats reads directly from tsidx index files without touching raw events at all. The standard SPL pipeline must read and decompress raw event data before evaluating the stats function.",
+    "options": [
+      { "id": "A", "text": "index=s4c_weather | stats avg(main.temp) by name", "correct": false },
+      { "id": "B", "text": "| tstats avg(main.temp) WHERE index=s4c_weather by name", "correct": true },
+      { "id": "C", "text": "They are exactly the same speed", "correct": false },
+      { "id": "D", "text": "The first — tstats only works on data models", "correct": false }
+    ]
+  },
+  {
+    "text": "PREFIX() in tstats allows you to…",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/tsidx1.png",
+    "explanation": "PREFIX() lets tstats treat indexed terms that look like key=value pairs as if they were indexed fields — without the overhead of a data model or field extraction at search time.",
+    "options": [
+      { "id": "A", "text": "Add a custom prefix to every event field name", "correct": false },
+      { "id": "B", "text": "Treat indexed key=value terms as searchable fields without a data model", "correct": true },
+      { "id": "C", "text": "Filter searches to a specific index name prefix", "correct": false },
+      { "id": "D", "text": "Pre-sort events before aggregation", "correct": false }
+    ]
+  },
+  {
+    "text": "A generating command is special because it…",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Generating commands (like tstats, inputlookup, makeresults) produce their own result set and do not need events piped into them. They must appear first in the pipeline (or after a pipe when chained).",
+    "options": [
+      { "id": "A", "text": "Runs only on the search head captain in a cluster", "correct": false },
+      { "id": "B", "text": "Must always be immediately followed by stats", "correct": false },
+      { "id": "C", "text": "Cannot run in distributed search environments", "correct": false },
+      { "id": "D", "text": "Starts a new result set and does not require events piped into it", "correct": true }
+    ]
+  },
+  {
+    "text": "In Splunk Metrics, dimensions are…",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Dimensions are key-value metadata pairs stored alongside metric measurements (e.g. host=web01, region=eu-west). Metric values themselves are numeric measurements under dot-separated names.",
+    "options": [
+      { "id": "A", "text": "Numeric measurement values at a point in time", "correct": false },
+      { "id": "B", "text": "Dot-separated segments of a metric name", "correct": false },
+      { "id": "C", "text": "Key-value pairs that add contextual metadata to a measurement", "correct": true },
+      { "id": "D", "text": "Index configuration parameters in indexes.conf", "correct": false }
+    ]
+  },
+  {
+    "text": "mstats works on standard event indexes just like stats",
+    "type": "yesno",
+    "timeLimit": 20,
+    "explanation": "No — mstats only works on metric indexes (type=metric in indexes.conf). For event indexes you use the regular stats or timechart commands.",
+    "options": [
+      { "id": "A", "text": "Yes", "correct": false },
+      { "id": "B", "text": "No", "correct": true }
+    ]
+  },
+  {
+    "text": "Which SPL command converts search results into metric data points and writes them to a metric index?",
+    "type": "single",
+    "timeLimit": 30,
+    "explanation": "mcollect converts events from a search into metric data points and writes them to a metric index. meventcollect is a streaming variant; mstats reads metrics; mcatalog lists available metric names.",
+    "options": [
+      { "id": "A", "text": "mstats", "correct": false },
+      { "id": "B", "text": "mcatalog", "correct": false },
+      { "id": "C", "text": "mcollect", "correct": true },
+      { "id": "D", "text": "meventconvert", "correct": false }
+    ]
+  },
+  {
+    "text": "What does mcollect do?",
+    "type": "freetext",
+    "timeLimit": 40,
+    "explanation": "mcollect converts SPL search results into metric data points and writes them to a metric index — bridging the world of events and structured time-series metrics.",
+    "options": [
+      { "id": "A", "text": "converts events to metrics", "correct": true },
+      { "id": "B", "text": "convert events to metrics", "correct": true },
+      { "id": "C", "text": "writes events to a metric index", "correct": true },
+      { "id": "D", "text": "log to metrics", "correct": true }
+    ]
+  },
+  {
+    "text": "What is a Base Search in a Classic XML dashboard?",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/base_search_dashboard.png",
+    "explanation": "A base search runs once and its results are shared among multiple panels using post-process searches. This avoids running the same expensive SPL multiple times for different visualisations.",
+    "options": [
+      { "id": "A", "text": "The very first search Splunk runs when it starts up", "correct": false },
+      { "id": "B", "text": "A shared search whose results are reused by multiple panels via post-processing", "correct": true },
+      { "id": "C", "text": "A search restricted to the main index only", "correct": false },
+      { "id": "D", "text": "The default search saved with a dashboard", "correct": false }
+    ]
+  },
+  {
+    "text": "Annotations in Splunk XML dashboards allow you to…",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/annotation.png",
+    "explanation": "Annotations overlay event markers (vertical lines or labels) on a time chart from a separate search — useful for correlating incidents, deployments, or alerts with metric trends.",
+    "options": [
+      { "id": "A", "text": "Add PDF export comments to a dashboard", "correct": false },
+      { "id": "B", "text": "Overlay event markers from a second search on a time chart", "correct": true },
+      { "id": "C", "text": "Pin sticky notes to a panel for other users", "correct": false },
+      { "id": "D", "text": "Highlight fields in the raw event viewer", "correct": false }
+    ]
+  },
+  {
+    "text": "Which of the following are features available in Dashboard Studio but NOT in Classic XML dashboards? (select all that apply)",
+    "type": "multi",
+    "timeLimit": 40,
+    "explanation": "Dashboard Studio adds absolute/free-form layout positioning, a visual canvas with full CSS styling, and the Chain Search (post-processing equivalent). Classic XML only supports grid layout.",
+    "options": [
+      { "id": "A", "text": "Absolute (free-form) panel positioning on a canvas", "correct": true },
+      { "id": "B", "text": "Chain searches (post-processing equivalent)", "correct": true },
+      { "id": "C", "text": "Trellis layout for small multiples", "correct": true },
+      { "id": "D", "text": "Saved searches as a data source", "correct": false }
+    ]
+  },
+  {
+    "text": "Dashboard Studio source code is written in…",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/studio_code.png",
+    "explanation": "Dashboard Studio uses JSON as its source format, unlike Classic XML dashboards which use SimpleXML. You can edit Studio dashboards directly in the JSON editor.",
+    "options": [
+      { "id": "A", "text": "XML", "correct": false },
+      { "id": "B", "text": "YAML", "correct": false },
+      { "id": "C", "text": "Estonian", "correct": false },
+      { "id": "D", "text": "JSON", "correct": true }
+    ]
+  },
+  {
+    "text": "A Chain Search in Dashboard Studio is…",
+    "type": "single",
+    "timeLimit": 30,
+    "explanation": "Chain Search is Dashboard Studio's equivalent of post-processing: it takes the results of a base (primary) data source and applies additional SPL without re-running the original search.",
+    "options": [
+      { "id": "A", "text": "A very slow search that triggers a chain reaction", "correct": false },
+      { "id": "B", "text": "The Dashboard Studio equivalent of a post-processing search", "correct": true },
+      { "id": "C", "text": "A search that spans multiple supply-chain data sources", "correct": false },
+      { "id": "D", "text": "An AI-powered search that combines multiple engines", "correct": false }
+    ]
+  },
+  {
+    "text": "Images uploaded only through the Dashboard Studio UI (stored in KV Store) are a problem when sharing an app because…",
+    "type": "single",
+    "timeLimit": 30,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/ds_base.png",
+    "explanation": "KV Store images are instance-specific and are not included when you export or install an app package. Best practice: bundle images under appserver/static/ and reference them with $env:app_root$.",
+    "options": [
+      { "id": "A", "text": "They auto-sync to your Git repository and cause merge conflicts", "correct": false },
+      { "id": "B", "text": "They may not be included when the app is packaged or installed elsewhere", "correct": true },
+      { "id": "C", "text": "They always live as files under etc/apps and take too much disk space", "correct": false },
+      { "id": "D", "text": "They delete the dashboard JSON on export for security reasons", "correct": false }
+    ]
+  },
+  {
+    "text": "Splunk Search Assistant in the search bar helps you with… (select all that apply)",
+    "type": "multi",
+    "timeLimit": 35,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/ch3_search_aia.png",
+    "explanation": "The Search Assistant provides command auto-completion, syntax highlighting, quick field suggestions, and command help — all inline as you type. It does not run searches on your behalf.",
+    "options": [
+      { "id": "A", "text": "SPL command auto-completion", "correct": true },
+      { "id": "B", "text": "Inline syntax highlighting and error hints", "correct": true },
+      { "id": "C", "text": "Field value suggestions based on indexed data", "correct": true },
+      { "id": "D", "text": "Automatically running and scheduling searches for you", "correct": false }
+    ]
+  },
+  {
+    "text": "In a Splunk search, inline comments using `</p>` backtick-triple syntax allow you to…",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://raw.githubusercontent.com/bautt/splunk4champions2/main/src/package/appserver/static/images/comments.png",
+    "explanation": "Inline comments (using the ``` `comment(...)` ``` macro) let you annotate SPL pipelines without affecting search execution — great for readability and documentation inside a search.",
+    "options": [
+      { "id": "A", "text": "Disable parts of a search during debugging", "correct": false },
+      { "id": "B", "text": "Annotate SPL pipelines without affecting search execution", "correct": true },
+      { "id": "C", "text": "Add notes visible only to the dashboard owner", "correct": false },
+      { "id": "D", "text": "Insert HTML comments into dashboard panels", "correct": false }
+    ]
+  },
+  {
+    "text": "Rate your overall confidence with the topics covered in this Splunk4Champions workshop",
+    "type": "slider",
+    "timeLimit": 30,
+    "explanation": "No wrong answers — just a pulse check to help the trainer calibrate follow-up sessions.",
+    "options": [],
+    "sliderMin": 1,
+    "sliderMax": 10,
+    "sliderStep": 1,
+    "sliderUnit": "/10"
+  },
+  {
+    "text": "Which Splunk topic from this workshop do you want to explore more?",
+    "type": "wordcloud",
+    "timeLimit": 40,
+    "explanation": "Word cloud results help the trainer prioritise follow-up content and labs.",
+    "wordcloudMaxWords": 3,
+    "wordcloudMaxChars": 32
+  }
+]

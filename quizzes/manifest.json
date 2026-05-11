@@ -46,5 +46,13 @@
     "questionCount": 22,
     "difficulty": "Advanced",
     "file": "splunk4champions.json"
+  },
+  {
+    "id": "splunk4champions2-workshop",
+    "name": "Splunk4Champions2 — Full Workshop Quiz",
+    "description": "32 questions covering the complete Splunk4Champions2 workshop: bucket internals, data pipeline, search modes, tstats, metrics, XML dashboards, and Dashboard Studio. Uses all six question types with workshop images.",
+    "questionCount": 32,
+    "difficulty": "Advanced",
+    "file": "splunk4champions2-workshop.json"
   }
 ]

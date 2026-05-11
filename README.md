@@ -2,7 +2,7 @@
 
 <img src="src/package/appserver/static/appIcon_128.png" alt="Pony Poll app icon" width="96" />
 
-> **v1.3.14** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
+> **v1.3.16** · Splunk Enterprise & Cloud ≥ 8.x · AppInspect approved ✓ · React 16 · KV Store
 
 Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Participants join through the Splunk Web UI, enter a nickname, and answer timed questions with instant scoring and feedback. The built-in editor supports six question types (single choice, multiple choice, yes/no, free text, slider, and **word cloud**), a quiz library synced from GitHub, and one-click JSON import/export. Every answer and quiz session is indexed as a native Splunk event, and the Analytics tab delivers a real-time leaderboard and per-question difficulty breakdown. Installation: download the tarball from GitHub Releases and upload it through **Apps → Manage Apps** in Splunk Web.
 
@@ -10,7 +10,7 @@ Pony Poll is a live interactive quiz app that runs entirely inside Splunk. Parti
 
 ## TL;DR
 
-**Pony Poll** turns any Splunk instance into a live Kahoot-style quiz — no extra infrastructure needed.
+**Pony Poll** turns any Splunk instance into a live interactive quiz — no extra infrastructure needed.
 
 ```
 Install app → create questions in the Editor → share the **`/play`** URL with participants → watch answers flow into Splunk
@@ -106,7 +106,7 @@ Admin tab → pick a quiz → Mode: Self-paced → ▶ Activate for Self-paced
 
 ### Synchronized mode
 
-In synchronized mode the presenter controls the pace for everyone simultaneously — just like Kahoot.
+In synchronized mode the presenter controls the pace for everyone simultaneously.
 
 ```
 Admin tab → pick a quiz → Mode: 🎙 Synchronized

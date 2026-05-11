@@ -96,13 +96,13 @@ export function fromKvDoc(doc) {
 export function defaultOptions(type) {
     if (type === 'freetext')  return [];   // accepted answers added by quiz maker
     if (type === 'wordcloud') return [{ maxChars: 32 }];
+    if (type === 'slider')    return [];
     if (type === 'yesno') {
         return [
             { id: 'A', text: 'Yes', correct: false },
             { id: 'B', text: 'No',  correct: false },
         ];
     }
-    if (type === 'freetext' || type === 'slider' || type === 'wordcloud') return [];
     return [
         { id: 'A', text: '', correct: false },
         { id: 'B', text: '', correct: false },
@@ -138,6 +138,7 @@ export const SEED_QUESTIONS = [
         text: 'Which port does Splunk Web use by default?',
         type: 'single',
         timeLimit: 30,
+        explanation: 'Splunk Web listens on port 8000 by default. Port 8089 is the management/REST API port, and 9997 is the default receiver port for forwarders.',
         options: [
             { id: 'A', text: '8000', correct: true  },
             { id: 'B', text: '8080', correct: false },
@@ -149,40 +150,52 @@ export const SEED_QUESTIONS = [
         text: 'Which of the following are valid Splunk search commands? (select all that apply)',
         type: 'multi',
         timeLimit: 40,
+        explanation: 'stats, timechart, and chart are all native SPL commands. "cronjob" is not a Splunk command — that\'s a Unix scheduler.',
         options: [
             { id: 'A', text: 'stats',     correct: true  },
             { id: 'B', text: 'timechart', correct: true  },
-            { id: 'C', text: 'pivot',     correct: true  },
+            { id: 'C', text: 'chart',     correct: true  },
             { id: 'D', text: 'cronjob',   correct: false },
         ],
     },
     {
-        text: "Is Splunk's default index called 'main'?",
+        text: 'Is this the Pony Poll mascot?',
         type: 'yesno',
         timeLimit: 20,
+        image: '/static/app/ponypollapp/buttercup.png',
+        explanation: 'Yes — meet Buttercup, the Pony Poll mascot!',
         options: [
             { id: 'A', text: 'Yes', correct: true  },
             { id: 'B', text: 'No',  correct: false },
         ],
     },
     {
-        text: 'Name one Splunk search command that summarises results by a field.',
+        text: 'What does SPL stand for?',
         type: 'freetext',
-        timeLimit: 45,
+        timeLimit: 30,
+        explanation: 'SPL = Search Processing Language — the query language you use in every Splunk search bar.',
         options: [
-            { id: 'A', text: 'stats',      correct: true },
-            { id: 'B', text: 'timechart',  correct: true },
-            { id: 'C', text: 'chart',      correct: true },
+            { id: 'A', text: 'Search Processing Language', correct: true },
+            { id: 'B', text: 'search processing language', correct: true },
         ],
     },
     {
-        text: 'On a scale of 1–10, how confident are you with Splunk SPL?',
+        text: 'On a scale of 1–10, how confident are you with Splunk SPL right now?',
         type: 'slider',
         timeLimit: 30,
+        explanation: 'No wrong answers here — this is just a pulse check!',
         options: [],
         sliderMin: 1,
         sliderMax: 10,
         sliderStep: 1,
-        sliderUnit: '',
+        sliderUnit: '/10',
+    },
+    {
+        text: 'In one word — what is Splunk best at?',
+        type: 'wordcloud',
+        timeLimit: 30,
+        explanation: 'Word clouds are great for open brainstorming. Word size reflects how many participants submitted the same term.',
+        wordcloudMaxWords: 3,
+        wordcloudMaxChars: 32,
     },
 ];

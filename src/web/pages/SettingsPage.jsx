@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
-    loadConfig, saveConfig, listIndexes, listQuizzes, updateQuiz,
-    defaultHecUrl, testHec,
+    loadConfig, saveConfig, listIndexes, listQuizzes, updateQuiz, getVersionInfo,
 } from '../lib/kvstore';
-
-const C = {
-    bg: '#1B1D22', surface: '#23262F', border: '#3C3F4A',
-    text: '#D0D4E3', muted: '#868A9C', accent: '#5CC05C',
-    blue: '#009CDE', red: '#DC4E41',
-};
+import { C, FONTS } from '../lib/theme';
 
 const Root = styled.div`
     min-height: calc(100vh - 90px);
     background: ${C.bg};
     color: ${C.text};
-    font-family: 'Splunk Platform Sans', 'Proxima Nova', sans-serif;
+    font-family: ${FONTS.sans};
     padding: 32px 24px;
 `;
 
@@ -109,18 +103,18 @@ const IndexNote = styled.div`
 `;
 
 export default function SettingsPage() {
-    const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' });
+    const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
     const [indexes, setIndexes] = useState([]);
     const [quizzes, setQuizzes] = useState([]);
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
     const [loadingIdx, setLoadingIdx] = useState(true);
     const [questionLimit, setQuestionLimit] = useState(null);
-
-    const [hecStatus, setHecStatus] = useState(null);
-    const [hecTesting, setHecTesting] = useState(false);
+    const [versions, setVersions] = useState(null);
 
     useEffect(() => {
+        getVersionInfo().then(setVersions).catch(() => {});
+
         Promise.all([loadConfig(), listIndexes(), listQuizzes()])
             .then(([c, idxList, qList]) => {
                 const activeId = c.active_quiz_id || '';
@@ -129,8 +123,6 @@ export default function SettingsPage() {
                     poll_subject: c.poll_subject || 'Pony Poll',
                     active_quiz_id: activeId,
                     default_view: c.default_view || 'poll',
-                    hec_url: c.hec_url || defaultHecUrl(),
-                    hec_token: c.hec_token || '',
                 });
                 setIndexes(idxList);
                 setQuizzes(qList);
@@ -140,19 +132,6 @@ export default function SettingsPage() {
             .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }))
             .finally(() => setLoadingIdx(false));
     }, []);
-
-    const handleTestHec = async () => {
-        setHecTesting(true);
-        setHecStatus(null);
-        try {
-            await testHec(cfg.hec_url, cfg.hec_token);
-            setHecStatus({ error: false, msg: 'HEC reachable. Test event written to the ponypoll index.' });
-        } catch (e) {
-            setHecStatus({ error: true, msg: e.message });
-        } finally {
-            setHecTesting(false);
-        }
-    };
 
     const handleQuizChange = (newId) => {
         setCfg((prev) => ({ ...prev, active_quiz_id: newId }));
@@ -281,97 +260,6 @@ export default function SettingsPage() {
                     <Hint>Shown on the start screen and top bar during the poll.</Hint>
                 </Section>
 
-                <Section style={{
-                    border: `1px solid ${cfg.hec_token ? C.accent + '55' : C.border}`,
-                    borderRadius: 8, padding: '14px 16px',
-                    background: cfg.hec_token ? C.accent + '08' : 'transparent',
-                }}>
-                    <Label>
-                        {cfg.hec_token ? '✓ ' : '⚠ '}
-                        HTTP Event Collector (HEC) — required for non-admin participants
-                    </Label>
-                    <Hint style={{ marginBottom: 10 }}>
-                        Without a HEC token, only Splunk admins can submit answers and join sessions.
-                        Configure HEC once and any authenticated Splunk user (including the
-                        <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_user</code> role)
-                        can participate.
-                    </Hint>
-
-                    <Label style={{ marginTop: 12 }}>HEC URL</Label>
-                    <Input
-                        value={cfg.hec_url || ''}
-                        onChange={(e) => setCfg({ ...cfg, hec_url: e.target.value })}
-                        placeholder={defaultHecUrl()}
-                    />
-                    <Hint>
-                        Default: <code style={{ color: C.accent }}>{defaultHecUrl()}</code>.
-                        For Splunk Cloud use <code style={{ color: C.accent }}>https://http-inputs-&lt;stack&gt;.splunkcloud.com/services/collector/event</code>.
-                    </Hint>
-
-                    <Label style={{ marginTop: 12 }}>HEC token</Label>
-                    <Input
-                        type="password"
-                        value={cfg.hec_token || ''}
-                        onChange={(e) => setCfg({ ...cfg, hec_token: e.target.value })}
-                        placeholder="Paste the token value from Settings → Data Inputs → HTTP Event Collector"
-                    />
-                    <Hint>
-                        Token is stored in KV Store and visible to all app users in the browser.
-                        Acceptable for a workshop quiz; revoke any time in Splunk if abused.
-                    </Hint>
-
-                    <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <button
-                            type="button"
-                            onClick={handleTestHec}
-                            disabled={hecTesting || !cfg.hec_url || !cfg.hec_token}
-                            style={{
-                                padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-                                background: C.blue, color: '#fff', border: 'none', cursor: 'pointer',
-                                opacity: (hecTesting || !cfg.hec_url || !cfg.hec_token) ? 0.5 : 1,
-                            }}
-                        >
-                            {hecTesting ? 'Testing…' : 'Test HEC'}
-                        </button>
-                        {hecStatus && (
-                            <span style={{
-                                fontSize: 12,
-                                color: hecStatus.error ? C.red : C.accent,
-                            }}>
-                                {hecStatus.error ? '✗ ' : '✓ '}{hecStatus.msg}
-                            </span>
-                        )}
-                    </div>
-
-                    <details style={{ marginTop: 14, fontSize: 12, color: C.muted }}>
-                        <summary style={{ cursor: 'pointer', color: C.text, fontWeight: 600 }}>
-                            ⓘ One-time admin setup (click to expand)
-                        </summary>
-                        <ol style={{ margin: '8px 0 0 18px', lineHeight: 1.7 }}>
-                            <li><strong>Settings → Data Inputs → HTTP Event Collector</strong></li>
-                            <li>Click <strong>Global Settings</strong>: enable <em>All Tokens</em>, leave SSL on,
-                                set <strong>HTTP Port Number</strong> to <code style={{ color: C.accent }}>8088</code> (default).
-                            </li>
-                            <li>Click <strong>New Token</strong>: name <code style={{ color: C.accent }}>ponypoll</code>,
-                                source type <code style={{ color: C.accent }}>ponypoll_answer</code>,
-                                allowed indexes <code style={{ color: C.accent }}>ponypoll</code>,
-                                default index <code style={{ color: C.accent }}>ponypoll</code>.
-                                Indexer Acknowledgement: <strong>off</strong>.
-                            </li>
-                            <li>Copy the <strong>Token Value</strong> and paste it above.</li>
-                            <li>For browser cross-port calls, set CORS on HEC. On Splunk Enterprise edit
-                                <code style={{ color: C.accent }}> $SPLUNK_HOME/etc/system/local/inputs.conf</code>:
-                                <pre style={{
-                                    background: C.bg, border: `1px solid ${C.border}`, borderRadius: 4,
-                                    padding: 8, marginTop: 6, color: C.accent, fontSize: 11,
-                                }}>{`[http]\ncrossOriginSharingPolicy = *`}</pre>
-                                Then restart Splunk. On Splunk Cloud, ask Splunk Support to enable HEC CORS.
-                            </li>
-                            <li>Click <strong>Test HEC</strong> above — you should see the green tick.</li>
-                        </ol>
-                    </details>
-                </Section>
-
                 <Section>
                     <Label>Splunk index for poll answers</Label>
                     {loadingIdx ? (
@@ -424,8 +312,10 @@ export default function SettingsPage() {
 
                 <IndexNote>
                     <strong style={{ color: C.text }}>How it works</strong><br />
-                    Answer and join events are written via HEC when configured (works for any
-                    Splunk role) and fall back to <code>receivers/simple</code> for admins. The
+                    Answer and join events are written via <code>receivers/simple</code> using
+                    the user's Splunk session. The <code style={{ color: C.accent }}>ponypoll_user</code> role
+                    ships with the <code>edit_tcp</code> capability so every authenticated user
+                    can submit answers — no HEC required. The
                     <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll</code> index is created
                     by this app's <code>indexes.conf</code>, but you can choose any existing index
                     from the list above.<br /><br />
@@ -436,7 +326,42 @@ export default function SettingsPage() {
                 </IndexNote>
 
                 <div style={{
-                    marginTop: 32, padding: '14px 18px',
+                    marginTop: 28,
+                    padding: '12px 16px',
+                    background: C.bg,
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                    color: C.muted,
+                    display: 'flex',
+                    gap: 24,
+                    flexWrap: 'wrap',
+                }}>
+                    <span>
+                        <span style={{ fontWeight: 700, color: C.text }}>Splunk</span>
+                        {' '}
+                        {versions
+                            ? <>
+                                <span style={{ color: C.accent }}>{versions.splunkVersion}</span>
+                                {versions.splunkBuild && (
+                                    <span style={{ color: C.muted }}> (build {versions.splunkBuild})</span>
+                                )}
+                              </>
+                            : <span style={{ opacity: 0.5 }}>loading…</span>
+                        }
+                    </span>
+                    <span>
+                        <span style={{ fontWeight: 700, color: C.text }}>Pony Poll app</span>
+                        {' '}
+                        {versions
+                            ? <span style={{ color: C.accent }}>{versions.appVersion}</span>
+                            : <span style={{ opacity: 0.5 }}>loading…</span>
+                        }
+                    </span>
+                </div>
+
+                <div style={{
+                    marginTop: 16, padding: '14px 18px',
                     borderTop: `1px solid ${C.border}`,
                     fontSize: 12, color: C.muted, lineHeight: 1.6,
                 }}>

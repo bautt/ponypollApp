@@ -6,10 +6,10 @@ Ideas and missing features tracked for future development.
 
 ## ⭐ Priority 1 — Synchronized host mode
 
-> **Status:** Designed, not yet implemented.
+> **Status:** ✅ Implemented in v1.3.x — `AdminPage` (host) + `SyncPollPage` (participant), `ponypoll_session` KV Store collection, SPL leaderboard. This section is retained for architectural reference.
 
 ### Concept
-Replace the current self-paced model with an optional "host drives the quiz" mode — all participants see the same question at the same time, the host controls reveal and advancement, and a live leaderboard appears between questions. Think Kahoot.
+An optional "host drives the quiz" mode where all participants see the same question at the same time, the host controls reveal and advancement, and a live leaderboard appears between questions.
 
 A **Settings toggle** controls the mode: `quiz_mode: "self_paced" | "synchronized"`. Self-paced stays exactly as is.
 
@@ -84,7 +84,7 @@ Medium — 2–3 days of focused work. No new dependencies, no infrastructure ch
 
 | Feature | Why it matters |
 |---|---|
-| **Live leaderboard between questions** | Kahoot's killer feature — show top 5 scores after each reveal. Currently the leaderboard only exists in the Analytics tab post-session |
+| **Live leaderboard between questions** | Show top 5 scores after each reveal. Currently the leaderboard only exists in the Analytics tab post-session |
 | **Synchronized host mode** | Right now everyone is self-paced. A "host advances questions" mode where all participants see the same question at the same time is much better for a live audience |
 | **Podium / winner screen** | A dramatic top-3 finish with 🥇🥈🥉 after the final question, instead of just the score number |
 | **Session join code** | A 4-digit PIN participants type instead of navigating to a URL — easier to show on a projector |
@@ -120,6 +120,6 @@ Medium — 2–3 days of focused work. No new dependencies, no infrastructure ch
 | Feature | Why it matters |
 |---|---|
 | **Per-session CSV export** | Download one session's results as a spreadsheet — useful for trainers |
-| **Answer distribution bar** | After reveal, show a bar chart of how many people chose A/B/C/D — Kahoot-style |
+| **Answer distribution bar** | After reveal, show a bar chart of how many people chose each option |
 | **Time-to-answer histogram** | How quickly did people answer? Useful for calibrating question difficulty |
 | **Category / tag on questions** | Tag questions as "hard" / "SPL" / "architecture" and use tags to drive random subset selection |
