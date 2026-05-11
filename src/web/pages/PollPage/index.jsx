@@ -82,8 +82,18 @@ export default function PollPage() {
                 let qs = docs.length > 0
                     ? docs.map(fromKvDoc)
                     : SEED_QUESTIONS.map((q, i) => ({ ...q, _key: `seed_${i}`, sort_order: i }));
-                const limit = quizMeta?.question_limit ? Number(quizMeta.question_limit) : null;
-                if (limit && limit > 0 && limit < qs.length) qs = shuffle(qs).slice(0, limit);
+                const hasActiveSelection = quizId && cfg.active_quiz_id === quizId;
+                const selectionMode = hasActiveSelection
+                    ? (cfg.active_question_mode || 'all')
+                    : (quizMeta?.question_limit ? 'random' : 'all');
+                if (selectionMode === 'range') {
+                    const from = Math.max(1, Number(cfg.active_range_from) || 1) - 1;
+                    const to = Math.min(qs.length, Math.max(Number(cfg.active_range_from) || 1, Number(cfg.active_range_to) || qs.length));
+                    qs = qs.slice(from, to);
+                } else if (selectionMode === 'random') {
+                    const limit = Number(cfg.active_random_count || quizMeta?.question_limit || 0);
+                    if (limit && limit > 0 && limit < qs.length) qs = shuffle(qs).slice(0, limit);
+                }
                 setQuestions(qs);
             })
             .catch((e) => setError(e.message))

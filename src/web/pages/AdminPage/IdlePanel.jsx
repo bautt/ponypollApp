@@ -205,15 +205,21 @@ export default function IdlePanel({
 
             {quizMode === 'self_paced' ? (
                 <div style={{ marginBottom: 28 }}>
-                    {selectedQuizId && selectedQuizId === liveQuizId ? (
+                    {selectedQuizId && selectedQuizId === liveQuizId && (
                         <ActivateBadge>
                             ● Active — participants are on this quiz
                         </ActivateBadge>
-                    ) : (
-                        <BigBtn onClick={onActivate} disabled={busy || !selectedQuizId}>
-                            {busy ? 'Activating…' : '▶ Activate for Self-paced'}
-                        </BigBtn>
                     )}
+                    <BigBtn onClick={onActivate} disabled={busy || !selectedQuizId} style={{ marginTop: selectedQuizId === liveQuizId ? 10 : 0 }}>
+                        {busy
+                            ? 'Saving…'
+                            : selectedQuizId === liveQuizId
+                                ? 'Save Self-paced Settings'
+                                : liveQuizId
+                                    ? 'Override Active Quiz'
+                                    : '▶ Activate for Self-paced'
+                        }
+                    </BigBtn>
                 </div>
             ) : (
                 <div style={{ marginBottom: 28 }}>

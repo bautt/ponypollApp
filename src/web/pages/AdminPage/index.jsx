@@ -91,7 +91,7 @@ export default function AdminPage() {
                 setLiveQuizId(activeId);
                 const defaultId = activeId || (qs[0]?._key ?? '');
                 setSelectedQuizId(defaultId);
-                if (defaultId) loadQuizMeta(defaultId, qs);
+                if (defaultId) loadQuizMeta(defaultId, qs, cfg);
             })
             .catch(() => {});
     }, []);
@@ -113,17 +113,26 @@ export default function AdminPage() {
         }
     }, [playUrl]);
 
-    const loadQuizMeta = async (quizId, quizList) => {
+    const loadQuizMeta = async (quizId, quizList, cfgOverride = null) => {
         try {
             const list = quizList || quizzes;
             const meta = list.find((q) => q._key === quizId);
             const docs = await listQuestions(quizId);
             const n = docs.length;
+            const cfg = cfgOverride || await loadConfig().catch(() => ({}));
+            const hasSavedSelection = cfg.active_quiz_id === quizId;
+            const savedMode = hasSavedSelection && ['all', 'range', 'random'].includes(cfg.active_question_mode)
+                ? cfg.active_question_mode
+                : 'all';
+            const defaultRandom = Math.min(5, Math.max(1, n - 1));
+            const savedFrom = Math.min(n || 1, Math.max(1, Number(cfg.active_range_from) || 1));
+            const savedTo = Math.min(n || 1, Math.max(savedFrom, Number(cfg.active_range_to) || n || 1));
+            const savedRandom = Math.min(Math.max(1, Number(cfg.active_random_count) || defaultRandom), Math.max(1, n));
             setTotalAvailable(n);
-            setQuestionCount('all');
-            setRangeFrom(1);
-            setRangeTo(n);
-            setRandomCount(Math.min(5, Math.max(1, n - 1)));
+            setQuestionCount(savedMode);
+            setRangeFrom(hasSavedSelection ? savedFrom : 1);
+            setRangeTo(hasSavedSelection ? savedTo : n);
+            setRandomCount(hasSavedSelection ? savedRandom : defaultRandom);
             setQuizMode(meta?.quiz_mode || 'self_paced');
         } catch (_) {
             setTotalAvailable(0);
@@ -441,13 +450,27 @@ export default function AdminPage() {
 
     const handleActivate = async () => {
         if (!selectedQuizId) return;
+        if (liveQuizId && liveQuizId !== selectedQuizId) {
+            const currentName = quizzes.find((q) => q._key === liveQuizId)?.name || 'the current active quiz';
+            const nextName = quizzes.find((q) => q._key === selectedQuizId)?.name || 'this quiz';
+            if (!window.confirm(`Replace "${currentName}" with "${nextName}" as the active self-paced quiz?`)) return;
+        }
         setBusy(true);
         try {
             const cfg = await loadConfig();
-            await saveConfig({ ...cfg, active_quiz_id: selectedQuizId });
+            const nextCfg = {
+                ...cfg,
+                active_quiz_id: selectedQuizId,
+                active_question_mode: questionCount,
+                active_range_from: Math.max(1, Number(rangeFrom) || 1),
+                active_range_to: Math.max(Math.max(1, Number(rangeFrom) || 1), Number(rangeTo) || 1),
+                active_random_count: Math.max(1, Number(randomCount) || 1),
+            };
+            await saveConfig(nextCfg);
             setLiveQuizId(selectedQuizId);
             const name = quizzes.find((q) => q._key === selectedQuizId)?.name || 'Quiz';
-            setStatus({ error: false, msg: `"${name}" is now active — participants can start the quiz.` });
+            const action = selectedQuizId === liveQuizId ? 'updated' : 'now active';
+            setStatus({ error: false, msg: `"${name}" is ${action} — participants will get the selected question set.` });
         } catch (e) {
             setStatus({ error: true, msg: `Activate failed: ${e.message}` });
         } finally {

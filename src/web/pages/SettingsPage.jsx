@@ -125,6 +125,7 @@ export default function SettingsPage() {
         Promise.all([loadConfig(), listIndexes()])
             .then(([c, idxList]) => {
                 setCfg({
+                    ...c,
                     poll_index: c.poll_index || 'ponypoll',
                     poll_subject: c.poll_subject || 'Pony Poll',
                     active_quiz_id: c.active_quiz_id || '',
