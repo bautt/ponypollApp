@@ -24,7 +24,7 @@ const IconPlay = () => (
 );
 import {
     listQuestions, deleteQuestion, saveAllQuestions, saveQuestion,
-    listQuizzes, createQuiz, renameQuiz, deleteQuiz, updateQuiz,
+    listQuizzes, createQuiz, deleteQuiz, updateQuiz,
     loadConfig, saveConfig,
     fetchLibraryManifest, fetchLibraryQuiz,
     fetchGitHubManifest, fetchGitHubQuiz,

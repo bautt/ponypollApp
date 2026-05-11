@@ -20,14 +20,6 @@ const config = merge(baseConfig.default, {
         publicPath: '/static/app/ponypollapp/',
         clean: true,
     },
-    module: {
-        rules: [
-            {
-                test: /\.css$/i,
-                use: ['style-loader', 'css-loader'],
-            },
-        ],
-    },
     plugins: [
         new CopyWebpackPlugin({
             patterns: [

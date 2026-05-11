@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import styled from 'styled-components';
-import { C, FONTS } from './lib/theme';
+import { C } from './lib/theme';
 import PollPage from './pages/PollPage';
 import AdminPage from './pages/AdminPage';
 import SyncPollPage from './pages/SyncPollPage';
@@ -53,7 +53,7 @@ class ErrorBoundary extends Component {
                 }}>
                     <h2 style={{ margin: '0 0 12px' }}>⚠ Runtime Error (please report)</h2>
                     <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#FF8C8C', fontSize: 13 }}>
-                        {err.message}{'\n\n'}{err.stack}
+                        {err.message}
                     </pre>
                     <button
                         onClick={reset}

@@ -70,12 +70,6 @@ export async function createQuiz(name) {
     });
 }
 
-export async function renameQuiz(key, name) {
-    return kvFetch(`${kvBase()}/ponypoll_quizzes/${encodeURIComponent(key)}?output_mode=json`, {
-        method: 'POST',
-        body: JSON.stringify({ name }),
-    });
-}
 
 export async function getQuiz(key) {
     if (!key) return null;
