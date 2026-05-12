@@ -78,6 +78,8 @@ The built-in **System Check** runs automatically when you open Settings and veri
 
 The **Quiz music** toggle lets each participant enable or disable background music independently. The preference is stored per browser. See [Music Credits](#music-credits) for track attribution.
 
+![Settings — default view, poll title, index, quiz music toggle, system check](docs/screenshots/settings-music.png)
+
 ---
 
 ## Features
