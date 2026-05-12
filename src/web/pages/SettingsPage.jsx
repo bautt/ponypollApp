@@ -111,6 +111,229 @@ const IndexNote = styled.div`
     line-height: 1.5;
 `;
 
+// ── System health check ───────────────────────────────────────────────────────
+
+function locale() {
+    const parts = window.location.pathname.split('/');
+    if (parts.length >= 2 && /^[a-z]{2}(-[A-Z]{2})?$/.test(parts[1])) return '/' + parts[1];
+    return '/en-US';
+}
+
+function csrfToken() {
+    const m = document.cookie.match(/splunkweb_csrf_token_\d+=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
+function authHeaders(contentType = 'application/json') {
+    return {
+        'Content-Type': contentType,
+        'X-Splunk-Form-Key': csrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+    };
+}
+
+async function checkKvRead() {
+    const url = `${locale()}/splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_questions?limit=1&output_mode=json`;
+    const res = await fetch(url, { credentials: 'include', headers: authHeaders() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return 'Accessible';
+}
+
+async function checkKvWrite() {
+    const base = `${locale()}/splunkd/__raw/servicesNS/nobody/ponypollapp/storage/collections/data/ponypoll_questions`;
+    const postRes = await fetch(`${base}?output_mode=json`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: authHeaders(),
+        body: JSON.stringify({ _key: '_healthcheck_', quiz_id: '_test_', text: 'health check' }),
+    });
+    if (!postRes.ok) {
+        const t = await postRes.text().catch(() => '');
+        throw new Error(`Write failed (HTTP ${postRes.status})${t ? ': ' + t.slice(0, 120) : ''}`);
+    }
+    await fetch(`${base}/_healthcheck_?output_mode=json`, {
+        method: 'DELETE', credentials: 'include', headers: authHeaders(),
+    });
+    return 'Writable';
+}
+
+async function checkIndex(pollIndex) {
+    const url = `${locale()}/splunkd/__raw/services/data/indexes/${encodeURIComponent(pollIndex)}?output_mode=json`;
+    const res = await fetch(url, { credentials: 'include', headers: authHeaders() });
+    if (res.status === 404) return { exists: false, count: 0 };
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const count = parseInt(json?.entry?.[0]?.content?.totalEventCount ?? '0', 10);
+    return { exists: true, count };
+}
+
+async function checkAnswerSubmission(pollIndex) {
+    const url = `${locale()}/splunkd/__raw/services/receivers/simple?sourcetype=ponypoll_healthcheck&index=${encodeURIComponent(pollIndex)}`;
+    const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: authHeaders('text/plain'),
+        body: 'health_check=true',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return 'Accepted';
+}
+
+const SC = {
+    ok:   { bg: '#0e2a1a', border: '#2a6b3a', text: '#5CC05C', dot: '#5CC05C', label: 'OK'      },
+    warn: { bg: '#2a1f00', border: '#6b4a00', text: '#F5A623', dot: '#F5A623', label: 'Warning'  },
+    fail: { bg: '#2a0e0e', border: '#6b2020', text: '#DC4E41', dot: '#DC4E41', label: 'Failed'   },
+    idle: { bg: '#23262F', border: '#3C3F4A', text: '#868A9C', dot: '#3C3F4A', label: '—'        },
+    busy: { bg: '#23262F', border: '#3C3F4A', text: '#868A9C', dot: '#3C3F4A', label: '…'        },
+};
+
+function StatusDot({ state, detail }) {
+    const c = SC[state] || SC.idle;
+    return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '2px 9px', borderRadius: 20,
+            background: c.bg, border: `1px solid ${c.border}`,
+            color: c.text, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap',
+        }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
+            {c.label}
+            {detail && <span style={{ fontWeight: 400, marginLeft: 2, color: c.text, opacity: 0.85 }}>{detail}</span>}
+        </span>
+    );
+}
+
+function SystemCheck({ pollIndex }) {
+    const [results, setResults] = useState(null);
+    const [running, setRunning] = useState(false);
+
+    const run = async () => {
+        if (running) return;
+        setRunning(true);
+        setResults({ kv_read: 'busy', kv_write: 'busy', idx_exists: 'busy', idx_data: 'busy', answers: 'busy' });
+
+        const next = {};
+
+        // KV read
+        try { await checkKvRead(); next.kv_read = { state: 'ok' }; }
+        catch (e) { next.kv_read = { state: 'fail', detail: e.message }; }
+        setResults(r => ({ ...r, ...next }));
+
+        // KV write
+        try { await checkKvWrite(); next.kv_write = { state: 'ok' }; }
+        catch (e) { next.kv_write = { state: 'fail', detail: e.message }; }
+        setResults(r => ({ ...r, ...next }));
+
+        // Index
+        try {
+            const { exists, count } = await checkIndex(pollIndex);
+            if (!exists) {
+                next.idx_exists = { state: 'fail', detail: 'Not found — create it in Settings → Data → Indexes' };
+                next.idx_data   = { state: 'idle' };
+            } else {
+                next.idx_exists = { state: 'ok' };
+                next.idx_data   = count > 0
+                    ? { state: 'ok', detail: `${count.toLocaleString()} events` }
+                    : { state: 'warn', detail: 'Empty — run a quiz to populate' };
+            }
+        } catch (e) {
+            next.idx_exists = { state: 'fail', detail: e.message };
+            next.idx_data   = { state: 'idle' };
+        }
+        setResults(r => ({ ...r, ...next }));
+
+        // Answer submission
+        try { await checkAnswerSubmission(pollIndex); next.answers = { state: 'ok' }; }
+        catch (e) { next.answers = { state: 'fail', detail: e.message }; }
+        setResults({ ...next });
+
+        setRunning(false);
+    };
+
+    // Auto-run on first render
+    useEffect(() => { run(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const ROWS = [
+        { key: 'kv_read',   label: 'KV Store readable',      hint: 'Quizzes and questions are loaded from Splunk KV Store.' },
+        { key: 'kv_write',  label: 'KV Store writable',       hint: 'Required to create, edit, and save quiz questions.' },
+        { key: 'idx_exists',label: 'Poll index exists',       hint: `Index "${pollIndex}" must exist before answers can be stored.` },
+        { key: 'idx_data',  label: 'Poll index has data',     hint: 'At least one quiz has been completed and answers stored.' },
+        { key: 'answers',   label: 'Answer submission works', hint: 'Verifies receivers/simple is accessible for the current user.' },
+    ];
+
+    const allOk = results && !running && ROWS.every(r => {
+        const s = results[r.key];
+        return typeof s === 'object' && (s.state === 'ok' || s.state === 'warn');
+    });
+    const anyFail = results && !running && ROWS.some(r => {
+        const s = results[r.key];
+        return typeof s === 'object' && s.state === 'fail';
+    });
+
+    return (
+        <Card style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
+                {/* Header */}
+                <div style={{
+                    padding: '12px 20px',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    borderBottom: `1px solid ${C.border}`,
+                    background: C.surface2,
+                }}>
+                    <span style={{ fontWeight: 700, fontSize: 14, color: '#fff', flexGrow: 1 }}>
+                        System Check
+                    </span>
+                    {results && !running && (
+                        <span style={{
+                            padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                            background: anyFail ? '#2a0e0e' : allOk ? '#0e2a1a' : '#2a1f00',
+                            color: anyFail ? '#DC4E41' : allOk ? '#5CC05C' : '#F5A623',
+                            border: `1px solid ${anyFail ? '#6b2020' : allOk ? '#2a6b3a' : '#6b4a00'}`,
+                        }}>
+                            {anyFail ? 'Needs attention' : allOk ? 'All OK' : 'Warnings'}
+                        </span>
+                    )}
+                    <button
+                        onClick={run}
+                        disabled={running}
+                        style={{
+                            padding: '5px 14px', border: `1px solid ${C.border}`,
+                            borderRadius: 6, background: running ? C.surface : C.blue,
+                            color: '#fff', fontSize: 12, fontWeight: 600,
+                            cursor: running ? 'default' : 'pointer', opacity: running ? 0.6 : 1,
+                        }}
+                    >
+                        {running ? 'Checking…' : results ? 'Re-check' : 'Run check'}
+                    </button>
+                </div>
+
+                {/* Rows */}
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <tbody>
+                        {ROWS.map(({ key, label, hint }, i) => {
+                            const r = results?.[key];
+                            const state = !results ? 'idle' : r === 'busy' ? 'busy' : (r?.state || 'idle');
+                            const detail = r?.detail;
+                            return (
+                                <tr key={key} style={{
+                                    borderBottom: i < ROWS.length - 1 ? `1px solid ${C.border}` : 'none',
+                                    background: i % 2 === 0 ? C.surface : C.surface2,
+                                }}>
+                                    <td style={{ padding: '10px 16px', fontSize: 13, color: C.text, fontWeight: 500 }}>
+                                        {label}
+                                        <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontWeight: 400 }}>{hint}</div>
+                                    </td>
+                                    <td style={{ padding: '10px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                        <StatusDot state={state} detail={detail} />
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+        </Card>
+    );
+}
+
 export default function SettingsPage() {
     const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
     const [indexes, setIndexes] = useState([]);
@@ -315,6 +538,8 @@ export default function SettingsPage() {
                     </a>
                 </div>
             </Card>
+
+            <SystemCheck pollIndex={cfg.poll_index || 'ponypoll'} />
         </Root>
     );
 }

@@ -72,6 +72,10 @@ The session number is displayed prominently so the host can announce it to the r
 
 ![Settings — default view toggle, poll title, Splunk index, version info](docs/screenshots/settings.png)
 
+The built-in **System Check** runs automatically when you open Settings and verifies that all required Splunk components are working: KV Store read/write access, poll index existence and data, and answer submission via `receivers/simple`.
+
+![System Check — all checks passing with event count](docs/screenshots/settings-system-check.png)
+
 ---
 
 ## Features
