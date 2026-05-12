@@ -1,17 +1,19 @@
 /**
  * PonyPoll audio manager.
  *
- * Tracks:
+ * Tracks (background music):
  *   lobby    — 8bit Bossa (setup / waiting screen)
  *   question — Along the Way (countdown / answering)
  *   win      — Win Music 1-3 (done / results)
  *
  * Sound effects (Web Audio API, no files needed):
- *   click  — short high blip when selecting an answer option
- *   submit — two ascending tones when submitting an answer
+ *   click   — short high blip when selecting an answer option
+ *   submit  — two ascending tones when submitting an answer
+ *   timeout — three descending square pulses when time runs out
  *
- * Music + SFX enabled preference is stored in localStorage so it persists
- * per browser without needing a Splunk round-trip.
+ * Two independent preferences stored in localStorage (both default on):
+ *   ponypoll_music — background music tracks
+ *   ponypoll_sfx   — UI sound effects
  */
 
 const BASE = '/static/app/ponypollapp/audio/';
@@ -22,18 +24,31 @@ const TRACKS = {
     win:      { src: `${BASE}win.mp3`,      loop: false },
 };
 
-const STORAGE_KEY = 'ponypoll_music';
+const KEY_MUSIC = 'ponypoll_music';
+const KEY_SFX   = 'ponypoll_sfx';
 const DEFAULT_VOLUME = 0.35;
 
 let current = null;   // { audio: HTMLAudioElement, name: string }
 
+// ── Music preference ──────────────────────────────────────────────────────────
+
 export function isMusicEnabled() {
-    return localStorage.getItem(STORAGE_KEY) !== 'off';
+    return localStorage.getItem(KEY_MUSIC) !== 'off';
 }
 
 export function setMusicEnabled(enabled) {
-    localStorage.setItem(STORAGE_KEY, enabled ? 'on' : 'off');
+    localStorage.setItem(KEY_MUSIC, enabled ? 'on' : 'off');
     if (!enabled) stopMusic();
+}
+
+// ── SFX preference ────────────────────────────────────────────────────────────
+
+export function isSfxEnabled() {
+    return localStorage.getItem(KEY_SFX) !== 'off';
+}
+
+export function setSfxEnabled(enabled) {
+    localStorage.setItem(KEY_SFX, enabled ? 'on' : 'off');
 }
 
 export function playTrack(name) {
@@ -100,7 +115,7 @@ function _audioCtx() {
  * @param {'click'|'submit'|'timeout'} name
  */
 export function playSfx(name) {
-    if (!isMusicEnabled()) return;
+    if (!isSfxEnabled()) return;
     try {
         const ctx = _audioCtx();
         if (name === 'click')   _sfxClick(ctx);

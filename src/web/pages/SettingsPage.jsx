@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { isMusicEnabled, setMusicEnabled } from '../lib/audio';
+import { isMusicEnabled, setMusicEnabled, isSfxEnabled, setSfxEnabled } from '../lib/audio';
 
 const IconSearch = () => (
     <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
@@ -421,10 +421,16 @@ export default function SettingsPage() {
     const [loadingIdx, setLoadingIdx] = useState(true);
     const [versions, setVersions] = useState(null);
     const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
+    const [sfxOn,   setSfxOn]   = useState(() => isSfxEnabled());
 
     const handleMusicToggle = useCallback((val) => {
         setMusicEnabled(val);
         setMusicOn(val);
+    }, []);
+
+    const handleSfxToggle = useCallback((val) => {
+        setSfxEnabled(val);
+        setSfxOn(val);
     }, []);
 
     useEffect(() => {
@@ -535,35 +541,54 @@ export default function SettingsPage() {
                     </Hint>
                 </Section>
 
-                <Section>
-                    <Label>Quiz music</Label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                        {[
-                            { val: true,  label: 'On',  hint: 'Lobby, question and win music play during the quiz' },
-                            { val: false, label: 'Off', hint: 'No music or sounds' },
-                        ].map(({ val, label, hint }) => (
-                            <label key={label} style={{
-                                flex: 1, display: 'flex', flexDirection: 'column', gap: 4,
-                                padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
-                                border: `2px solid ${musicOn === val ? C.blue : C.border}`,
-                                background: musicOn === val ? C.blue + '18' : 'transparent',
-                            }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: musicOn === val ? '#fff' : C.text, fontWeight: 600, fontSize: 13 }}>
-                                    <input
-                                        type="radio"
-                                        name="music_enabled"
-                                        checked={musicOn === val}
-                                        onChange={() => handleMusicToggle(val)}
-                                        style={{ accentColor: C.blue }}
-                                    />
-                                    {label}
-                                </span>
-                                <span style={{ fontSize: 11, color: C.muted, paddingLeft: 20 }}>{hint}</span>
-                            </label>
-                        ))}
-                    </div>
-                    <Hint>Saved per browser — does not affect other participants.</Hint>
-                </Section>
+                {[
+                    {
+                        name:    'music_enabled',
+                        label:   'Quiz music',
+                        val:     musicOn,
+                        toggle:  handleMusicToggle,
+                        onHint:  'Lobby, question and win music play during the quiz',
+                        offHint: 'No background music',
+                    },
+                    {
+                        name:    'sfx_enabled',
+                        label:   'Sound effects',
+                        val:     sfxOn,
+                        toggle:  handleSfxToggle,
+                        onHint:  'Click, submit and timeout sounds play during the quiz',
+                        offHint: 'No sound effects',
+                    },
+                ].map(({ name, label, val, toggle, onHint, offHint }) => (
+                    <Section key={name}>
+                        <Label>{label}</Label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                            {[
+                                { v: true,  text: 'On',  hint: onHint  },
+                                { v: false, text: 'Off', hint: offHint },
+                            ].map(({ v, text, hint }) => (
+                                <label key={text} style={{
+                                    flex: 1, display: 'flex', flexDirection: 'column', gap: 4,
+                                    padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
+                                    border: `2px solid ${val === v ? C.blue : C.border}`,
+                                    background: val === v ? C.blue + '18' : 'transparent',
+                                }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: val === v ? '#fff' : C.text, fontWeight: 600, fontSize: 13 }}>
+                                        <input
+                                            type="radio"
+                                            name={name}
+                                            checked={val === v}
+                                            onChange={() => toggle(v)}
+                                            style={{ accentColor: C.blue }}
+                                        />
+                                        {text}
+                                    </span>
+                                    <span style={{ fontSize: 11, color: C.muted, paddingLeft: 20 }}>{hint}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <Hint>Saved per browser — does not affect other participants.</Hint>
+                    </Section>
+                ))}
 
                 <SaveBtn onClick={handleSave} disabled={saving}>
                     {saving ? 'Saving…' : 'Save Settings'}
