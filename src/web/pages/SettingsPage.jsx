@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { isMusicEnabled, setMusicEnabled } from '../lib/audio';
 
 const IconSearch = () => (
     <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
@@ -23,6 +24,7 @@ const Root = styled.div`
 `;
 
 const Card = styled.div`
+    box-sizing: border-box;
     max-width: 560px;
     background: ${C.surface};
     border: 1px solid ${C.border};
@@ -149,7 +151,9 @@ async function checkKvWrite() {
     });
     if (!postRes.ok) {
         const t = await postRes.text().catch(() => '');
-        throw new Error(`Write failed (HTTP ${postRes.status})${t ? ': ' + t.slice(0, 120) : ''}`);
+        let msg = `HTTP ${postRes.status}`;
+        try { msg = JSON.parse(t)?.messages?.[0]?.text || msg; } catch (_) {}
+        throw new Error(msg);
     }
     await fetch(`${base}/_healthcheck_?output_mode=json`, {
         method: 'DELETE', credentials: 'include', headers: authHeaders(),
@@ -161,10 +165,31 @@ async function checkIndex(pollIndex) {
     const url = `${locale()}/splunkd/__raw/services/data/indexes/${encodeURIComponent(pollIndex)}?output_mode=json`;
     const res = await fetch(url, { credentials: 'include', headers: authHeaders() });
     if (res.status === 404) return { exists: false, count: 0 };
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(t)?.messages?.[0]?.text || msg; } catch (_) {}
+        throw new Error(msg);
+    }
     const json = await res.json();
     const count = parseInt(json?.entry?.[0]?.content?.totalEventCount ?? '0', 10);
     return { exists: true, count };
+}
+
+async function fetchUserContext() {
+    const url = `${locale()}/splunkd/__raw/services/authentication/current-context?output_mode=json`;
+    try {
+        const res = await fetch(url, { credentials: 'include', headers: authHeaders() });
+        if (!res.ok) return null;
+        const json = await res.json();
+        const content = json?.entry?.[0]?.content ?? {};
+        return {
+            username: content.username || '?',
+            roles: Array.isArray(content.roles) ? content.roles : [],
+        };
+    } catch (_) {
+        return null;
+    }
 }
 
 async function checkAnswerSubmission(pollIndex) {
@@ -175,7 +200,12 @@ async function checkAnswerSubmission(pollIndex) {
         headers: authHeaders('text/plain'),
         body: 'health_check=true',
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(t)?.messages?.[0]?.text || msg; } catch (_) {}
+        throw new Error(msg);
+    }
     return 'Accepted';
 }
 
@@ -189,28 +219,44 @@ const SC = {
 
 function StatusDot({ state, detail }) {
     const c = SC[state] || SC.idle;
+    const showDetail = detail && state !== 'busy' && state !== 'idle';
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '2px 9px', borderRadius: 20,
-            background: c.bg, border: `1px solid ${c.border}`,
-            color: c.text, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap',
-        }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
-            {c.label}
-            {detail && <span style={{ fontWeight: 400, marginLeft: 2, color: c.text, opacity: 0.85 }}>{detail}</span>}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                padding: '2px 9px', borderRadius: 20, flexShrink: 0,
+                background: c.bg, border: `1px solid ${c.border}`,
+                color: c.text, fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap',
+            }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
+                {c.label}
+                {state === 'ok' && detail && (
+                    <span style={{ fontWeight: 400, marginLeft: 2, opacity: 0.85 }}>{detail}</span>
+                )}
+            </span>
+            {showDetail && state !== 'ok' && (
+                <span style={{
+                    fontSize: 11, color: c.text, opacity: 0.8,
+                    textAlign: 'right', wordBreak: 'break-word',
+                }}>
+                    {detail}
+                </span>
+            )}
+        </div>
     );
 }
 
 function SystemCheck({ pollIndex }) {
     const [results, setResults] = useState(null);
     const [running, setRunning] = useState(false);
+    const [userCtx, setUserCtx] = useState(null);
 
     const run = async () => {
         if (running) return;
         setRunning(true);
         setResults({ kv_read: 'busy', kv_write: 'busy', idx_exists: 'busy', idx_data: 'busy', answers: 'busy' });
+        const ctx = await fetchUserContext();
+        setUserCtx(ctx);
 
         const next = {};
 
@@ -270,44 +316,51 @@ function SystemCheck({ pollIndex }) {
         return typeof s === 'object' && s.state === 'fail';
     });
 
-    return (
-        <Card style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
-                {/* Header */}
-                <div style={{
-                    padding: '12px 20px',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    borderBottom: `1px solid ${C.border}`,
-                    background: C.surface2,
-                }}>
-                    <span style={{ fontWeight: 700, fontSize: 14, color: '#fff', flexGrow: 1 }}>
-                        System Check
-                    </span>
-                    {results && !running && (
-                        <span style={{
-                            padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                            background: anyFail ? '#2a0e0e' : allOk ? '#0e2a1a' : '#2a1f00',
-                            color: anyFail ? '#DC4E41' : allOk ? '#5CC05C' : '#F5A623',
-                            border: `1px solid ${anyFail ? '#6b2020' : allOk ? '#2a6b3a' : '#6b4a00'}`,
-                        }}>
-                            {anyFail ? 'Needs attention' : allOk ? 'All OK' : 'Warnings'}
-                        </span>
-                    )}
-                    <button
-                        onClick={run}
-                        disabled={running}
-                        style={{
-                            padding: '5px 14px', border: `1px solid ${C.border}`,
-                            borderRadius: 6, background: running ? C.surface : C.blue,
-                            color: '#fff', fontSize: 12, fontWeight: 600,
-                            cursor: running ? 'default' : 'pointer', opacity: running ? 0.6 : 1,
-                        }}
-                    >
-                        {running ? 'Checking…' : results ? 'Re-check' : 'Run check'}
-                    </button>
-                </div>
+    const isAdmin = userCtx?.roles?.some(r =>
+        ['admin', 'sc_admin', 'ponypoll_admin'].includes(r)
+    );
+    const hasUserRole = userCtx?.roles?.some(r =>
+        ['admin', 'sc_admin', 'ponypoll_admin', 'ponypoll_user'].includes(r)
+    );
 
-                {/* Rows */}
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    return (
+        <div style={{ marginTop: 24, borderTop: `1px solid ${C.border}`, paddingTop: 20 }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: '#fff', flexGrow: 1 }}>
+                    System Check
+                </span>
+                {results && !running && (
+                    <span style={{
+                        padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                        background: anyFail ? '#2a0e0e' : allOk ? '#0e2a1a' : '#2a1f00',
+                        color: anyFail ? '#DC4E41' : allOk ? '#5CC05C' : '#F5A623',
+                        border: `1px solid ${anyFail ? '#6b2020' : allOk ? '#2a6b3a' : '#6b4a00'}`,
+                    }}>
+                        {anyFail ? 'Needs attention' : allOk ? 'All OK' : 'Warnings'}
+                    </span>
+                )}
+                <button
+                    onClick={run}
+                    disabled={running}
+                    style={{
+                        padding: '5px 14px', border: `1px solid ${C.border}`,
+                        borderRadius: 6, background: running ? C.surface : C.blue,
+                        color: '#fff', fontSize: 12, fontWeight: 600,
+                        cursor: running ? 'default' : 'pointer', opacity: running ? 0.6 : 1,
+                    }}
+                >
+                    {running ? 'Checking…' : results ? 'Re-check' : 'Run check'}
+                </button>
+            </div>
+
+            {/* Rows */}
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                    <colgroup>
+                        <col style={{ width: '55%' }} />
+                        <col style={{ width: '45%' }} />
+                    </colgroup>
                     <tbody>
                         {ROWS.map(({ key, label, hint }, i) => {
                             const r = results?.[key];
@@ -316,13 +369,13 @@ function SystemCheck({ pollIndex }) {
                             return (
                                 <tr key={key} style={{
                                     borderBottom: i < ROWS.length - 1 ? `1px solid ${C.border}` : 'none',
-                                    background: i % 2 === 0 ? C.surface : C.surface2,
+                                    background: i % 2 === 0 ? C.surface : C.bg,
                                 }}>
-                                    <td style={{ padding: '10px 16px', fontSize: 13, color: C.text, fontWeight: 500 }}>
+                                    <td style={{ padding: '9px 14px', fontSize: 13, color: C.text, fontWeight: 500 }}>
                                         {label}
                                         <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontWeight: 400 }}>{hint}</div>
                                     </td>
-                                    <td style={{ padding: '10px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '9px 14px', textAlign: 'right' }}>
                                         <StatusDot state={state} detail={detail} />
                                     </td>
                                 </tr>
@@ -330,7 +383,33 @@ function SystemCheck({ pollIndex }) {
                         })}
                     </tbody>
                 </table>
-        </Card>
+            </div>
+
+            {/* Role hint — shown when checks complete and user context is known */}
+            {results && !running && userCtx && (
+                <div style={{
+                    marginTop: 10, padding: '9px 12px', borderRadius: 6, fontSize: 12,
+                    background: C.bg, border: `1px solid ${C.border}`, color: C.muted,
+                    lineHeight: 1.6,
+                }}>
+                    Logged in as <strong style={{ color: C.text }}>{userCtx.username}</strong>
+                    {' '}(roles: <code style={{ color: C.accent }}>{userCtx.roles.join(', ') || 'none'}</code>).
+                    {!isAdmin && (
+                        <span style={{ color: C.yellow }}>
+                            {' '}To create and edit quizzes, assign the{' '}
+                            <code style={{ color: C.yellow }}>ponypoll_admin</code> role in{' '}
+                            Settings → Access Controls → Users.
+                        </span>
+                    )}
+                    {!hasUserRole && (
+                        <span style={{ color: C.yellow }}>
+                            {' '}To participate in quizzes, assign the{' '}
+                            <code style={{ color: C.yellow }}>ponypoll_user</code> role.
+                        </span>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -341,6 +420,12 @@ export default function SettingsPage() {
     const [status, setStatus] = useState(null);
     const [loadingIdx, setLoadingIdx] = useState(true);
     const [versions, setVersions] = useState(null);
+    const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
+
+    const handleMusicToggle = useCallback((val) => {
+        setMusicEnabled(val);
+        setMusicOn(val);
+    }, []);
 
     useEffect(() => {
         getVersionInfo().then(setVersions).catch(() => {});
@@ -450,6 +535,36 @@ export default function SettingsPage() {
                     </Hint>
                 </Section>
 
+                <Section>
+                    <Label>Quiz music</Label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                        {[
+                            { val: true,  label: 'On',  hint: 'Lobby, question and win music play during the quiz' },
+                            { val: false, label: 'Off', hint: 'No music or sounds' },
+                        ].map(({ val, label, hint }) => (
+                            <label key={label} style={{
+                                flex: 1, display: 'flex', flexDirection: 'column', gap: 4,
+                                padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
+                                border: `2px solid ${musicOn === val ? C.blue : C.border}`,
+                                background: musicOn === val ? C.blue + '18' : 'transparent',
+                            }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: musicOn === val ? '#fff' : C.text, fontWeight: 600, fontSize: 13 }}>
+                                    <input
+                                        type="radio"
+                                        name="music_enabled"
+                                        checked={musicOn === val}
+                                        onChange={() => handleMusicToggle(val)}
+                                        style={{ accentColor: C.blue }}
+                                    />
+                                    {label}
+                                </span>
+                                <span style={{ fontSize: 11, color: C.muted, paddingLeft: 20 }}>{hint}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <Hint>Saved per browser — does not affect other participants.</Hint>
+                </Section>
+
                 <SaveBtn onClick={handleSave} disabled={saving}>
                     {saving ? 'Saving…' : 'Save Settings'}
                 </SaveBtn>
@@ -474,20 +589,28 @@ export default function SettingsPage() {
                     </a>
                 </div>
 
-                <IndexNote>
-                    <strong style={{ color: C.text }}>How it works</strong><br />
-                    Answer and join events are written via <code>receivers/simple</code> using
-                    the user's Splunk session. The <code style={{ color: C.accent }}>ponypoll_user</code> role
-                    ships with the <code>edit_tcp</code> capability so every authenticated user
-                    can submit answers — no HEC required. The
-                    <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll</code> index is created
-                    by this app's <code>indexes.conf</code>, but you can choose any existing index
-                    from the list above.<br /><br />
-                    Quizzes and questions are stored in Splunk KV Store
-                    (<code style={{ color: C.accent }}>ponypoll_questions</code>,
-                    <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_quizzes</code>) —
-                    no external storage needed.
-                </IndexNote>
+                <details style={{ marginTop: 14 }}>
+                    <summary style={{
+                        fontSize: 12, color: C.muted, cursor: 'pointer',
+                        userSelect: 'none', listStyle: 'none', display: 'inline-flex',
+                        alignItems: 'center', gap: 5,
+                    }}>
+                        <span style={{ fontSize: 11 }}>▸</span> How it works
+                    </summary>
+                    <IndexNote style={{ marginTop: 8 }}>
+                        Answer and join events are written via <code>receivers/simple</code> using
+                        the user's Splunk session. The <code style={{ color: C.accent }}>ponypoll_user</code> role
+                        ships with the <code>edit_tcp</code> capability so every authenticated user
+                        can submit answers — no HEC required. The
+                        <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll</code> index is created
+                        by this app's <code>indexes.conf</code>, but you can choose any existing index
+                        from the list above.<br /><br />
+                        Quizzes and questions are stored in Splunk KV Store
+                        (<code style={{ color: C.accent }}>ponypoll_questions</code>,
+                        <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_quizzes</code>) —
+                        no external storage needed.
+                    </IndexNote>
+                </details>
 
                 <div style={{
                     marginTop: 28,
@@ -524,8 +647,10 @@ export default function SettingsPage() {
                     </span>
                 </div>
 
+                <SystemCheck pollIndex={cfg.poll_index || 'ponypoll'} />
+
                 <div style={{
-                    marginTop: 16, padding: '14px 18px',
+                    marginTop: 20, padding: '14px 0 0',
                     borderTop: `1px solid ${C.border}`,
                     fontSize: 12, color: C.muted, lineHeight: 1.6,
                 }}>
@@ -536,10 +661,18 @@ export default function SettingsPage() {
                     >
                         Open an issue
                     </a>
+                    <span style={{ display: 'block', marginTop: 6, color: C.muted }}>
+                        Quiz music:{' '}
+                        <a href="https://opengameart.org/content/bossa-nova" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>Bossa Nova</a>
+                        {' '}(Joth, CC0) ·{' '}
+                        <a href="https://opengameart.org/content/along-the-way" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>Along the Way</a>
+                        {' '}(congusbongus, CC0) ·{' '}
+                        <a href="https://opengameart.org/content/win-music-1" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>Win Music #1</a>
+                        {' '}— all via{' '}
+                        <a href="https://opengameart.org" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>OpenGameArt.org</a>
+                    </span>
                 </div>
             </Card>
-
-            <SystemCheck pollIndex={cfg.poll_index || 'ponypoll'} />
         </Root>
     );
 }

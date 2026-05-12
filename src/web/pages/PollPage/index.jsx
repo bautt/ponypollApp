@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentUser, getQuiz } from '../../lib/kvstore';
 import { fromKvDoc, SEED_QUESTIONS } from '../../lib/questions';
 import { calcPoints, uid, shuffle } from '../../lib/utils';
+import { playTrack, fadeOutAndStop } from '../../lib/audio';
 import SetupScreen from './SetupScreen';
 import DoneScreen from './DoneScreen';
 import ActiveScreen from './ActiveScreen';
@@ -253,6 +254,17 @@ export default function PollPage() {
     };
 
     nextQuestionFn.current = nextQuestion;
+
+    // ── Music ──────────────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (phase === PHASE.SETUP)    playTrack('lobby');
+        if (phase === PHASE.QUESTION) playTrack('question');
+        if (phase === PHASE.DONE)     playTrack('win');
+        if (phase === PHASE.REVEAL)   return; // keep question music during reveal
+    }, [phase]);
+
+    // Stop music when the component unmounts (tab switch)
+    useEffect(() => () => fadeOutAndStop(), []);
 
     // ── Phase routing ─────────────────────────────────────────────────────────
 

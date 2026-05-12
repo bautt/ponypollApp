@@ -18,6 +18,7 @@ import {
 } from '../../lib/kvstore';
 import { fromKvDoc } from '../../lib/questions';
 import { uid, calcPoints } from '../../lib/utils';
+import { playTrack, fadeOutAndStop } from '../../lib/audio';
 import LobbyScreen from './LobbyScreen';
 import QuestionScreen from './QuestionScreen';
 import RevealScreen from './RevealScreen';
@@ -280,6 +281,17 @@ export default function SyncPollPage() {
     const total    = session?.question_keys ? JSON.parse(session.question_keys).length : 0;
     const locked   = submitted || timeLeft <= 0;
     const wcEmpty  = question?.type === 'wordcloud' && wcWords.length === 0;
+
+    // ── Music ──────────────────────────────────────────────────────────────────
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (phase === 'idle' || phase === 'waiting') playTrack('lobby');
+        else if (phase === 'question') playTrack('question');
+        else if (phase === 'done')     playTrack('win');
+        // 'reveal' — keep question music playing
+    }, [phase]);
+
+    useEffect(() => () => fadeOutAndStop(), []);
 
     // ── Phase routing ─────────────────────────────────────────────────────────
 

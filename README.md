@@ -473,6 +473,20 @@ index=ponypoll type=wordcloud question="Name one thing*"
 
 ---
 
+## Music Credits
+
+Quiz music is played during the lobby, questions, and win screen. All tracks are from [OpenGameArt.org](https://opengameart.org) and are freely licensed (CC0 / public domain).
+
+| Track | Used for | Author | Source |
+|---|---|---|---|
+| Bossa Nova ("8bit Bossa") | Lobby / setup | Joth | [opengameart.org/content/bossa-nova](https://opengameart.org/content/bossa-nova) |
+| Along the Way | Questions / countdown | congusbongus | [opengameart.org/content/along-the-way](https://opengameart.org/content/along-the-way) |
+| Win Music #1 (track 1-3) | Win / results | commissioned by OpenGameArt | [opengameart.org/content/win-music-1](https://opengameart.org/content/win-music-1) |
+
+Music can be toggled on or off per browser in **Settings → Quiz music**.
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
