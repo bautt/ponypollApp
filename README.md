@@ -44,6 +44,10 @@ Install app → create questions in the Editor → share the /play URL → watch
 |---|---|---|
 | ![Poll — start screen, pony mascot, nickname field](docs/screenshots/start.png) | ![Poll — timed question with image, answer choices](docs/screenshots/participant-question.png) | ![Poll — incorrect answer highlighted, explanation shown](docs/screenshots/participant-reveal-wrong.png) |
 
+Music and sound effect toggles are available directly on the start screen — no need to visit Settings first. Each participant controls their own preference independently.
+
+![Start screen with Music and Sounds toggles below the Start Poll button](docs/screenshots/setup-audio-toggles.png)
+
 ### Admin — quiz control room
 
 | Quiz active — QR code for participants | Question range selected |
