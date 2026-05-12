@@ -28,7 +28,8 @@ const KEY_MUSIC = 'ponypoll_music';
 const KEY_SFX   = 'ponypoll_sfx';
 const DEFAULT_VOLUME = 0.35;
 
-let current = null;   // { audio: HTMLAudioElement, name: string }
+let current     = null;   // { audio: HTMLAudioElement, name: string }
+let lastTrack   = null;   // track name last requested (even while muted)
 
 // ── Music preference ──────────────────────────────────────────────────────────
 
@@ -38,7 +39,13 @@ export function isMusicEnabled() {
 
 export function setMusicEnabled(enabled) {
     localStorage.setItem(KEY_MUSIC, enabled ? 'on' : 'off');
-    if (!enabled) stopMusic();
+    if (!enabled) {
+        stopMusic();
+    } else if (lastTrack) {
+        // Re-enable: restart the track that was playing (or last requested)
+        current = null;   // force playTrack to treat it as a new request
+        playTrack(lastTrack);
+    }
 }
 
 // ── SFX preference ────────────────────────────────────────────────────────────
@@ -52,6 +59,7 @@ export function setSfxEnabled(enabled) {
 }
 
 export function playTrack(name) {
+    lastTrack = name;                     // remember even when muted
     if (!isMusicEnabled()) return;
     if (current?.name === name) return;   // already playing this track
 
