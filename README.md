@@ -76,6 +76,8 @@ The built-in **System Check** runs automatically when you open Settings and veri
 
 ![System Check — all checks passing with event count](docs/screenshots/settings-system-check.png)
 
+The **Quiz music** toggle lets each participant enable or disable background music independently. The preference is stored per browser. See [Music Credits](#music-credits) for track attribution.
+
 ---
 
 ## Features
@@ -94,6 +96,7 @@ The built-in **System Check** runs automatically when you open Settings and veri
 | **KV Store backed** | Questions, quizzes, config, and session state in Splunk KV Store |
 | **No extra infrastructure** | Events written directly via `receivers/simple`; no Python scripts or sidecars |
 | **Participant permissions** | `ponypoll_user` role ships with `edit_tcp` + `edit_kvstore` so non-admin users can play |
+| **Quiz music** | Lobby, question, and win music from OpenGameArt.org (CC0); toggle per browser in Settings |
 
 ---
 
