@@ -97,14 +97,15 @@ function _audioCtx() {
 
 /**
  * Play a synthesised sound effect.
- * @param {'click'|'submit'} name
+ * @param {'click'|'submit'|'timeout'} name
  */
 export function playSfx(name) {
     if (!isMusicEnabled()) return;
     try {
         const ctx = _audioCtx();
-        if (name === 'click')  _sfxClick(ctx);
-        if (name === 'submit') _sfxSubmit(ctx);
+        if (name === 'click')   _sfxClick(ctx);
+        if (name === 'submit')  _sfxSubmit(ctx);
+        if (name === 'timeout') _sfxTimeout(ctx);
     } catch (_) { /* ignore in environments without Web Audio */ }
 }
 
@@ -136,6 +137,23 @@ function _sfxSubmit(ctx) {
         gain.gain.exponentialRampToValueAtTime(0.001, now + end);
         osc.start(now + delay);
         osc.stop(now + end);
+    });
+}
+
+function _sfxTimeout(ctx) {
+    // Three descending square-wave pulses — classic "time's up" alarm feel
+    const now = ctx.currentTime;
+    [[440, 0], [330, 0.18], [220, 0.36]].forEach(([freq, delay]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, now + delay);
+        gain.gain.setValueAtTime(0.12, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.15);
     });
 }
 

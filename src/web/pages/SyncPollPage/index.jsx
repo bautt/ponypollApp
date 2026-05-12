@@ -71,6 +71,7 @@ export default function SyncPollPage() {
     const [timeLeft, setTimeLeft]     = useState(0);
     const [totalScore, setTotalScore] = useState(0);
     const totalScoreRef = useRef(0);
+    const prevTimeLeft  = useRef(null);
 
     // ── Mini-leaderboard + answer distribution ────────────────────────────────
     const [leaderboard, setLeaderboard] = useState([]);
@@ -168,6 +169,14 @@ export default function SyncPollPage() {
         const id = setInterval(tick, 500);
         return () => clearInterval(id);
     }, [session?.phase, session?.question_started_at, session?.question_index]);
+
+    // ── Timeout sound — fires once when timer first hits zero ─────────────────
+    useEffect(() => {
+        if (phase === 'question' && !submitted && prevTimeLeft.current > 0 && timeLeft === 0) {
+            playSfx('timeout');
+        }
+        prevTimeLeft.current = timeLeft;
+    }, [timeLeft, phase, submitted]);
 
     // ── Heartbeat presence while joined ──────────────────────────────────────
     useEffect(() => {

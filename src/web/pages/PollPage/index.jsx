@@ -174,6 +174,7 @@ export default function PollPage() {
     const handleTimerExpire = useCallback(() => {
         setTimerRunning(false);
         if (phase === PHASE.QUESTION) {
+            playSfx('timeout');
             setTimedOut(true);
             revealAnswer(0);
         }
