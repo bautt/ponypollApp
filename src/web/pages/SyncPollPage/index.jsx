@@ -18,7 +18,7 @@ import {
 } from '../../lib/kvstore';
 import { fromKvDoc } from '../../lib/questions';
 import { uid, calcPoints } from '../../lib/utils';
-import { playTrack, fadeOutAndStop } from '../../lib/audio';
+import { playTrack, fadeOutAndStop, playSfx } from '../../lib/audio';
 import LobbyScreen from './LobbyScreen';
 import QuestionScreen from './QuestionScreen';
 import RevealScreen from './RevealScreen';
@@ -222,6 +222,7 @@ export default function SyncPollPage() {
 
     const toggleOption = (id) => {
         if (submitted || timeLeft <= 0) return;
+        playSfx('click');
         const q = question;
         if (q.type === 'single' || q.type === 'yesno') {
             setSelected([id]);
@@ -234,6 +235,7 @@ export default function SyncPollPage() {
 
     const handleSubmit = useCallback(async () => {
         if (submitted || !question || !session) return;
+        playSfx('submit');
         const q       = question;
         const elapsed = (Date.now() - new Date(session.question_started_at)) / 1000;
         const tLeft   = Math.max(0, (Number(session.time_limit) || 30) - elapsed);

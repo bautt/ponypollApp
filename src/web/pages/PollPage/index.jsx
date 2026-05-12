@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentUser, getQuiz } from '../../lib/kvstore';
 import { fromKvDoc, SEED_QUESTIONS } from '../../lib/questions';
 import { calcPoints, uid, shuffle } from '../../lib/utils';
-import { playTrack, fadeOutAndStop } from '../../lib/audio';
+import { playTrack, fadeOutAndStop, playSfx } from '../../lib/audio';
 import SetupScreen from './SetupScreen';
 import DoneScreen from './DoneScreen';
 import ActiveScreen from './ActiveScreen';
@@ -209,6 +209,7 @@ export default function PollPage() {
     const handleSelect = (optId) => {
         if (phase !== PHASE.QUESTION || timerRunning === false) return;
         if (!currentQ) return;
+        playSfx('click');
         if (currentQ.type === 'single' || currentQ.type === 'yesno') {
             setSelected([optId]);
         } else {
@@ -223,6 +224,7 @@ export default function PollPage() {
         if (currentQ.type === 'wordcloud' && wcWords.length === 0) return;
         if (currentQ.type === 'freetext' && freetextVal.trim() === '') return;
         if (!['freetext', 'wordcloud', 'slider'].includes(currentQ.type) && selected.length === 0) return;
+        playSfx('submit');
         revealAnswer(timeRemaining);
     };
 

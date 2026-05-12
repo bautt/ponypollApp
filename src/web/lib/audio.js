@@ -6,7 +6,11 @@
  *   question — Along the Way (countdown / answering)
  *   win      — Win Music 1-3 (done / results)
  *
- * Music enabled preference is stored in localStorage so it persists
+ * Sound effects (Web Audio API, no files needed):
+ *   click  — short high blip when selecting an answer option
+ *   submit — two ascending tones when submitting an answer
+ *
+ * Music + SFX enabled preference is stored in localStorage so it persists
  * per browser without needing a Splunk round-trip.
  */
 
@@ -80,6 +84,62 @@ function _stop(fade) {
     current = null;
     if (fade) { _fade(audio, 600); } else { audio.pause(); }
 }
+
+// ── Sound effects (synthesised via Web Audio API) ─────────────────────────────
+
+let _ctx = null;
+function _audioCtx() {
+    if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Resume if suspended (browser autoplay policy)
+    if (_ctx.state === 'suspended') _ctx.resume().catch(() => {});
+    return _ctx;
+}
+
+/**
+ * Play a synthesised sound effect.
+ * @param {'click'|'submit'} name
+ */
+export function playSfx(name) {
+    if (!isMusicEnabled()) return;
+    try {
+        const ctx = _audioCtx();
+        if (name === 'click')  _sfxClick(ctx);
+        if (name === 'submit') _sfxSubmit(ctx);
+    } catch (_) { /* ignore in environments without Web Audio */ }
+}
+
+function _sfxClick(ctx) {
+    // Short high-pitched blip: 880 Hz, 70 ms, sine wave
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.07);
+}
+
+function _sfxSubmit(ctx) {
+    // Two ascending tones: 660 Hz → 990 Hz, feels like a "locked in" confirm
+    const now = ctx.currentTime;
+    [[660, 0, 0.09], [990, 0.1, 0.13]].forEach(([freq, delay, end]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + delay);
+        gain.gain.setValueAtTime(0.2, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + end);
+        osc.start(now + delay);
+        osc.stop(now + end);
+    });
+}
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
 
 function _fade(audio, duration) {
     const steps    = 16;
