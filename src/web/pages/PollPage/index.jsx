@@ -49,7 +49,7 @@ const PHASE = { SETUP: 'setup', QUESTION: 'question', REVEAL: 'reveal', DONE: 'd
 export default function PollPage() {
     const [phase, setPhase] = useState(PHASE.SETUP);
     const [questions, setQuestions] = useState([]);
-    const [config, setConfig] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll' });
+    const [config, setConfig] = useState({ poll_subject: 'Pony Poll' });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nickname, setNickname] = useState('');
@@ -291,7 +291,6 @@ export default function PollPage() {
         return (
             <DoneScreen
                 score={score}
-                config={config}
                 onRestart={() => { setPhase(PHASE.SETUP); sessionId.current = uid(); }}
             />
         );
@@ -332,6 +331,12 @@ export default function PollPage() {
             onNext={nextQuestion}
             onTimerTick={handleTimerTick}
             onTimerExpire={handleTimerExpire}
+            onExit={() => {
+                if (window.confirm('Leave the poll? Your progress will not be saved.')) {
+                    setPhase(PHASE.SETUP);
+                    sessionId.current = uid();
+                }
+            }}
         />
     );
 }

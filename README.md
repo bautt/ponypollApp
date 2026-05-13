@@ -74,15 +74,15 @@ The session number is displayed prominently so the host can announce it to the r
 
 ### Settings
 
-![Settings — default view toggle, poll title, Splunk index, version info](docs/screenshots/settings.png)
+![Settings — default view toggle, poll title, audio toggles, version info](docs/screenshots/settings.png)
 
-The built-in **System Check** runs automatically when you open Settings and verifies that all required Splunk components are working: KV Store read/write access, poll index existence and data, and answer submission via `receivers/simple`.
+The built-in **System Check** runs automatically when you open Settings and verifies that all required Splunk components are working: KV Store read/write access, `ponypoll` index existence and data, and answer submission via `receivers/simple`.
 
 ![System Check — all checks passing with event count](docs/screenshots/settings-system-check.png)
 
-The **Quiz music** toggle lets each participant enable or disable background music independently. The preference is stored per browser. See [Music Credits](#music-credits) for track attribution.
+The **Quiz music** and **Sound effects** toggles let each participant enable or disable background music and SFX independently. The preference is stored per browser. See [Music Credits](#music-credits) for track attribution.
 
-![Settings — default view, poll title, index, quiz music toggle, system check](docs/screenshots/settings-music.png)
+![Settings — default view, poll title, audio toggles, system check](docs/screenshots/settings-music.png)
 
 ---
 
@@ -400,6 +400,8 @@ The exported JSON is an array of question objects.
 { "text": "What is your favourite Splunk feature?", "type": "freetext", "timeLimit": 60, "options": [] }
 ```
 
+For a graded freetext question, list accepted answers in `options` with `correct: true`. Matching is case-insensitive; `*` is a wildcard for zero or more characters, so `"text": "splunk*"` matches "splunk", "splunkbase", "splunk cloud". An empty `options` array makes the question open-ended (any non-empty answer gets a participation score).
+
 **slider**
 ```json
 {
@@ -429,12 +431,13 @@ All settings are in the **Settings** tab inside the app.
 | Setting | Default | Description |
 |---|---|---|
 | Poll title | `Pony Poll` | Shown on the start screen |
-| Answer index | `ponypoll` | Splunk index where answer events are written |
 | Default view | `Poll` | Switch to `Play` to make `/play` the default entry point |
 
 > **Active quiz** is set from the **Admin** tab — pick a quiz and click **Activate for Self-paced**.
 
 Settings are stored in the `ponypoll_config` KV Store collection.
+
+Answer, attempt and presence events are always written to the `ponypoll` index (created by this app's `indexes.conf`). The sourcetype distinguishes the event class: `ponypoll_answer`, `ponypoll_attempt`, `ponypoll_presence`.
 
 ---
 

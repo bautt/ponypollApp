@@ -108,6 +108,16 @@ export default function SyncPollPage() {
             sessionRef.current = sess;
             setSession(sess ? { ...sess } : null);
 
+            // First-poll catch-up: if the participant arrives mid-quiz during a
+            // reveal/done phase, fetch the leaderboard immediately so they don't
+            // wait for the next phase transition.
+            if (sess && !prev && (sess.phase === 'reveal' || sess.phase === 'done')) {
+                fetchLeaderboard(sess.session_id);
+                if (sess.phase === 'reveal') {
+                    fetchDist(sess.session_id, sess.question_index ?? 0);
+                }
+            }
+
             if (sess && prev && sess.session_id === prev.session_id) {
                 const enteringReveal = sess.phase === 'reveal' && prev.phase !== 'reveal';
                 const enteringDone   = sess.phase === 'done'   && prev.phase !== 'done';
@@ -137,9 +147,25 @@ export default function SyncPollPage() {
             }
         };
 
-        poll();
-        const id = setInterval(poll, 1500);
-        return () => { mounted = false; clearInterval(id); };
+        // Adaptive polling: 1.5 s during an active question/reveal so the UI
+        // tracks host changes promptly, slower otherwise to reduce idle load.
+        let timeoutId = null;
+        const nextDelay = (sess) => {
+            const phase = sess?.phase;
+            if (phase === 'question' || phase === 'reveal') return 1500;
+            if (phase === 'done')                            return 5000;
+            return 3000;
+        };
+        const loop = async () => {
+            await poll();
+            if (!mounted) return;
+            timeoutId = setTimeout(loop, nextDelay(sessionRef.current));
+        };
+        loop();
+        return () => {
+            mounted = false;
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, []);
 
     // ── Fetch question when question_index or session changes ─────────────────

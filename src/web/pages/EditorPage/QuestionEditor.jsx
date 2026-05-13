@@ -347,8 +347,9 @@ export default function QuestionEditor({
                         }}
                         style={{ background: C.surface2, border: `1px dashed ${C.border}`, borderRadius: 5, color: C.muted, fontSize: 12, padding: '5px 12px', cursor: 'pointer', marginTop: 2 }}
                     >+ Add accepted answer</button>
-                    <div style={{ fontSize: 11, color: C.muted, marginTop: 8 }}>
-                        Matching is case-insensitive. Participant sees all accepted answers on reveal.
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 8, lineHeight: 1.5 }}>
+                        Matching is case-insensitive. Use <code style={{ background: C.bg, padding: '0 4px', borderRadius: 3 }}>*</code> as a wildcard for zero or more characters
+                        — e.g. <code style={{ background: C.bg, padding: '0 4px', borderRadius: 3 }}>splunk*</code> matches "splunk", "splunkbase", "splunk cloud". Participant sees all accepted answers on reveal.
                     </div>
                 </div>
             )}

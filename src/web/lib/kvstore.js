@@ -166,6 +166,11 @@ export async function saveAllQuestions(questions, quizId) {
 // Cache expires after CONFIG_TTL_MS; saveConfig() invalidates it immediately
 // via a monotonically increasing _configRev — any in-flight load started
 // before the save will see a rev mismatch on completion and discard its result.
+//
+// NOTE: the poll's Splunk index is hardcoded to `ponypoll` across this app
+// (events, KV ACLs, dashboard XML, props.conf, eventtypes). The cfg object
+// retains a `poll_index` field only for compatibility with previously-saved
+// documents; it is no longer surfaced in the UI or read by any caller.
 
 const CONFIG_TTL_MS = 60_000; // 60 seconds
 let _cachedConfig   = null;
@@ -187,7 +192,7 @@ export async function loadConfig() {
             }
             return c;
         } catch (_) {
-            const fallback = { poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' };
+            const fallback = { poll_subject: 'Pony Poll', active_quiz_id: '' };
             if (revAtStart === _configRev) {
                 _cachedConfig = fallback;
                 _cachedAt     = Date.now();
@@ -284,15 +289,6 @@ export async function fetchGitHubQuiz(filename) {
     const res = await fetch(`${GITHUB_RAW_BASE}/${filename}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`GitHub returned ${res.status} for "${filename}"`);
     return res.json();
-}
-
-// ── Available Splunk indexes ──────────────────────────────────────────────────
-
-export async function listIndexes() {
-    const data = await kvFetch(
-        `${splunkdBase()}/services/data/indexes?output_mode=json&count=200&search=isInternal%3Dfalse`
-    );
-    return (data?.entry || []).map((e) => e.name).sort();
 }
 
 // ── Write events ─────────────────────────────────────────────────────────────

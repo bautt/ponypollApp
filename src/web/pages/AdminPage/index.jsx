@@ -97,12 +97,18 @@ export default function AdminPage() {
     }, []);
 
     const handleShorten = useCallback(async () => {
-        if (!window.confirm(
-            'Shorten URL via TinyURL?\n\n' +
-            'This will send your Splunk server hostname to tinyurl.com ' +
-            '(a third-party service). Only click OK if that is acceptable ' +
-            'in your environment.'
-        )) return;
+        // Per-tab consent: once the host approves sending the hostname to
+        // tinyurl.com, skip the confirm() on subsequent calls in the same tab.
+        if (!sessionStorage.getItem('ponypoll_tinyurl_consent')) {
+            if (!window.confirm(
+                'Shorten URL via TinyURL?\n\n' +
+                'This will send your Splunk server hostname to tinyurl.com ' +
+                '(a third-party service). Only click OK if that is acceptable ' +
+                'in your environment.\n\n' +
+                "Your choice is remembered for the rest of this tab's session."
+            )) return;
+            sessionStorage.setItem('ponypoll_tinyurl_consent', '1');
+        }
         setShorteningUrl(true);
         try {
             const s = await fetchShortUrl(playUrl);
@@ -230,9 +236,24 @@ export default function AdminPage() {
             }
         };
 
-        poll();
-        const id = setInterval(poll, 2000);
-        return () => { mounted = false; clearInterval(id); };
+        // Adaptive cadence: tighter while a quiz is running, slower when idle.
+        let timeoutId = null;
+        const nextDelay = () => {
+            const phase = sessionRef.current?.phase;
+            if (!phase || phase === 'idle') return 5000;
+            if (phase === 'done')           return 5000;
+            return 2000;
+        };
+        const loop = async () => {
+            await poll();
+            if (!mounted) return;
+            timeoutId = setTimeout(loop, nextDelay());
+        };
+        loop();
+        return () => {
+            mounted = false;
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, []);
 
     useEffect(() => {

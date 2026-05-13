@@ -11,7 +11,7 @@ const IconSearch = () => (
 );
 import styled from 'styled-components';
 import {
-    loadConfig, saveConfig, listIndexes, getVersionInfo,
+    loadConfig, saveConfig, getVersionInfo,
 } from '../lib/kvstore';
 import { C, FONTS } from '../lib/theme';
 
@@ -66,18 +66,6 @@ const Input = styled.input`
     border-radius: 6px;
     color: ${C.text};
     font-size: 15px;
-    padding: 9px 12px;
-    box-sizing: border-box;
-    &:focus { outline: none; border-color: ${C.blue}; }
-`;
-
-const Select = styled.select`
-    width: 100%;
-    background: ${C.bg};
-    border: 1px solid ${C.border};
-    border-radius: 6px;
-    color: ${C.text};
-    font-size: 14px;
     padding: 9px 12px;
     box-sizing: border-box;
     &:focus { outline: none; border-color: ${C.blue}; }
@@ -430,11 +418,9 @@ function SystemCheck({ pollIndex }) {
 }
 
 export default function SettingsPage() {
-    const [cfg, setCfg] = useState({ poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
-    const [indexes, setIndexes] = useState([]);
+    const [cfg, setCfg] = useState({ poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
-    const [loadingIdx, setLoadingIdx] = useState(true);
     const [versions, setVersions] = useState(null);
     const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
     const [sfxOn,   setSfxOn]   = useState(() => isSfxEnabled());
@@ -452,19 +438,16 @@ export default function SettingsPage() {
     useEffect(() => {
         getVersionInfo().then(setVersions).catch(() => {});
 
-        Promise.all([loadConfig(), listIndexes()])
-            .then(([c, idxList]) => {
+        loadConfig()
+            .then((c) => {
                 setCfg({
                     ...c,
-                    poll_index: c.poll_index || 'ponypoll',
                     poll_subject: c.poll_subject || 'Pony Poll',
                     active_quiz_id: c.active_quiz_id || '',
                     default_view: c.default_view || 'poll',
                 });
-                setIndexes(idxList);
             })
-            .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }))
-            .finally(() => setLoadingIdx(false));
+            .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }));
     }, []);
 
     const handleSave = async () => {
@@ -531,32 +514,6 @@ export default function SettingsPage() {
                     <Hint>Shown on the start screen and top bar during the poll.</Hint>
                 </Section>
 
-                <Section>
-                    <Label>Splunk index for poll answers</Label>
-                    {loadingIdx ? (
-                        <Input value="Loading indexes…" readOnly />
-                    ) : indexes.length > 0 ? (
-                        <Select
-                            value={cfg.poll_index}
-                            onChange={(e) => setCfg({ ...cfg, poll_index: e.target.value })}
-                        >
-                            {indexes.map((idx) => (
-                                <option key={idx} value={idx}>{idx}</option>
-                            ))}
-                        </Select>
-                    ) : (
-                        <Input
-                            value={cfg.poll_index}
-                            onChange={(e) => setCfg({ ...cfg, poll_index: e.target.value })}
-                            placeholder="ponypoll"
-                        />
-                    )}
-                    <Hint>
-                        Answer events are written to this index as sourcetype&nbsp;
-                        <code style={{ color: C.accent }}>ponypoll_answer</code>.
-                    </Hint>
-                </Section>
-
                 {[
                     {
                         name:    'music_enabled',
@@ -618,7 +575,7 @@ export default function SettingsPage() {
 
                 <div style={{ marginTop: 16 }}>
                     <a
-                        href={`/app/search/search?q=search%20index%3D${encodeURIComponent(cfg.poll_index || 'ponypoll')}&earliest=-7d&latest=now`}
+                        href="/app/search/search?q=search%20index%3Dponypoll&earliest=-7d&latest=now"
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -626,7 +583,7 @@ export default function SettingsPage() {
                             color: C.blue, fontSize: 13, textDecoration: 'none',
                         }}
                     >
-                        <IconSearch /> Search <code style={{ color: C.accent }}>index={cfg.poll_index || 'ponypoll'}</code> in Splunk
+                        <IconSearch /> Search <code style={{ color: C.accent }}>index=ponypoll</code> in Splunk
                     </a>
                 </div>
 
@@ -644,8 +601,7 @@ export default function SettingsPage() {
                         ships with the <code>edit_tcp</code> capability so every authenticated user
                         can submit answers — no HEC required. The
                         <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll</code> index is created
-                        by this app's <code>indexes.conf</code>, but you can choose any existing index
-                        from the list above.<br /><br />
+                        by this app's <code>indexes.conf</code>.<br /><br />
                         Quizzes and questions are stored in Splunk KV Store
                         (<code style={{ color: C.accent }}>ponypoll_questions</code>,
                         <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_quizzes</code>) —
@@ -688,7 +644,7 @@ export default function SettingsPage() {
                     </span>
                 </div>
 
-                <SystemCheck pollIndex={cfg.poll_index || 'ponypoll'} />
+                <SystemCheck pollIndex="ponypoll" />
 
                 <div style={{
                     marginTop: 20, padding: '14px 0 0',

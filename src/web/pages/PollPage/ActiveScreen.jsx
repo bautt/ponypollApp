@@ -61,7 +61,7 @@ export default function ActiveScreen({
     sliderVal, setSliderVal,
     feedback,
     canSubmit, onSubmit, onNext,
-    onTimerTick, onTimerExpire,
+    onTimerTick, onTimerExpire, onExit,
 }) {
     if (!q) {
         return (
@@ -78,7 +78,24 @@ export default function ActiveScreen({
             <TopBar>
                 <SubjectTitle>{config.poll_subject || 'Pony Poll'}</SubjectTitle>
                 <Progress>Q {qIndex + 1} / {questions.length}</Progress>
-                <ScoreBadge>⭐ {score}</ScoreBadge>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {onExit && (
+                        <button
+                            type="button"
+                            onClick={onExit}
+                            title="Leave the poll without saving"
+                            style={{
+                                background: 'none', border: `1px solid ${C.border}`,
+                                color: C.muted, fontSize: 11, fontWeight: 500,
+                                padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
+                                letterSpacing: '0.04em',
+                            }}
+                        >
+                            Exit poll
+                        </button>
+                    )}
+                    <ScoreBadge>⭐ {score}</ScoreBadge>
+                </div>
             </TopBar>
 
             <div style={{ padding: '8px 20px', background: C.surface, borderBottom: `1px solid ${C.border}` }}>

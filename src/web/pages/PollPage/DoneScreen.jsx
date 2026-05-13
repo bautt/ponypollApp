@@ -2,7 +2,7 @@ import React from 'react';
 import { C } from '../../lib/theme';
 import { DoneCard, SetupTitle, SetupSubtitle, ScoreCircle, RestartBtn } from './styles';
 
-export default function DoneScreen({ score, config, onRestart }) {
+export default function DoneScreen({ score, onRestart }) {
     return (
         <DoneCard>
             <img src="/static/app/ponypollapp/buttercup.png" alt="Buttercup" style={{ width: 180 }} />
@@ -13,7 +13,7 @@ export default function DoneScreen({ score, config, onRestart }) {
             </ScoreCircle>
             <SetupSubtitle>
                 Great job! Your answers have been recorded in Splunk index&nbsp;
-                <strong style={{ color: C.accent }}>{config.poll_index}</strong>.
+                <strong style={{ color: C.accent }}>ponypoll</strong>.
             </SetupSubtitle>
             <RestartBtn onClick={onRestart}>Restart</RestartBtn>
         </DoneCard>

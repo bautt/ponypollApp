@@ -268,8 +268,7 @@ All calls go through the Splunk Web proxy at `/{locale}/splunkd/__raw/...` using
 | `fetchLibraryQuiz(filename)` | `async (string) → Question[]` | GET a specific bundled quiz JSON from static files |
 | `fetchGitHubManifest()` | `async () → Manifest` | GET manifest directly from GitHub (requires internet access) |
 | `fetchGitHubQuiz(filename)` | `async (string) → Question[]` | GET a specific quiz JSON directly from GitHub |
-| `listIndexes()` | `async () → string[]` | GET all non-internal Splunk indexes (for Settings dropdown) |
-| `submitAnswer(eventData)` | `async (object) → void` | POST event to `receivers/simple` with `sourcetype=ponypoll_answer` |
+| `submitAnswer(eventData)` | `async (object) → void` | POST event to `receivers/simple` with `sourcetype=ponypoll_answer` (always to `index=ponypoll`) |
 | `submitQuizAttempt(eventData)` | `async (object) → void` | POST event with `sourcetype=ponypoll_attempt` (quiz completion record) |
 | `getSession()` | `async () → Session\|null` | GET `ponypoll_session/active`; returns null if no session exists |
 | `updateSession(doc)` | `async (object) → void` | POST full session document (tries update, falls back to create) |
@@ -381,7 +380,7 @@ is sent as X-Splunk-Form-Key.
 |---|---|---|---|
 | `ponypoll_quizzes` | auto | `name`, `created_at` | One document per quiz |
 | `ponypoll_questions` | auto | `quiz_id`, `sort_order`, `type`, `text`, `timeLimit`, `options[]`, `explanation`, `imageUrl`, `sliderMin/Max/Step/Unit`, `wordcloudMaxWords/MaxChars` | `sort_order` is integer index; all CRUD via REST |
-| `ponypoll_config` | `"default"` | `poll_subject`, `poll_index`, `active_quiz_id`, `default_view` | Single document; `loadConfig()` caches with 60 s TTL |
+| `ponypoll_config` | `"default"` | `poll_subject`, `active_quiz_id`, `default_view` | Single document; `loadConfig()` caches with 60 s TTL. `poll_index` may exist in upgraded docs but is ignored — the app always writes to `index=ponypoll` |
 | `ponypoll_session` | `"active"` | `phase`, `quiz_id`, `session_id`, `question_index`, `questions[]`, `question_started_at`, `scores{}`, `answer_counts{}` | Single document; host overwrites on every transition; participants poll |
 | `ponypoll_presence` | `{sessionId}_{nickname}` | `session_id`, `nickname`, `joined_at`, `last_seen` | One document per participant per session; cleared by host after session ends |
 
