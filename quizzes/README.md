@@ -9,11 +9,12 @@ This folder contains ready-to-use quiz JSON files that can be imported directly 
 | [`greek-mythology.json`](greek-mythology.json) | Greek Mythology Trivia | 42 | Intermediate | Olympian gods, heroes, monsters, Underworld, Trojan War, famous myths & the Sphinx's riddle |
 | [`european-history.json`](european-history.json) | European History & Geography Trivia | 42 | Intermediate | Ukraine, Baltic States, Lithuania, Poland, Germany, France, Britain, European fun facts |
 | [`splunk-ai.json`](splunk-ai.json) | Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models | 34 | Intermediate | AI Toolkit (MLTK), DSDL, Splunk MCP Server, Hosted AI Models, `\|ai` command, LLM providers |
+| [`splunk-soar.json`](splunk-soar.json) | Splunk SOAR — Orchestration, Automation & Response | 24 | Intermediate | SOAR acronym, MTTD/MTTR, apps & assets, containers & artifacts, labels, Visual Playbook Editor blocks (Action/Decision/Format), REST + Python Playbook APIs, Input playbooks, Action Builder |
 | [`splunk4champions.json`](splunk4champions.json) | Splunk4Champions — Advanced Topics | 22 | Advanced | tstats, buckets, bloom filters, Dashboard Studio, SmartStore, search performance, metrics |
 | [`splunk-basics.json`](splunk-basics.json) | Splunk Basics | 15 | Beginner | SPL, components, ports, data lifecycle, HEC, forwarders, KV Store |
 | [`sample-all-types.json`](sample-all-types.json) | Sample — All Question Types | 5 | Sample | One question per type: single, multi, yes/no, free text, slider |
 
-> **GitHub-only quizzes** (european-history, splunk-ai) are available via the **🔄 GitHub** button in the Editor but are not bundled with the app tarball. Bundled quizzes (splunk4champions, splunk-basics, sample) are also available offline via **📚 Library**.
+> **GitHub-only quizzes** (european-history, splunk-ai, splunk-soar) are available via the **🔄 GitHub** button in the Editor but are not bundled with the app tarball. Bundled quizzes (splunk4champions, splunk-basics, sample) are also available offline via **📚 Library**.
 
 ---
 

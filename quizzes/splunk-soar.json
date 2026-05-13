@@ -1,0 +1,259 @@
+{
+  "quiz_name": "Splunk SOAR — Orchestration, Automation & Response",
+  "description": "24 questions covering the fundamentals of Splunk SOAR: what the acronym means, core data model (apps, assets, containers, artifacts, labels), the Visual Playbook Editor and its block types, automation scale, the REST and Python Playbook APIs, and the business value pitch. Based on the Splunk SOAR product brief, the SOAR Quick Reference Guide, and the official help.splunk.com SOAR (On-premises) docs.",
+  "questions": [
+    {
+      "text": "Let's start easy. What does the acronym SOAR actually stand for?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Security Orchestration, Automation, and Response", "correct": true  },
+        { "id": "B", "text": "Security Operations, Analytics, and Reporting",      "correct": false },
+        { "id": "C", "text": "Splunk Open Alert Reaction",                          "correct": false },
+        { "id": "D", "text": "Secure Outbound Action Routing",                       "correct": false }
+      ]
+    },
+    {
+      "text": "Your SOC is drowning in alerts and analysts are doing the same triage steps over and over. Which TWO SOC KPIs is Splunk SOAR explicitly designed to reduce?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "MTTD (Mean Time To Detect) and MTTR (Mean Time To Respond)", "correct": true  },
+        { "id": "B", "text": "RPO and RTO",                                                  "correct": false },
+        { "id": "C", "text": "EPS and GB/day",                                               "correct": false },
+        { "id": "D", "text": "CapEx and OpEx",                                               "correct": false }
+      ]
+    },
+    {
+      "text": "Approximately how many third-party tools does Splunk SOAR integrate with out of the box, according to the product brief?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "300+",  "correct": true  },
+        { "id": "B", "text": "30+",   "correct": false },
+        { "id": "C", "text": "1000+", "correct": false },
+        { "id": "D", "text": "50+",   "correct": false }
+      ]
+    },
+    {
+      "text": "And how many automated actions does Splunk SOAR ship with across those integrations?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "2,800+",  "correct": true  },
+        { "id": "B", "text": "280+",    "correct": false },
+        { "id": "C", "text": "28,000+", "correct": false },
+        { "id": "D", "text": "28+",     "correct": false }
+      ]
+    },
+    {
+      "text": "Splunk's force-multiplier pitch for SOAR: \"Make a team of 3 feel like a team of ___\". Fill in the blank.",
+      "type": "single",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "10",  "correct": true  },
+        { "id": "B", "text": "5",   "correct": false },
+        { "id": "C", "text": "30",  "correct": false },
+        { "id": "D", "text": "100", "correct": false }
+      ]
+    },
+    {
+      "text": "You can build, debug and visualise SOAR playbooks without writing a single line of Python. What is this no/low-code interface called?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Visual Playbook Editor",  "correct": true  },
+        { "id": "B", "text": "SOAR Studio",              "correct": false },
+        { "id": "C", "text": "Dashboard Studio",         "correct": false },
+        { "id": "D", "text": "Mission Control Designer", "correct": false }
+      ]
+    },
+    {
+      "text": "Beyond playbook automation, Splunk SOAR supports a broad range of security functions. Which of the following are explicitly highlighted in the product brief? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 40,
+      "options": [
+        { "id": "A", "text": "Event and case management",                "correct": true  },
+        { "id": "B", "text": "Integrated threat intelligence",            "correct": true  },
+        { "id": "C", "text": "Collaboration tools and reporting",         "correct": true  },
+        { "id": "D", "text": "Endpoint patch management",                 "correct": false }
+      ]
+    },
+    {
+      "text": "Splunk SOAR data model — fundamentals. What is an \"App\" in SOAR?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "A connector that links SOAR to a third-party service and provides the actions playbooks can call",  "correct": true  },
+        { "id": "B", "text": "A single SOAR user interface page",                                                                  "correct": false },
+        { "id": "C", "text": "A persisted JSON object representing one alert",                                                     "correct": false },
+        { "id": "D", "text": "A scheduled report exported to PDF",                                                                 "correct": false }
+      ]
+    },
+    {
+      "text": "Same data model, next concept. What is an \"Asset\" in Splunk SOAR?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "A configured instance of an App — e.g. a specific firewall, with its hostname and credentials", "correct": true  },
+        { "id": "B", "text": "A piece of evidence found during incident response",                                              "correct": false },
+        { "id": "C", "text": "A built-in dashboard panel",                                                                       "correct": false },
+        { "id": "D", "text": "A Python module bundled with Splunk Enterprise",                                                   "correct": false }
+      ]
+    },
+    {
+      "text": "True or false: in SOAR, a \"Container\" is the top-level data structure that playbook APIs operate on.",
+      "type": "yesno",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "Yes", "correct": true  },
+        { "id": "B", "text": "No",  "correct": false }
+      ]
+    },
+    {
+      "text": "Inside that container, the arbitrary JSON objects nested in it (one per IOC, observable, email header, etc.) are called…?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Artifacts", "correct": true  },
+        { "id": "B", "text": "Events",    "correct": false },
+        { "id": "C", "text": "Notables",  "correct": false },
+        { "id": "D", "text": "Notables-2", "correct": false }
+      ]
+    },
+    {
+      "text": "Which property do you assign to a container to dictate the KIND of content it holds and how elements are managed within the platform?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Label",        "correct": true  },
+        { "id": "B", "text": "Severity",     "correct": false },
+        { "id": "C", "text": "Source type",  "correct": false },
+        { "id": "D", "text": "Owner",        "correct": false }
+      ]
+    },
+    {
+      "text": "You're wiring a playbook in the Visual Playbook Editor and you need to branch on \"IF the file hash matches our blocklist, do X — ELSE do Y\". Which block do you reach for?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Decision block",  "correct": true  },
+        { "id": "B", "text": "Filter block",     "correct": false },
+        { "id": "C", "text": "Action block",     "correct": false },
+        { "id": "D", "text": "Prompt block",     "correct": false }
+      ]
+    },
+    {
+      "text": "Now you need to compose a nicely formatted body string for the email and the ServiceNow ticket your playbook is about to send. Which block is purpose-built for crafting those custom strings and messages?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Format block",   "correct": true  },
+        { "id": "B", "text": "Action block",   "correct": false },
+        { "id": "C", "text": "Decision block", "correct": false },
+        { "id": "D", "text": "API block",      "correct": false }
+      ]
+    },
+    {
+      "text": "When you add an Action block, you must tell it WHICH assets to execute against. What are the two valid ways to target assets? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 40,
+      "options": [
+        { "id": "A", "text": "By Asset ID",                  "correct": true  },
+        { "id": "B", "text": "By Tag (runs on every asset carrying that tag)", "correct": true  },
+        { "id": "C", "text": "By Container Label",           "correct": false },
+        { "id": "D", "text": "By the requesting user's email", "correct": false }
+      ]
+    },
+    {
+      "text": "True or false: even though the Visual Playbook Editor exists, you CAN write Splunk SOAR playbooks in pure Python using the Playbook API.",
+      "type": "yesno",
+      "timeLimit": 20,
+      "options": [
+        { "id": "A", "text": "Yes", "correct": true  },
+        { "id": "B", "text": "No",  "correct": false }
+      ]
+    },
+    {
+      "text": "Splunk SOAR ships with built-in threat research and decision-support insights curated by which internal team?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "Splunk Threat Research Team (STRT)",  "correct": true  },
+        { "id": "B", "text": "Splunk SURGe (the data science group)", "correct": false },
+        { "id": "C", "text": "Cisco Talos",                            "correct": false },
+        { "id": "D", "text": "MITRE Engenuity",                        "correct": false }
+      ]
+    },
+    {
+      "text": "Fill in the blank — one word only. Splunk SOAR's no-code playbook UI is the \"_____ Playbook Editor\".",
+      "type": "freetext",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "Visual",  "correct": true },
+        { "id": "B", "text": "visual",  "correct": true }
+      ]
+    },
+    {
+      "text": "You want to query SOAR data, update records, perform bulk operations and retrieve system information from OUTSIDE the platform (e.g. from your Splunk Enterprise search or a custom script). Which interface do you reach for?",
+      "type": "single",
+      "timeLimit": 25,
+      "options": [
+        { "id": "A", "text": "The Splunk SOAR REST API",            "correct": true  },
+        { "id": "B", "text": "The Python Playbook API (callbacks)", "correct": false },
+        { "id": "C", "text": "The Visual Playbook Editor",          "correct": false },
+        { "id": "D", "text": "Splunkbase",                          "correct": false }
+      ]
+    },
+    {
+      "text": "Splunk SOAR also features small, reusable playbooks for basic security and IT tasks that you can nest INSIDE larger playbooks and workflows. What does the product brief call these?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "Input playbooks",          "correct": true  },
+        { "id": "B", "text": "Macro playbooks",          "correct": false },
+        { "id": "C", "text": "Helper playbooks",          "correct": false },
+        { "id": "D", "text": "Sub-routine playbooks",     "correct": false }
+      ]
+    },
+    {
+      "text": "Why does Splunk SOAR cut threat dwell time \"from hours to minutes\"? (select all that apply)",
+      "type": "multi",
+      "timeLimit": 40,
+      "options": [
+        { "id": "A", "text": "It clears the vast majority of alerts and repetitive tasks with no human interaction",       "correct": true  },
+        { "id": "B", "text": "It prioritises alerts based on risk so Tier-1 stops chasing noise",                          "correct": true  },
+        { "id": "C", "text": "It enriches and investigates automatically using integrated threat intelligence",            "correct": true  },
+        { "id": "D", "text": "It forces every alert to wait for a human to manually open a ticket before any enrichment", "correct": false }
+      ]
+    },
+    {
+      "text": "Splunk recently added a feature (in beta) that lets you make universal API calls directly inside the Visual Playbook Editor — no need to write a brand-new SOAR app first. What is it called?",
+      "type": "single",
+      "timeLimit": 30,
+      "options": [
+        { "id": "A", "text": "Action Builder",        "correct": true  },
+        { "id": "B", "text": "API Studio",             "correct": false },
+        { "id": "C", "text": "Workbench Composer",     "correct": false },
+        { "id": "D", "text": "Playbook Compiler",      "correct": false }
+      ]
+    },
+    {
+      "text": "In one or two words: what's the biggest benefit your SOC gets from deploying Splunk SOAR? (everyone's answer goes into the word cloud)",
+      "type": "wordcloud",
+      "timeLimit": 40,
+      "wordcloudMaxWords": 3,
+      "wordcloudMaxChars": 24
+    },
+    {
+      "text": "On a scale of 1–5, how familiar were you with Splunk SOAR BEFORE this quiz?",
+      "type": "slider",
+      "timeLimit": 20,
+      "options": [],
+      "sliderMin": 1,
+      "sliderMax": 5,
+      "sliderStep": 1,
+      "sliderUnit": "/5"
+    }
+  ]
+}

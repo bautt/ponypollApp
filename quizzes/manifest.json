@@ -24,6 +24,14 @@
     "file": "splunk-ai.json"
   },
   {
+    "id": "splunk-soar",
+    "name": "Splunk SOAR — Orchestration, Automation & Response",
+    "description": "24 questions covering Splunk SOAR fundamentals: the SOAR acronym, MTTD/MTTR impact, apps/assets/containers/artifacts/labels, Visual Playbook Editor blocks (Action, Decision, Format), REST + Python Playbook APIs, Input playbooks, and the Action Builder beta. Sourced from the Splunk SOAR product brief, the SOAR Quick Reference Guide, and help.splunk.com.",
+    "questionCount": 24,
+    "difficulty": "Intermediate",
+    "file": "splunk-soar.json"
+  },
+  {
     "id": "sample-all-types",
     "name": "Sample — All Question Types",
     "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
