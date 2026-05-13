@@ -7,8 +7,8 @@ import SyncPollPage from './pages/SyncPollPage';
 import EditorPage from './pages/EditorPage';
 import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig, getSession } from './lib/kvstore';
-import { SEED_QUESTIONS, toKvDoc } from './lib/questions';
+import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig, getSession, fetchLibraryQuiz } from './lib/kvstore';
+import { SEED_QUESTIONS, toKvDoc, newQuestion } from './lib/questions';
 import { IconPlay, IconPencil, IconGear, IconProjector, IconBarChart } from './components/icons';
 
 const tabIconStyle = { marginRight: 5, marginBottom: 1 };
@@ -109,16 +109,40 @@ function tabFromHash(fallback = 'poll') {
     return VALID_TAB_IDS.has(hash) ? hash : fallback;
 }
 
-/** Seed sample quiz on first install (runs once, app-wide). */
+/**
+ * Seed default quiz on first install (runs once, app-wide).
+ *
+ * Tries to seed "Splunk Basics" from the bundled quiz library so admins
+ * land on a usable Splunk-themed quiz immediately. Falls back to the
+ * inline SEED_QUESTIONS if the bundled file is missing or unreachable
+ * (e.g. partial install, custom static-asset stripping).
+ */
 function useSeedOnFirstInstall() {
     useEffect(() => {
         (async () => {
             try {
                 const [quizzes, cfg] = await Promise.all([listQuizzes(), loadConfig()]);
-                if (quizzes.length > 0) return; // already seeded
-                const created = await createQuiz('Sample Quiz');
+                if (quizzes.length > 0) return;
+
+                let quizName = 'Sample Quiz';
+                let rawQuestions = SEED_QUESTIONS;
+                try {
+                    const data = await fetchLibraryQuiz('splunk-basics.json');
+                    if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+                        quizName = data.quiz_name || 'Splunk Basics';
+                        rawQuestions = data.questions;
+                    }
+                } catch (_) {
+                    // bundled file unavailable; use inline seed
+                }
+
+                const created = await createQuiz(quizName);
                 const newId = created._key || created.key;
-                const docs = SEED_QUESTIONS.map((q, i) => ({ ...toKvDoc(q), sort_order: i, quiz_id: newId }));
+                const docs = rawQuestions.map((q, i) => ({
+                    ...toKvDoc({ ...newQuestion(), ...q, _key: '', quiz_id: newId }),
+                    sort_order: i,
+                    quiz_id: newId,
+                }));
                 await saveAllQuestions(docs, newId);
                 await saveConfig({ ...cfg, active_quiz_id: newId });
             } catch (_) {

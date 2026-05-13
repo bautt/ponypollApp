@@ -1,19 +1,27 @@
 [
   {
-    "id": "greek-mythology",
-    "name": "Greek Mythology Trivia",
-    "description": "47 questions spanning the Olympian gods, legendary heroes, monsters, the Underworld, the Trojan War, and famous myths — illustrated with Wikimedia artworks (Caravaggio, Botticelli, Titian, and more).",
-    "questionCount": 47,
-    "difficulty": "Intermediate",
-    "file": "greek-mythology.json"
+    "id": "splunk-basics",
+    "name": "Splunk Basics",
+    "description": "15 questions covering Splunk fundamentals: components, ports, SPL commands, data lifecycle, and forwarder types. Great for onboarding.",
+    "questionCount": 15,
+    "difficulty": "Beginner",
+    "file": "splunk-basics.json"
   },
   {
-    "id": "european-history",
-    "name": "European History & Geography Trivia",
-    "description": "42 questions spanning Ukraine, the Baltic States, Lithuania, Poland, Germany, France, and Britain — capitals, key dates, famous firsts, and fun facts. Ends with a self-rating slider.",
+    "id": "splunk4champions",
+    "name": "Splunk4Champions — Advanced Topics",
+    "description": "20 questions covering search performance, tstats, bucket lifecycle, Dashboard Studio, Metrics, and SmartStore. Based on the Splunk4Champions workshop.",
+    "questionCount": 22,
+    "difficulty": "Advanced",
+    "file": "splunk4champions.json"
+  },
+  {
+    "id": "splunk4champions2-workshop",
+    "name": "Splunk4Champions2 — Full Workshop Quiz",
+    "description": "42 questions covering the complete Splunk4Champions2 workshop: bucket internals, data pipeline, search modes, tstats, metrics, XML dashboards, Dashboard Studio, tokens, drilldown, Phyphox, and Analytics Workspace. Uses all six question types with workshop images.",
     "questionCount": 42,
-    "difficulty": "Intermediate",
-    "file": "european-history.json"
+    "difficulty": "Advanced",
+    "file": "splunk4champions2-workshop.json"
   },
   {
     "id": "splunk-ai",
@@ -40,27 +48,19 @@
     "file": "sample-all-types.json"
   },
   {
-    "id": "splunk-basics",
-    "name": "Splunk Basics",
-    "description": "15 questions covering Splunk fundamentals: components, ports, SPL commands, data lifecycle, and forwarder types. Great for onboarding.",
-    "questionCount": 15,
-    "difficulty": "Beginner",
-    "file": "splunk-basics.json"
-  },
-  {
-    "id": "splunk4champions",
-    "name": "Splunk4Champions — Advanced Topics",
-    "description": "20 questions covering search performance, tstats, bucket lifecycle, Dashboard Studio, Metrics, and SmartStore. Based on the Splunk4Champions workshop.",
-    "questionCount": 22,
-    "difficulty": "Advanced",
-    "file": "splunk4champions.json"
-  },
-  {
-    "id": "splunk4champions2-workshop",
-    "name": "Splunk4Champions2 — Full Workshop Quiz",
-    "description": "42 questions covering the complete Splunk4Champions2 workshop: bucket internals, data pipeline, search modes, tstats, metrics, XML dashboards, Dashboard Studio, tokens, drilldown, Phyphox, and Analytics Workspace. Uses all six question types with workshop images.",
+    "id": "european-history",
+    "name": "European History & Geography Trivia",
+    "description": "42 questions spanning Ukraine, the Baltic States, Lithuania, Poland, Germany, France, and Britain — capitals, key dates, famous firsts, and fun facts. Ends with a self-rating slider.",
     "questionCount": 42,
-    "difficulty": "Advanced",
-    "file": "splunk4champions2-workshop.json"
+    "difficulty": "Intermediate",
+    "file": "european-history.json"
+  },
+  {
+    "id": "greek-mythology",
+    "name": "Greek Mythology Trivia",
+    "description": "47 questions spanning the Olympian gods, legendary heroes, monsters, the Underworld, the Trojan War, and famous myths — illustrated with Wikimedia artworks (Caravaggio, Botticelli, Titian, and more).",
+    "questionCount": 47,
+    "difficulty": "Intermediate",
+    "file": "greek-mythology.json"
   }
 ]

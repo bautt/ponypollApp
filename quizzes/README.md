@@ -4,17 +4,23 @@ This folder contains ready-to-use quiz JSON files that can be imported directly 
 
 ## Available quizzes
 
+Listed roughly in the order you'd reach for them — Splunk content first, the all-types Sample, then general-knowledge trivia.
+
 | File | Name | Questions | Difficulty | Topics |
 |---|---|---|---|---|
-| [`greek-mythology.json`](greek-mythology.json) | Greek Mythology Trivia | 42 | Intermediate | Olympian gods, heroes, monsters, Underworld, Trojan War, famous myths & the Sphinx's riddle |
-| [`european-history.json`](european-history.json) | European History & Geography Trivia | 42 | Intermediate | Ukraine, Baltic States, Lithuania, Poland, Germany, France, Britain, European fun facts |
+| [`splunk-basics.json`](splunk-basics.json) | Splunk Basics | 15 | Beginner | SPL, components, ports, data lifecycle, HEC, forwarders, KV Store |
+| [`splunk4champions.json`](splunk4champions.json) | Splunk4Champions — Advanced Topics | 22 | Advanced | tstats, buckets, bloom filters, Dashboard Studio, SmartStore, search performance, metrics |
+| [`splunk4champions2-workshop.json`](splunk4champions2-workshop.json) | Splunk4Champions2 — Full Workshop Quiz | 42 | Advanced | Bucket internals, data pipeline, search modes, tstats, metrics, XML & Studio dashboards, tokens, drilldown, Phyphox, Analytics Workspace |
 | [`splunk-ai.json`](splunk-ai.json) | Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models | 34 | Intermediate | AI Toolkit (MLTK), DSDL, Splunk MCP Server, Hosted AI Models, `\|ai` command, LLM providers |
 | [`splunk-soar.json`](splunk-soar.json) | Splunk SOAR — Orchestration, Automation & Response | 24 | Intermediate | SOAR acronym, MTTD/MTTR, apps & assets, containers & artifacts, labels, Visual Playbook Editor blocks (Action/Decision/Format), REST + Python Playbook APIs, Input playbooks, Action Builder |
-| [`splunk4champions.json`](splunk4champions.json) | Splunk4Champions — Advanced Topics | 22 | Advanced | tstats, buckets, bloom filters, Dashboard Studio, SmartStore, search performance, metrics |
-| [`splunk-basics.json`](splunk-basics.json) | Splunk Basics | 15 | Beginner | SPL, components, ports, data lifecycle, HEC, forwarders, KV Store |
 | [`sample-all-types.json`](sample-all-types.json) | Sample — All Question Types | 5 | Sample | One question per type: single, multi, yes/no, free text, slider |
+| [`european-history.json`](european-history.json) | European History & Geography Trivia | 42 | Intermediate | Ukraine, Baltic States, Lithuania, Poland, Germany, France, Britain, European fun facts |
+| [`greek-mythology.json`](greek-mythology.json) | Greek Mythology Trivia | 47 | Intermediate | Olympian gods, heroes, monsters, Underworld, Trojan War, famous myths & the Sphinx's riddle |
 
-> **GitHub-only quizzes** (european-history, splunk-ai, splunk-soar) are available via the **🔄 GitHub** button in the Editor but are not bundled with the app tarball. Bundled quizzes (splunk4champions, splunk-basics, sample) are also available offline via **📚 Library**.
+> **Bundled with the app** (also available offline via **📚 Library**): `splunk-basics`, `splunk4champions`, `splunk-ai`, `sample-all-types`.
+> On first install, **Splunk Basics** is auto-seeded as the active quiz so admins land on a usable Splunk-themed quiz immediately.
+>
+> **GitHub-only** (require outbound HTTPS, fetched via **🔄 GitHub** in the Editor): `splunk4champions2-workshop`, `splunk-soar`, `european-history`, `greek-mythology`.
 
 ---
 

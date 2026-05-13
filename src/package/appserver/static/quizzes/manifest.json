@@ -1,13 +1,5 @@
 [
   {
-    "id": "sample-all-types",
-    "name": "Sample — All Question Types",
-    "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
-    "questionCount": 5,
-    "difficulty": "Sample",
-    "file": "sample-all-types.json"
-  },
-  {
     "id": "splunk-basics",
     "name": "Splunk Basics",
     "description": "15 questions covering Splunk fundamentals: components, ports, SPL commands, data lifecycle, and forwarder types. Great for onboarding.",
@@ -22,5 +14,21 @@
     "questionCount": 22,
     "difficulty": "Advanced",
     "file": "splunk4champions.json"
+  },
+  {
+    "id": "splunk-ai",
+    "name": "Splunk AI — AI Toolkit, DSDL, MCP & Hosted Models",
+    "description": "34 questions covering the Splunk AI Toolkit (formerly MLTK), DSDL, Splunk MCP Server, Splunk Hosted AI Models, and the DSTA LLM-chat integration.",
+    "questionCount": 34,
+    "difficulty": "Intermediate",
+    "file": "splunk-ai.json"
+  },
+  {
+    "id": "sample-all-types",
+    "name": "Sample — All Question Types",
+    "description": "One question of every supported type: single answer, multiple answers, yes/no, free text, and slider. Use this to explore how each type looks and behaves.",
+    "questionCount": 5,
+    "difficulty": "Sample",
+    "file": "sample-all-types.json"
   }
 ]
