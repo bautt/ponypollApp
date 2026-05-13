@@ -95,7 +95,7 @@ export function fromKvDoc(doc) {
 
 export function defaultOptions(type) {
     if (type === 'freetext')  return [];   // accepted answers added by quiz maker
-    if (type === 'wordcloud') return [{ maxChars: 32 }];
+    if (type === 'wordcloud') return [];   // limits live in wordcloudMaxChars/Words
     if (type === 'slider')    return [];
     if (type === 'yesno') {
         return [

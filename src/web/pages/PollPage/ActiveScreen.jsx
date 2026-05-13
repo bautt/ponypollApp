@@ -4,8 +4,8 @@
  */
 import React from 'react';
 import Timer from '../../components/Timer';
+import WordcloudInput from '../../components/WordcloudInput';
 import { C, OPTION_COLORS } from '../../lib/theme';
-import { normalizeWcWord } from '../../lib/utils';
 import {
     Root, TopBar, SubjectTitle, Progress, ScoreBadge, Body,
     QuestionText, QuestionImage, OptionsGrid, OptionBtn, Badge,
@@ -48,100 +48,6 @@ function SliderQuestion({ q, sliderVal, setSliderVal, disabled }) {
                 <span style={{ fontSize: 13, color: C.muted }}>Drag the slider to select your answer</span>
             )}
         </SliderBox>
-    );
-}
-
-// ── Word-cloud input sub-component ────────────────────────────────────────────
-function WordcloudInput({ q, wcWords, setWcWords, wcInput, setWcInput, isReveal }) {
-    const maxChars = q.wordcloudMaxChars ?? 32;
-    const maxWords = q.wordcloudMaxWords ?? 7;
-    const full = wcWords.length >= maxWords;
-
-    const tryAdd = (raw) => {
-        const w = normalizeWcWord(raw);
-        if (w && !wcWords.includes(w) && wcWords.length < maxWords) {
-            setWcWords((prev) => [...prev, w]);
-        }
-        setWcInput('');
-    };
-
-    return (
-        <div>
-            <div
-                onClick={() => document.getElementById('wc-input-poll')?.focus()}
-                style={{
-                    display: 'flex', flexWrap: 'wrap', alignItems: 'center',
-                    gap: 6, padding: '10px 14px', minHeight: 52,
-                    background: '#2B2E38', border: `1px solid ${isReveal ? C.border : C.blue}`,
-                    borderRadius: 8, cursor: 'text',
-                }}
-            >
-                {wcWords.map((w, i) => (
-                    <span key={i} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        background: C.blue + '33', border: `1px solid ${C.blue}`,
-                        borderRadius: 20, padding: '2px 8px 2px 11px',
-                        fontSize: 14, color: C.text, whiteSpace: 'nowrap',
-                    }}>
-                        {w}
-                        {!isReveal && (
-                            <button
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
-                                style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: 0, fontSize: 13, lineHeight: 1 }}
-                            >×</button>
-                        )}
-                    </span>
-                ))}
-                {!isReveal && !full && (
-                    <input
-                        id="wc-input-poll"
-                        value={wcInput}
-                        maxLength={maxChars}
-                        placeholder={wcWords.length === 0 ? 'Type a word, press Space to add…' : 'next word…'}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            if (val.endsWith(' ')) { tryAdd(val); }
-                            else { setWcInput(val); }
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') { e.preventDefault(); tryAdd(wcInput); }
-                            if (e.key === 'Backspace' && wcInput === '') {
-                                e.preventDefault();
-                                setWcWords((prev) => prev.slice(0, -1));
-                            }
-                        }}
-                        style={{
-                            flex: '1 1 120px', minWidth: 80, background: 'transparent',
-                            border: 'none', outline: 'none', color: C.text,
-                            fontSize: 15, padding: '2px 4px',
-                        }}
-                    />
-                )}
-                {(isReveal || full) && wcWords.length === 0 && (
-                    <span style={{ color: C.muted, fontSize: 13 }}>No words submitted</span>
-                )}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 7, gap: 8 }}>
-                {!isReveal && (
-                    <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
-                        <strong style={{ color: C.text }}>Space</strong> or <strong style={{ color: C.text }}>Enter</strong> adds a word &nbsp;·&nbsp;
-                        <strong style={{ color: C.text }}>Backspace</strong> removes last &nbsp;·&nbsp;
-                        use <strong style={{ color: C.text }}>word_word</strong> or <strong style={{ color: C.text }}>"two words"</strong> for phrases
-                    </div>
-                )}
-                <div style={{ fontSize: 11, color: full ? C.accent : C.muted, whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-                    {wcWords.length} / {maxWords}
-                    {full && !isReveal && ' — submit when ready'}
-                </div>
-            </div>
-            {isReveal && wcWords.length > 0 && (
-                <div style={{ textAlign: 'center', marginTop: 10, fontSize: 13, color: C.muted }}>
-                    ☁ Your words are in the cloud
-                </div>
-            )}
-        </div>
     );
 }
 
@@ -203,7 +109,8 @@ export default function ActiveScreen({
                         setWcWords={setWcWords}
                         wcInput={wcInput}
                         setWcInput={setWcInput}
-                        isReveal={isReveal}
+                        locked={isReveal}
+                        idPrefix="wc-input-poll"
                     />
                 ) : q.type === 'freetext' ? (
                     <>

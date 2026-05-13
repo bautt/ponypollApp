@@ -163,27 +163,35 @@ export async function saveAllQuestions(questions, quizId) {
 
 // ── Config collection ─────────────────────────────────────────────────────────
 // loadConfig() result is cached in-memory to avoid redundant round-trips.
-// Cache expires after CONFIG_TTL_MS; saveConfig() also invalidates it immediately.
+// Cache expires after CONFIG_TTL_MS; saveConfig() invalidates it immediately
+// via a monotonically increasing _configRev — any in-flight load started
+// before the save will see a rev mismatch on completion and discard its result.
 
 const CONFIG_TTL_MS = 60_000; // 60 seconds
 let _cachedConfig   = null;
 let _cachedAt       = 0;
 let _configLoading  = null;
+let _configRev      = 0;
 
 export async function loadConfig() {
     const now = Date.now();
     if (_cachedConfig && (now - _cachedAt) < CONFIG_TTL_MS) return _cachedConfig;
     if (_configLoading) return _configLoading;
+    const revAtStart = _configRev;
     _configLoading = (async () => {
         try {
             const c = await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`);
-            _cachedConfig = c;
-            _cachedAt     = Date.now();
+            if (revAtStart === _configRev) {
+                _cachedConfig = c;
+                _cachedAt     = Date.now();
+            }
             return c;
         } catch (_) {
             const fallback = { poll_index: 'ponypoll', poll_subject: 'Pony Poll', active_quiz_id: '' };
-            _cachedConfig = fallback;
-            _cachedAt     = Date.now();
+            if (revAtStart === _configRev) {
+                _cachedConfig = fallback;
+                _cachedAt     = Date.now();
+            }
             return fallback;
         } finally {
             _configLoading = null;
@@ -193,7 +201,8 @@ export async function loadConfig() {
 }
 
 export async function saveConfig(cfg) {
-    _cachedConfig = null; // invalidate immediately so next read fetches fresh data
+    _configRev += 1;       // any in-flight loadConfig will discard its result
+    _cachedConfig = null;
     _cachedAt     = 0;
     try {
         await kvFetch(`${kvBase()}/ponypoll_config/default?output_mode=json`, {

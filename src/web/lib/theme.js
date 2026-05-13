@@ -2,9 +2,10 @@
  * Shared design tokens for PonyPoll.
  *
  * Import `C` wherever you need colours and `FONTS` for font stacks.
- * OPTION_COLORS is the canonical set for answer-option buttons (self-paced
- * and participant sync views).  DIST_COLORS is the 6-colour extended set
- * used in distribution bars and word-cloud badges on the host/admin view.
+ * DIST_COLORS is the canonical 6-colour palette for any indexed visualisation
+ * (option buttons, distribution bars, word-cloud word badges, leaderboards).
+ * OPTION_COLORS is `DIST_COLORS.slice(0, 4)` kept as a re-export for callers
+ * that want explicit "this is the option palette" semantics.
  */
 
 export const C = {
@@ -20,11 +21,6 @@ export const C = {
     orange:  '#ED8B00',   // Splunk brand orange
     red:     '#DC4E41',
     yellow:  '#F5A623',
-    // Four option colours used in self-paced PollPage and EditorPage previews
-    optA:    '#1F77B4',
-    optB:    '#65A637',
-    optC:    '#ED8B00',
-    optD:    '#AF6DC7',
 };
 
 /** Font stack — Splunk Platform Sans with system fallbacks. */
@@ -33,15 +29,13 @@ export const FONTS = {
 };
 
 /**
- * Four colours for answer option buttons.
- * Matches C.optA–D; kept as an array for index-based access.
- */
-export const OPTION_COLORS = [C.optA, C.optB, C.optC, C.optD];
-
-/**
- * Extended colour set for distribution bars and leaderboard charts
- * where more than four categories may appear.
+ * Extended colour set for distribution bars, leaderboard charts and
+ * any indexed visualisation. First four entries also drive answer option
+ * buttons in both self-paced and synchronized participant views.
  */
 export const DIST_COLORS = [
     '#009CDE', '#5CC05C', '#ED8B00', '#9B59B6', '#E84545', '#20B2AA',
 ];
+
+/** First four DIST_COLORS — kept as a named export for the option-button use case. */
+export const OPTION_COLORS = DIST_COLORS.slice(0, 4);

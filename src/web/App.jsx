@@ -9,6 +9,9 @@ import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig, getSession } from './lib/kvstore';
 import { SEED_QUESTIONS, toKvDoc } from './lib/questions';
+import { IconPlay, IconPencil, IconGear, IconProjector, IconBarChart } from './components/icons';
+
+const tabIconStyle = { marginRight: 5, marginBottom: 1 };
 
 class ErrorBoundary extends Component {
     constructor(props) {
@@ -90,42 +93,12 @@ const NavTab = styled.button`
     &:hover { color: #fff; }
 `;
 
-const BarChartIcon = () => (
-    <svg viewBox="0 0 16 16" width="14" height="14"
-        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, marginBottom: 1 }}
-        fill="currentColor" aria-hidden="true">
-        <rect x="1"  y="7"  width="3" height="8" rx="0.5" />
-        <rect x="6"  y="4"  width="3" height="11" rx="0.5" />
-        <rect x="11" y="1"  width="3" height="14" rx="0.5" />
-    </svg>
-);
-
-/* Projector icon — body + lens + beam + stand */
-const ProjectorIcon = () => (
-    <svg viewBox="0 0 16 16" width="15" height="15"
-        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, marginBottom: 1 }}
-        fill="currentColor" aria-hidden="true">
-        {/* projector body */}
-        <rect x="1" y="4" width="10" height="6" rx="1.2" />
-        {/* lens circle cutout (white) */}
-        <circle cx="8.5" cy="7" r="1.8" fill="none" stroke="currentColor" strokeWidth="1.2" />
-        {/* small indicator dot */}
-        <circle cx="3" cy="6" r="0.7" />
-        {/* beam lines to screen */}
-        <line x1="11" y1="5.2" x2="15" y2="3"   stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" />
-        <line x1="11" y1="8.8" x2="15" y2="11"  stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" />
-        {/* stand */}
-        <line x1="5.5" y1="10" x2="5.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-        <line x1="3.5" y1="13" x2="7.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-);
-
 const TABS = [
-    { id: 'poll',      label: '▶ Poll' },
-    { id: 'host',      label: <><ProjectorIcon />Admin</> },
-    { id: 'analytics', label: <><BarChartIcon />Analytics</> },
-    { id: 'editor',    label: '✏ Editor' },
-    { id: 'settings',  label: '⚙ Settings' },
+    { id: 'poll',      label: <><IconPlay      style={tabIconStyle} />Poll</>      },
+    { id: 'host',      label: <><IconProjector style={tabIconStyle} />Admin</>     },
+    { id: 'analytics', label: <><IconBarChart  style={tabIconStyle} />Analytics</> },
+    { id: 'editor',    label: <><IconPencil    style={tabIconStyle} />Editor</>    },
+    { id: 'settings',  label: <><IconGear      style={tabIconStyle} />Settings</>  },
 ];
 
 const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
