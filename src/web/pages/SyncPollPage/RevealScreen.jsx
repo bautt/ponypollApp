@@ -74,15 +74,18 @@ export default function RevealScreen({
                     </div>
                 )}
 
-                {submitted ? (
-                    <FeedbackBox $correct={correct !== false}>
-                        {correct === true  && `✓ Correct! +${totalScore.toLocaleString()} pts total`}
-                        {correct === false && '✗ Wrong answer'}
-                        {correct === null  && question?.type === 'wordcloud'
+                {submitted ? (() => {
+                    const isWc = question?.type === 'wordcloud';
+                    const text =
+                        isWc && correct === null
                             ? `Your ${wcWords.length} word${wcWords.length !== 1 ? 's' : ''} are in the cloud ☁`
-                            : 'Recorded'}
-                    </FeedbackBox>
-                ) : (
+                            : correct === true
+                                ? `✓ Correct! +${totalScore.toLocaleString()} pts total`
+                                : correct === false
+                                    ? '✗ Wrong answer'
+                                    : 'Recorded';
+                    return <FeedbackBox $correct={correct !== false}>{text}</FeedbackBox>;
+                })() : (
                     <FeedbackBox $correct={false} style={{ fontSize: 15 }}>
                         ⏱ Didn't answer in time
                     </FeedbackBox>

@@ -29,7 +29,7 @@ import {
     fetchLibraryManifest, fetchLibraryQuiz,
     fetchGitHubManifest, fetchGitHubQuiz,
 } from '../../lib/kvstore';
-import { fromKvDoc, toKvDoc, newQuestion, defaultOptions, SEED_QUESTIONS } from '../../lib/questions';
+import { fromKvDoc, toKvDoc, newQuestion, defaultOptions } from '../../lib/questions';
 import { uid } from '../../lib/utils';
 import QuizSidebar from './QuizSidebar';
 import QuestionEditor from './QuestionEditor';
@@ -116,31 +116,36 @@ export default function EditorPage() {
     const [libraryError, setLibraryError] = useState(null);
 
     // ── Init ──────────────────────────────────────────────────────────────────
+    // Seeding the sample quiz on first install is owned by App.useSeedOnFirstInstall.
+    // If we land here before that seed finishes, wait briefly and re-fetch once.
     useEffect(() => {
-        Promise.all([listQuizzes(), loadConfig()])
-            .then(async ([qs, cfg]) => {
+        let cancelled = false;
+        const init = async () => {
+            try {
+                let [qs, cfg] = await Promise.all([listQuizzes(), loadConfig()]);
+                if (qs.length === 0) {
+                    await new Promise((r) => setTimeout(r, 800));
+                    if (cancelled) return;
+                    qs = await listQuizzes();
+                    cfg = await loadConfig();
+                }
+                if (cancelled) return;
                 configRef.current = cfg;
                 setLiveQuizId(cfg.active_quiz_id || '');
-                if (qs.length === 0) {
-                    const created = await createQuiz('Sample Quiz');
-                    const newId = created._key || created.key;
-                    const seeded = SEED_QUESTIONS.map((q, i) => ({ ...q, _key: '', sort_order: i, quiz_id: newId }));
-                    await saveAllQuestions(seeded.map((q, i) => ({ ...toKvDoc(q), sort_order: i })), newId);
-                    await saveConfig({ ...cfg, active_quiz_id: newId });
-                    const freshQuizzes = await listQuizzes();
-                    setQuizzes(freshQuizzes);
-                    setLiveQuizId(newId);
-                    setActiveQuizId(newId);
-                    await loadQuestionsForQuiz(newId);
-                } else {
-                    setQuizzes(qs);
+                setQuizzes(qs);
+                if (qs.length > 0) {
                     const targetId = cfg.active_quiz_id || qs[0]._key;
                     setActiveQuizId(targetId);
                     await loadQuestionsForQuiz(targetId);
                 }
-            })
-            .catch((e) => setStatus({ error: true, msg: e.message }))
-            .finally(() => { setLoading(false); setQuizLoading(false); });
+            } catch (e) {
+                if (!cancelled) setStatus({ error: true, msg: e.message });
+            } finally {
+                if (!cancelled) { setLoading(false); setQuizLoading(false); }
+            }
+        };
+        init();
+        return () => { cancelled = true; };
     }, []);
 
     const loadQuestionsForQuiz = async (quizId) => {

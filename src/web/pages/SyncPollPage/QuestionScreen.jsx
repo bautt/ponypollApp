@@ -196,15 +196,18 @@ export default function QuestionScreen({
                 )}
 
                 {/* Submitted feedback */}
-                {submitted && (
-                    <FeedbackBox $correct={wasCorrect !== false}>
-                        {wasCorrect === true  && `✓ Correct! +${pointsEarned.toLocaleString()} pts`}
-                        {wasCorrect === false && '✗ Wrong answer'}
-                        {wasCorrect === null  && question?.type === 'wordcloud'
+                {submitted && (() => {
+                    const isWc = question?.type === 'wordcloud';
+                    const text =
+                        isWc && wasCorrect === null
                             ? `${wcWords.length} word${wcWords.length !== 1 ? 's' : ''} added to the cloud ☁`
-                            : `Recorded +${pointsEarned} pts`}
-                    </FeedbackBox>
-                )}
+                            : wasCorrect === true
+                                ? `✓ Correct! +${pointsEarned.toLocaleString()} pts`
+                                : wasCorrect === false
+                                    ? '✗ Wrong answer'
+                                    : `Recorded +${pointsEarned} pts`;
+                    return <FeedbackBox $correct={wasCorrect !== false}>{text}</FeedbackBox>;
+                })()}
 
                 {/* Submit button */}
                 {!submitted && timeLeft > 0 && (

@@ -36,3 +36,26 @@ export function normalizeWcWord(raw) {
     }
     return w.replace(/_/g, ' ').trim();
 }
+
+/**
+ * Strip everything except [a-zA-Z0-9_-] from an identifier.
+ *
+ * MANDATORY for any string that will be interpolated into an SPL query
+ * (session_id, quiz_id, question_index, etc.). Even when the value comes
+ * from a KV Store doc whose write access is locked down by ACLs, treat it
+ * as untrusted at the search boundary — defense in depth.
+ *
+ * Returns '' for null/undefined.
+ */
+export function sanitizeId(id) {
+    return id == null ? '' : String(id).replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+/**
+ * Sanitize a nickname for safe inclusion as a quoted SPL string literal.
+ * Escapes backslash and double-quote so the value cannot break out of the
+ * surrounding "...". Use as: `nickname="${quoteForSpl(nick)}"`.
+ */
+export function quoteForSpl(value) {
+    return String(value ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}

@@ -113,7 +113,9 @@ export async function listQuestions(quizId) {
     const data = await kvFetch(
         `${kvBase()}/ponypoll_questions?output_mode=json&limit=500&sort_key=sort_order&sort_dir=asc${query}`
     );
-    return Array.isArray(data) ? data : [];
+    if (!Array.isArray(data)) return [];
+    // Filter out the system-check probe doc, in case its cleanup DELETE ever fails.
+    return data.filter((q) => q._key !== '_healthcheck_' && q.quiz_id !== '_test_');
 }
 
 export async function deleteQuestion(key) {
@@ -450,7 +452,17 @@ export async function clearPresence(sessionId) {
 
 // ── Splunk search (oneshot) ───────────────────────────────────────────────────
 // Returns an array of result objects from a one-shot Splunk search.
-
+//
+// SECURITY — SPL injection
+// Splunk search is executed under the caller's role (typically ponypoll_user
+// with read access only to the ponypoll index). Even so, NEVER interpolate
+// user-controlled strings into `spl` without sanitising them first:
+//   * Identifiers (session_id, quiz_id, _key)  → sanitizeId() from lib/utils.js
+//   * Numeric fields (question_index, points)  → Number(x) || 0
+//   * Free-text (nickname inside "...")        → quoteForSpl() from lib/utils.js
+// KV Store ACLs (default.meta) restrict write access to ponypoll_session, but
+// ponypoll_presence is world-writable by participants — so values that flow
+// from any KV/event source into SPL must still be treated as untrusted.
 export async function runSearch(spl, { earliest = '-7d', latest = 'now', count = 1000 } = {}) {
     const body = new URLSearchParams({
         search: spl.startsWith('search ') ? spl : `search ${spl}`,

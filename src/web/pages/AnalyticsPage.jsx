@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { runSearch } from '../lib/kvstore';
+import { sanitizeId } from '../lib/utils';
 import { C, FONTS } from '../lib/theme';
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -307,11 +308,6 @@ function quizListSpl() {
         | eval label=if(isnotnull(quiz_name) AND quiz_name!="", quiz_name, quiz_id)
         | fields quiz_id label
         | sort label`;
-}
-
-/** KV Store _key values are alphanumeric + hyphens; strip anything else before SPL interpolation. */
-function sanitizeId(id) {
-    return id ? id.replace(/[^a-zA-Z0-9_-]/g, '') : '';
 }
 
 function attemptBaseSpl(quizId) {

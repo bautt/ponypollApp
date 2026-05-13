@@ -157,7 +157,7 @@ export default function PollPage() {
 
         submitAnswer({
             session_id: sessionId.current,
-            nickname: nickname || 'anonymous',
+            nickname: nickname.trim() || 'anonymous',
             splunk_user: splunkUser || '',
             question_index: qIndex,
             question: currentQ.text,
@@ -199,7 +199,7 @@ export default function PollPage() {
         setTimerRunning(true);
         submitQuizAttempt({
             session_id: sessionId.current,
-            nickname: nickname || 'anonymous',
+            nickname: nickname.trim() || 'anonymous',
             splunk_user: splunkUser || '',
             quiz_id: config.active_quiz_id || 'default',
             question_count: questions.length,
@@ -236,7 +236,7 @@ export default function PollPage() {
             setPhase(PHASE.DONE);
             submitQuizAttempt({
                 session_id: sessionId.current,
-                nickname: nickname || 'anonymous',
+                nickname: nickname.trim() || 'anonymous',
                 splunk_user: splunkUser || '',
                 quiz_id: config.active_quiz_id || 'default',
                 total_score: score,

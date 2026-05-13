@@ -17,7 +17,7 @@ import {
     getCurrentUser, submitAnswer, submitQuizAttempt, runSearch,
 } from '../../lib/kvstore';
 import { fromKvDoc } from '../../lib/questions';
-import { uid, calcPoints } from '../../lib/utils';
+import { uid, calcPoints, sanitizeId } from '../../lib/utils';
 import { playTrack, fadeOutAndStop, playSfx } from '../../lib/audio';
 import LobbyScreen from './LobbyScreen';
 import QuestionScreen from './QuestionScreen';
@@ -26,6 +26,15 @@ import DoneScreen from './DoneScreen';
 import { Page, Card, Waiting } from './styles';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function parseKeys(sess) {
+    try {
+        const parsed = JSON.parse(sess?.question_keys || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+        return [];
+    }
+}
+
 function answerString(type, selected, sliderVal, freetextVal, wcWords) {
     if (type === 'freetext')  return freetextVal;
     if (type === 'wordcloud') return wcWords.join(',');
@@ -109,9 +118,7 @@ export default function SyncPollPage() {
                     fetchDist(sess.session_id, sess.question_index ?? 0);
                 }
                 if (enteringDone && nicknameRef.current) {
-                    const qCount = (() => {
-                        try { return JSON.parse(sess.question_keys || '[]').length; } catch (_) { return 0; }
-                    })();
+                    const qCount = parseKeys(sess).length;
                     submitQuizAttempt({
                         event:          'quiz_complete',
                         session_id:     sess.session_id,
@@ -138,7 +145,7 @@ export default function SyncPollPage() {
     // ── Fetch question when question_index or session changes ─────────────────
     useEffect(() => {
         if (!session || session.phase !== 'question') return;
-        const keys = session.question_keys ? JSON.parse(session.question_keys) : [];
+        const keys = parseKeys(session);
         const key  = keys[Number(session.question_index) || 0];
         if (!key || key === loadedQKey) return;
 
@@ -170,14 +177,6 @@ export default function SyncPollPage() {
         return () => clearInterval(id);
     }, [session?.phase, session?.question_started_at, session?.question_index]);
 
-    // ── Timeout sound — fires once when timer first hits zero ─────────────────
-    useEffect(() => {
-        if (phase === 'question' && !submitted && prevTimeLeft.current > 0 && timeLeft === 0) {
-            playSfx('timeout');
-        }
-        prevTimeLeft.current = timeLeft;
-    }, [timeLeft, phase, submitted]);
-
     // ── Heartbeat presence while joined ──────────────────────────────────────
     useEffect(() => {
         if (!joined || !session?.session_id) return;
@@ -188,10 +187,13 @@ export default function SyncPollPage() {
     }, [joined, session?.session_id]);
 
     // ── Data fetchers ─────────────────────────────────────────────────────────
+    // All identifiers interpolated into SPL must be sanitised — see lib/utils.js#sanitizeId.
     const fetchLeaderboard = async (sessionId) => {
+        const sid = sanitizeId(sessionId);
+        if (!sid) return;
         try {
             const rows = await runSearch(
-                `index=ponypoll sourcetype=ponypoll_answer session_id="${sessionId}" | stats sum(points) as score by nickname | sort -score | head 10`,
+                `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" | stats sum(points) as score by nickname | sort -score | head 10`,
                 { earliest: '-1d' }
             );
             setLeaderboard(rows);
@@ -199,14 +201,17 @@ export default function SyncPollPage() {
     };
 
     const fetchDist = async (sessionId, questionIndex) => {
+        const sid = sanitizeId(sessionId);
+        const qIx = Number(questionIndex) || 0;
+        if (!sid) return;
         try {
             const [distRows, totalRows] = await Promise.all([
                 runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sessionId}" question_index=${questionIndex} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIx} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
                     { earliest: '-1d' }
                 ),
                 runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sessionId}" question_index=${questionIndex} | stats count as total`,
+                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIx} | stats count as total`,
                     { earliest: '-1d' }
                 ),
             ]);
@@ -289,9 +294,17 @@ export default function SyncPollPage() {
     const timeLim  = Number(session?.time_limit) || 30;
     const timerPct = timeLim > 0 ? Math.round((timeLeft / timeLim) * 100) : 0;
     const qIdx     = Number(session?.question_index) || 0;
-    const total    = session?.question_keys ? JSON.parse(session.question_keys).length : 0;
+    const total    = parseKeys(session).length;
     const locked   = submitted || timeLeft <= 0;
     const wcEmpty  = question?.type === 'wordcloud' && wcWords.length === 0;
+
+    // ── Timeout sound — fires once when timer first hits zero ─────────────────
+    useEffect(() => {
+        if (phase === 'question' && !submitted && prevTimeLeft.current > 0 && timeLeft === 0) {
+            playSfx('timeout');
+        }
+        prevTimeLeft.current = timeLeft;
+    }, [timeLeft, phase, submitted]);
 
     // ── Music ──────────────────────────────────────────────────────────────────
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -155,9 +155,13 @@ async function checkKvWrite() {
         try { msg = JSON.parse(t)?.messages?.[0]?.text || msg; } catch (_) {}
         throw new Error(msg);
     }
-    await fetch(`${base}/_healthcheck_?output_mode=json`, {
-        method: 'DELETE', credentials: 'include', headers: authHeaders(),
-    });
+    try {
+        await fetch(`${base}/_healthcheck_?output_mode=json`, {
+            method: 'DELETE', credentials: 'include', headers: authHeaders(),
+        });
+    } catch (_) {
+        // Cleanup best-effort; orphan doc is filtered out by listQuestions().
+    }
     return 'Writable';
 }
 
@@ -192,13 +196,14 @@ async function fetchUserContext() {
     }
 }
 
-async function checkAnswerSubmission(pollIndex) {
+async function checkAnswerSubmission(pollIndex, username) {
     const url = `${locale()}/splunkd/__raw/services/receivers/simple?sourcetype=ponypoll_healthcheck&index=${encodeURIComponent(pollIndex)}`;
+    const body = `event=health_check source=ponypoll_settings splunk_user=${encodeURIComponent(username || 'unknown')}`;
     const res = await fetch(url, {
         method: 'POST',
         credentials: 'include',
         headers: authHeaders('text/plain'),
-        body: 'health_check=true',
+        body,
     });
     if (!res.ok) {
         const t = await res.text().catch(() => '');
@@ -251,10 +256,16 @@ function SystemCheck({ pollIndex }) {
     const [running, setRunning] = useState(false);
     const [userCtx, setUserCtx] = useState(null);
 
-    const run = async () => {
+    const run = async ({ writeProbe } = { writeProbe: false }) => {
         if (running) return;
         setRunning(true);
-        setResults({ kv_read: 'busy', kv_write: 'busy', idx_exists: 'busy', idx_data: 'busy', answers: 'busy' });
+        setResults({
+            kv_read:    'busy',
+            kv_write:   'busy',
+            idx_exists: 'busy',
+            idx_data:   'busy',
+            answers:    writeProbe ? 'busy' : 'idle',
+        });
         const ctx = await fetchUserContext();
         setUserCtx(ctx);
 
@@ -288,16 +299,20 @@ function SystemCheck({ pollIndex }) {
         }
         setResults(r => ({ ...r, ...next }));
 
-        // Answer submission
-        try { await checkAnswerSubmission(pollIndex); next.answers = { state: 'ok' }; }
-        catch (e) { next.answers = { state: 'fail', detail: e.message }; }
+        // Answer submission — only on explicit Re-check (writes an audited event).
+        if (writeProbe) {
+            try { await checkAnswerSubmission(pollIndex, ctx?.username); next.answers = { state: 'ok' }; }
+            catch (e) { next.answers = { state: 'fail', detail: e.message }; }
+        } else {
+            next.answers = { state: 'idle', detail: 'Click Re-check to test (writes one event)' };
+        }
         setResults({ ...next });
 
         setRunning(false);
     };
 
-    // Auto-run on first render
-    useEffect(() => { run(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Auto-run on first render — skips the write probe to avoid polluting the index on every page load.
+    useEffect(() => { run({ writeProbe: false }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const ROWS = [
         { key: 'kv_read',   label: 'KV Store readable',      hint: 'Quizzes and questions are loaded from Splunk KV Store.' },
@@ -309,7 +324,7 @@ function SystemCheck({ pollIndex }) {
 
     const allOk = results && !running && ROWS.every(r => {
         const s = results[r.key];
-        return typeof s === 'object' && (s.state === 'ok' || s.state === 'warn');
+        return typeof s === 'object' && (s.state === 'ok' || s.state === 'warn' || s.state === 'idle');
     });
     const anyFail = results && !running && ROWS.some(r => {
         const s = results[r.key];
@@ -341,8 +356,9 @@ function SystemCheck({ pollIndex }) {
                     </span>
                 )}
                 <button
-                    onClick={run}
+                    onClick={() => run({ writeProbe: true })}
                     disabled={running}
+                    title="Re-check runs all probes, including writing one test event to the poll index."
                     style={{
                         padding: '5px 14px', border: `1px solid ${C.border}`,
                         borderRadius: 6, background: running ? C.surface : C.blue,
@@ -682,6 +698,8 @@ export default function SettingsPage() {
                     Have a suggestion or found a bug?{' '}
                     <a
                         href="https://github.com/bautt/ponypollApp/issues"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{ color: C.blue, textDecoration: 'none' }}
                     >
                         Open an issue
