@@ -442,17 +442,14 @@ export default function AnalyticsPage() {
     const maxLbPts = Math.max(...leaderboard.map((r) => r.best_score), 1);
 
     // Load quiz list + sync session list from the index (all-time).
-    // Sessions are sorted latest-first; auto-select the most recent one.
+    // Sessions stay un-selected on first load — Analytics defaults to showing
+    // all data across all sessions; user picks one to drill in.
     useEffect(() => {
         runSearch(quizListSpl(), { earliest: '0', latest: 'now', count: 200 })
             .then((rows) => setQuizzes(rows.filter((r) => r.quiz_id)))
             .catch(() => {});
         runSearch(sessionListSpl(), { earliest: '0', latest: 'now', count: 500 })
-            .then((rows) => {
-                const valid = rows.filter((r) => r.session_name);
-                setSyncSessions(valid);
-                if (valid.length > 0) setSessionFilter(valid[0].session_name);
-            })
+            .then((rows) => setSyncSessions(rows.filter((r) => r.session_name)))
             .catch(() => {});
     }, []);
 
