@@ -12,6 +12,7 @@ const IconSearch = () => (
 import styled from 'styled-components';
 import {
     loadConfig, saveConfig, getVersionInfo,
+    getIndexMacro, saveIndexMacro, sanitizeIndexName,
 } from '../lib/kvstore';
 import { C, FONTS } from '../lib/theme';
 
@@ -246,10 +247,12 @@ function SystemCheck({ pollIndex }) {
 
     const run = async ({ writeProbe } = { writeProbe: false }) => {
         if (running) return;
+        if (!pollIndex) return;
         setRunning(true);
         setResults({
             kv_read:    'busy',
             kv_write:   'busy',
+            macro:      'busy',
             idx_exists: 'busy',
             idx_data:   'busy',
             answers:    writeProbe ? 'busy' : 'idle',
@@ -269,11 +272,28 @@ function SystemCheck({ pollIndex }) {
         catch (e) { next.kv_write = { state: 'fail', detail: e.message }; }
         setResults(r => ({ ...r, ...next }));
 
+        // Macro — must exist and resolve to a usable index name
+        try {
+            const macro = await getIndexMacro();
+            if (!macro) {
+                next.macro = { state: 'fail', detail: 'ponypoll_index macro missing — check the app install' };
+            } else if (!macro.indexName) {
+                next.macro = { state: 'fail', detail: `Unparseable definition: "${macro.definition || '(empty)'}"` };
+            } else if (macro.indexName !== pollIndex) {
+                next.macro = { state: 'warn', detail: `Macro resolves to "${macro.indexName}", Settings shows "${pollIndex}". Save Settings or reload.` };
+            } else {
+                next.macro = { state: 'ok', detail: `index=${macro.indexName}` };
+            }
+        } catch (e) {
+            next.macro = { state: 'fail', detail: e.message };
+        }
+        setResults(r => ({ ...r, ...next }));
+
         // Index
         try {
             const { exists, count } = await checkIndex(pollIndex);
             if (!exists) {
-                next.idx_exists = { state: 'fail', detail: 'Not found — create it in Settings → Data → Indexes' };
+                next.idx_exists = { state: 'fail', detail: `"${pollIndex}" not found — create it in Settings → Data → Indexes` };
                 next.idx_data   = { state: 'idle' };
             } else {
                 next.idx_exists = { state: 'ok' };
@@ -300,14 +320,16 @@ function SystemCheck({ pollIndex }) {
     };
 
     // Auto-run on first render — skips the write probe to avoid polluting the index on every page load.
-    useEffect(() => { run({ writeProbe: false }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Re-runs whenever the configured index changes (Settings save).
+    useEffect(() => { run({ writeProbe: false }); }, [pollIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const ROWS = [
-        { key: 'kv_read',   label: 'KV Store readable',      hint: 'Quizzes and questions are loaded from Splunk KV Store.' },
-        { key: 'kv_write',  label: 'KV Store writable',       hint: 'Required to create, edit, and save quiz questions.' },
-        { key: 'idx_exists',label: 'Poll index exists',       hint: `Index "${pollIndex}" must exist before answers can be stored.` },
-        { key: 'idx_data',  label: 'Poll index has data',     hint: 'At least one quiz has been completed and answers stored.' },
-        { key: 'answers',   label: 'Answer submission works', hint: 'Verifies receivers/simple is accessible for the current user.' },
+        { key: 'kv_read',   label: 'KV Store readable',         hint: 'Quizzes and questions are loaded from Splunk KV Store.' },
+        { key: 'kv_write',  label: 'KV Store writable',          hint: 'Required to create, edit, and save quiz questions.' },
+        { key: 'macro',     label: 'ponypoll_index macro',       hint: 'The Splunk search macro the app uses to know which index holds quiz events.' },
+        { key: 'idx_exists',label: 'Poll index exists',          hint: `Index "${pollIndex}" must exist before answers can be stored.` },
+        { key: 'idx_data',  label: 'Poll index has data',        hint: 'At least one quiz has been completed and answers stored.' },
+        { key: 'answers',   label: 'Answer submission works',    hint: 'Verifies receivers/simple is accessible for the current user.' },
     ];
 
     const allOk = results && !running && ROWS.every(r => {
@@ -425,6 +447,14 @@ export default function SettingsPage() {
     const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
     const [sfxOn,   setSfxOn]   = useState(() => isSfxEnabled());
 
+    // ponypoll_index search macro state — independent of cfg because it lives
+    // in macros.conf, not the KV config collection. `idxInput` mirrors the
+    // text field; `idxMacro` is the last-saved/loaded value used by SystemCheck.
+    const [idxInput, setIdxInput] = useState('');
+    const [idxMacro, setIdxMacro] = useState('');
+    const [idxLoading, setIdxLoading] = useState(true);
+    const [idxError, setIdxError] = useState('');
+
     const handleMusicToggle = useCallback((val) => {
         setMusicEnabled(val);
         setMusicOn(val);
@@ -448,12 +478,36 @@ export default function SettingsPage() {
                 });
             })
             .catch((e) => setStatus({ error: true, msg: `Failed to load config: ${e.message}` }));
+
+        getIndexMacro()
+            .then((macro) => {
+                const name = macro?.indexName || 'ponypoll';
+                setIdxMacro(name);
+                setIdxInput(name);
+            })
+            .catch(() => {
+                setIdxMacro('ponypoll');
+                setIdxInput('ponypoll');
+            })
+            .finally(() => setIdxLoading(false));
     }, []);
+
+    const idxClean   = sanitizeIndexName(idxInput);
+    const idxValid   = !!idxClean;
+    const idxChanged = idxValid && idxClean !== idxMacro;
 
     const handleSave = async () => {
         setSaving(true);
         try {
             await saveConfig(cfg);
+            // Persist the index macro alongside KV config, but only if it has
+            // actually changed — avoids extra REST writes (and audit noise)
+            // on every Save Settings click.
+            if (idxChanged) {
+                const saved = await saveIndexMacro(idxClean);
+                setIdxMacro(saved);
+                setIdxInput(saved);
+            }
             setStatus({ error: false, msg: 'Settings saved.' });
         } catch (e) {
             setStatus({ error: true, msg: e.message });
@@ -512,6 +566,45 @@ export default function SettingsPage() {
                         placeholder="Pony Poll"
                     />
                     <Hint>Shown on the start screen and top bar during the poll.</Hint>
+                </Section>
+
+                <Section>
+                    <Label>Splunk index for poll answers</Label>
+                    <Input
+                        value={idxInput}
+                        onChange={(e) => {
+                            setIdxInput(e.target.value);
+                            setIdxError('');
+                        }}
+                        onBlur={() => {
+                            if (!idxInput.trim()) return;
+                            if (!sanitizeIndexName(idxInput)) {
+                                setIdxError('Invalid index name. Use lowercase letters, digits, underscores or hyphens; 1–80 chars.');
+                            }
+                        }}
+                        placeholder="ponypoll"
+                        spellCheck={false}
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        disabled={idxLoading}
+                        style={idxError ? { borderColor: C.red } : undefined}
+                    />
+                    <Hint>
+                        Backs the <code style={{ color: C.accent }}>ponypoll_index</code> search macro
+                        — every analytics query, the System Check below and every event submission
+                        use it. Default <code style={{ color: C.accent }}>ponypoll</code>. Change requires:
+                        the destination index to exist; appropriate <code>srchIndexesAllowed</code>
+                        for <code style={{ color: C.accent }}>ponypoll_user</code> / <code style={{ color: C.accent }}>ponypoll_admin</code>;
+                        and write access for participants.
+                    </Hint>
+                    {idxError && (
+                        <Hint style={{ color: C.red, marginTop: 6 }}>{idxError}</Hint>
+                    )}
+                    {idxChanged && !idxError && (
+                        <Hint style={{ color: C.yellow, marginTop: 6 }}>
+                            Unsaved change — current macro: <code style={{ color: C.accent }}>{idxMacro}</code>, new value: <code style={{ color: C.accent }}>{idxClean}</code>.
+                        </Hint>
+                    )}
                 </Section>
 
                 {[
@@ -575,7 +668,7 @@ export default function SettingsPage() {
 
                 <div style={{ marginTop: 16 }}>
                     <a
-                        href="/app/search/search?q=search%20index%3Dponypoll&earliest=-7d&latest=now"
+                        href={`/app/search/search?q=${encodeURIComponent(`search index=${idxMacro || 'ponypoll'}`)}&earliest=-7d&latest=now`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -583,7 +676,7 @@ export default function SettingsPage() {
                             color: C.blue, fontSize: 13, textDecoration: 'none',
                         }}
                     >
-                        <IconSearch /> Search <code style={{ color: C.accent }}>index=ponypoll</code> in Splunk
+                        <IconSearch /> Search <code style={{ color: C.accent }}>index={idxMacro || 'ponypoll'}</code> in Splunk
                     </a>
                 </div>
 
@@ -599,9 +692,15 @@ export default function SettingsPage() {
                         Answer and join events are written via <code>receivers/simple</code> using
                         the user's Splunk session. The <code style={{ color: C.accent }}>ponypoll_user</code> role
                         ships with the <code>edit_tcp</code> capability so every authenticated user
-                        can submit answers — no HEC required. The
+                        can submit answers — no HEC required. The default
                         <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll</code> index is created
-                        by this app's <code>indexes.conf</code>.<br /><br />
+                        by this app's <code>indexes.conf</code>; pointing the
+                        <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_index</code> macro
+                        at a different index is allowed but does NOT auto-create it.<br /><br />
+                        Every analytics query, dashboard panel and System Check resolves the
+                        index through the <code style={{ color: C.accent }}>ponypoll_index</code>
+                        search macro, so Pony Poll, Splunk dashboards and your own ad-hoc SPL
+                        all stay consistent.<br /><br />
                         Quizzes and questions are stored in Splunk KV Store
                         (<code style={{ color: C.accent }}>ponypoll_questions</code>,
                         <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_quizzes</code>) —
@@ -644,7 +743,7 @@ export default function SettingsPage() {
                     </span>
                 </div>
 
-                <SystemCheck pollIndex="ponypoll" />
+                <SystemCheck pollIndex={idxMacro || 'ponypoll'} />
 
                 <div style={{
                     marginTop: 20, padding: '14px 0 0',

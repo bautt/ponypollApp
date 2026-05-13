@@ -44,3 +44,14 @@ access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]
 # Splunk index — all authenticated users can write (submit answers)
 [indexes/ponypoll]
 access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]
+
+# Search macros — readable globally so non-admin participant queries resolve
+# `ponypoll_index`; writable by quiz admins so the Settings UI can change the
+# configured index without leaving the app.
+[macros]
+export = system
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]
+
+[macros/ponypoll_index]
+export = system
+access = read : [ * ], write : [ ponypoll_admin, admin, sc_admin, power ]

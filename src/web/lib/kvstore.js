@@ -167,10 +167,10 @@ export async function saveAllQuestions(questions, quizId) {
 // via a monotonically increasing _configRev — any in-flight load started
 // before the save will see a rev mismatch on completion and discard its result.
 //
-// NOTE: the poll's Splunk index is hardcoded to `ponypoll` across this app
-// (events, KV ACLs, dashboard XML, props.conf, eventtypes). The cfg object
-// retains a `poll_index` field only for compatibility with previously-saved
-// documents; it is no longer surfaced in the UI or read by any caller.
+// NOTE: the Splunk index for poll events is sourced from the `ponypoll_index`
+// search macro (see macros.conf and getPollIndex() below), not from the KV
+// config. The legacy `poll_index` field on `ponypoll_config` is no longer
+// read or written — it is kept on existing documents purely for back-compat.
 
 const CONFIG_TTL_MS = 60_000; // 60 seconds
 let _cachedConfig   = null;
@@ -317,9 +317,116 @@ async function submitViaReceiver(eventData, { index, sourcetype, source }) {
     }
 }
 
+// ── Search macro: `ponypoll_index` ────────────────────────────────────────────
+// The macro is the single source of truth for "where do quiz events live?".
+// It expands to `index=<name>` at search time (used in every SPL query and
+// in the analytics dashboard XML). The Settings UI reads/writes it via the
+// /configs/conf-macros REST endpoint. The resolved bare index name is cached
+// in-memory so the answer-submit hot path doesn't hit the REST API every time.
+
+const DEFAULT_INDEX = 'ponypoll';
+const INDEX_CACHE_TTL_MS = 60_000;
+let _cachedIndex   = null;
+let _cachedIndexAt = 0;
+
+/**
+ * Strict Splunk index name validator/sanitizer.
+ *
+ * Splunk index names must be lowercase, start with a letter/digit/underscore,
+ * may contain letters/digits/underscores/hyphens, and be 1–80 chars. Reject
+ * everything else outright rather than silently mangling user input.
+ */
+export function sanitizeIndexName(raw) {
+    if (typeof raw !== 'string') return null;
+    const trimmed = raw.trim().toLowerCase();
+    if (!trimmed) return null;
+    if (!/^[a-z0-9_][a-z0-9_-]{0,79}$/.test(trimmed)) return null;
+    return trimmed;
+}
+
+/**
+ * Parse "index=<name>" out of a macro definition. Tolerates leading/trailing
+ * whitespace and surrounding parentheses. Returns null if the definition is
+ * not a plain `index=...` expression.
+ */
+function parseIndexFromMacroDef(def) {
+    if (typeof def !== 'string') return null;
+    const m = def.trim().match(/^index\s*=\s*([A-Za-z0-9_][A-Za-z0-9_-]{0,79})\s*$/);
+    if (!m) return null;
+    return sanitizeIndexName(m[1]);
+}
+
+/** GET the raw `ponypoll_index` macro definition (or null on any error). */
+export async function getIndexMacro() {
+    const url = `${splunkdBase()}/servicesNS/nobody/${APP}/configs/conf-macros/ponypoll_index?output_mode=json`;
+    try {
+        const data = await kvFetch(url);
+        const definition = data?.entry?.[0]?.content?.definition || '';
+        return { definition, indexName: parseIndexFromMacroDef(definition) };
+    } catch (_) {
+        return null;
+    }
+}
+
+/**
+ * Persist a new index name to the `ponypoll_index` macro. The value is
+ * sanitized first; an invalid name throws. Writes go to local/ so they
+ * survive app upgrades. Refreshes the in-memory index cache on success.
+ */
+export async function saveIndexMacro(rawIndexName) {
+    const clean = sanitizeIndexName(rawIndexName);
+    if (!clean) {
+        throw new Error('Invalid index name. Use lowercase letters, digits, underscores or hyphens; 1–80 chars; must start with a letter, digit or underscore.');
+    }
+    const url = `${splunkdBase()}/servicesNS/nobody/${APP}/configs/conf-macros/ponypoll_index?output_mode=json`;
+    const body = new URLSearchParams({ definition: `index=${clean}`, iseval: '0' }).toString();
+    const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Splunk-Form-Key': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body,
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(t)?.messages?.[0]?.text || msg; } catch (_) {}
+        throw new Error(msg);
+    }
+    _cachedIndex   = clean;
+    _cachedIndexAt = Date.now();
+    return clean;
+}
+
+/**
+ * Resolve the currently-configured bare index name. Cached for
+ * INDEX_CACHE_TTL_MS to keep the answer-submit hot path free of REST calls.
+ * Falls back to DEFAULT_INDEX if the macro is missing/malformed/unreachable.
+ */
+export async function getPollIndex() {
+    const now = Date.now();
+    if (_cachedIndex && (now - _cachedIndexAt) < INDEX_CACHE_TTL_MS) {
+        return _cachedIndex;
+    }
+    const macro = await getIndexMacro();
+    const name  = macro?.indexName || DEFAULT_INDEX;
+    _cachedIndex   = name;
+    _cachedIndexAt = Date.now();
+    return name;
+}
+
+/** Force-clear the index cache so the next getPollIndex() re-fetches. */
+export function invalidateIndexCache() {
+    _cachedIndex = null;
+    _cachedIndexAt = 0;
+}
+
 async function submitEvent(eventData, opts = {}) {
     const meta = {
-        index: opts.index || 'ponypoll',
+        index: opts.index || await getPollIndex(),
         sourcetype: opts.sourcetype || 'ponypoll_answer',
         source: opts.source || 'ponypoll_app',
     };

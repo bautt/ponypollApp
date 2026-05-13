@@ -18,7 +18,7 @@
       <fieldForLabel>label</fieldForLabel>
       <fieldForValue>quiz_id</fieldForValue>
       <search>
-        <query>index=ponypoll sourcetype=ponypoll_attempt
+        <query>`ponypoll_index` sourcetype=ponypoll_attempt
           | stats first(quiz_name) as quiz_name by quiz_id
           | eval label=if(isnotnull(quiz_name) AND quiz_name!="", quiz_name, quiz_id)
           | fields quiz_id label
@@ -35,7 +35,7 @@
       <fieldForLabel>session_name</fieldForLabel>
       <fieldForValue>session_name</fieldForValue>
       <search>
-        <query>index=ponypoll sourcetype=ponypoll_answer session_name=*
+        <query>`ponypoll_index` sourcetype=ponypoll_answer session_name=*
           | stats max(_time) as last_event by session_name
           | sort -last_event
           | fields session_name</query>
@@ -58,7 +58,7 @@
       <single>
         <title>Quiz completions</title>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+          <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -78,7 +78,7 @@
       <single>
         <title>Unique players</title>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+          <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -98,7 +98,7 @@
       <single>
         <title>Avg score</title>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+          <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -119,7 +119,7 @@
       <single>
         <title>Top score</title>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+          <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -139,7 +139,7 @@
       <single>
         <title>Answers submitted</title>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_answer
+          <query>`ponypoll_index` sourcetype=ponypoll_answer
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -159,7 +159,7 @@
       <title>🏆 Leaderboard</title>
       <table>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+          <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -188,7 +188,7 @@
       <title>📊 Question difficulty (hardest first)</title>
       <table>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_answer
+          <query>`ponypoll_index` sourcetype=ponypoll_answer
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")
@@ -224,7 +224,7 @@
       <title>🕒 Recent sessions</title>
       <table>
         <search>
-          <query>index=ponypoll sourcetype=ponypoll_attempt
+          <query>`ponypoll_index` sourcetype=ponypoll_attempt
             ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
             ($session_tok$="*" OR session_name="$session_tok$")
             ($nickname_tok$="*" OR nickname="$nickname_tok$")

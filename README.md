@@ -76,7 +76,9 @@ The session number is displayed prominently so the host can announce it to the r
 
 ![Settings — default view toggle, poll title, audio toggles, version info](docs/screenshots/settings.png)
 
-The built-in **System Check** runs automatically when you open Settings and verifies that all required Splunk components are working: KV Store read/write access, `ponypoll` index existence and data, and answer submission via `receivers/simple`.
+The **Splunk index for poll answers** field lets you change which index Pony Poll writes to and reads from. It's backed by a Splunk search macro (`ponypoll_index`) so every analytics query, dashboard panel, ad-hoc SPL and the System Check resolve through the same source of truth. Default is `ponypoll`. See [Changing the Splunk index](#changing-the-splunk-index) below for the full procedure.
+
+The built-in **System Check** runs automatically when you open Settings and verifies that all required Splunk components are working: KV Store read/write access, the `ponypoll_index` macro, configured index existence and data, and answer submission via `receivers/simple`.
 
 ![System Check — all checks passing with event count](docs/screenshots/settings-system-check.png)
 
@@ -432,12 +434,25 @@ All settings are in the **Settings** tab inside the app.
 |---|---|---|
 | Poll title | `Pony Poll` | Shown on the start screen |
 | Default view | `Poll` | Switch to `Play` to make `/play` the default entry point |
+| Splunk index for poll answers | `ponypoll` | Backs the `ponypoll_index` search macro — see [below](#changing-the-splunk-index) |
 
 > **Active quiz** is set from the **Admin** tab — pick a quiz and click **Activate for Self-paced**.
 
-Settings are stored in the `ponypoll_config` KV Store collection.
+The two text settings live in the `ponypoll_config` KV Store collection; the index is stored in the `ponypoll_index` Splunk search macro in `local/macros.conf` (so it survives app upgrades).
 
-Answer, attempt and presence events are always written to the `ponypoll` index (created by this app's `indexes.conf`). The sourcetype distinguishes the event class: `ponypoll_answer`, `ponypoll_attempt`, `ponypoll_presence`.
+### Changing the Splunk index
+
+By default, Pony Poll writes to and reads from `index=ponypoll`, which is created by the app's `indexes.conf`. To redirect Pony Poll at a different index in production, change the value in **Settings → Splunk index for poll answers** and click **Save Settings**. Pony Poll updates the `ponypoll_index` macro and every component switches over (Admin, Analytics, the bundled analytics dashboard XML, the System Check, and the answer-submit path).
+
+A few prerequisites are NOT auto-provisioned and must be done by a Splunk admin:
+
+1. **Create the destination index** — Splunk → Settings → Data → Indexes (or via `indexes.conf` in your own app).
+2. **Grant role search access** — extend `srchIndexesAllowed` for `ponypoll_user` / `ponypoll_admin` in `authorize.conf` to include the new index (the defaults grant only `ponypoll`).
+3. **Allow participant writes** — add `[indexes/<your-index>] access = read : [ ponypoll_admin, admin, sc_admin, power ], write : [ * ]` to `default.meta` (or use a local override).
+
+After saving, the **System Check** flags any of the above that are still missing. The `ponypoll_index` macro can also be edited directly in Splunk → Settings → Advanced Search → Search Macros if you prefer; Pony Poll re-reads it on every Settings page load.
+
+The sourcetype distinguishes the event class: `ponypoll_answer`, `ponypoll_attempt`, `ponypoll_presence`. None of those change when the index is reconfigured.
 
 ---
 
@@ -463,21 +478,23 @@ All built-in Splunk roles work out of the box — no role assignment required fo
 
 ## Splunk SPL examples
 
+All examples use the `` `ponypoll_index` `` search macro instead of a hardcoded `index=ponypoll`, so they automatically follow the [configured index](#changing-the-splunk-index).
+
 ```spl
 -- All answers for a session
-index=ponypoll session_id="<id>" | table _time nickname question answer correct points
+`ponypoll_index` session_id="<id>" | table _time nickname question answer correct points
 
 -- Leaderboard (best score per player)
-index=ponypoll sourcetype=ponypoll_attempt event=quiz_complete
+`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
 | stats max(total_score) as best_score by nickname | sort -best_score
 
 -- Correct rate by question
-index=ponypoll type!=freetext type!=slider
+`ponypoll_index` type!=freetext type!=slider
 | stats count as total, sum(eval(correct="true")) as correct_count by question
 | eval pct_correct=round(correct_count/total*100, 1) | sort -pct_correct
 
 -- Word cloud — top terms for a question
-index=ponypoll type=wordcloud question="Name one thing*"
+`ponypoll_index` type=wordcloud question="Name one thing*"
 | eval words=split(answer,",") | mvexpand words
 | eval word=trim(words) | where len(word)>0
 | stats count by word | sort -count | head 30

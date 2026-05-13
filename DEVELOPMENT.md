@@ -268,8 +268,13 @@ All calls go through the Splunk Web proxy at `/{locale}/splunkd/__raw/...` using
 | `fetchLibraryQuiz(filename)` | `async (string) → Question[]` | GET a specific bundled quiz JSON from static files |
 | `fetchGitHubManifest()` | `async () → Manifest` | GET manifest directly from GitHub (requires internet access) |
 | `fetchGitHubQuiz(filename)` | `async (string) → Question[]` | GET a specific quiz JSON directly from GitHub |
-| `submitAnswer(eventData)` | `async (object) → void` | POST event to `receivers/simple` with `sourcetype=ponypoll_answer` (always to `index=ponypoll`) |
-| `submitQuizAttempt(eventData)` | `async (object) → void` | POST event with `sourcetype=ponypoll_attempt` (quiz completion record) |
+| `submitAnswer(eventData)` | `async (object) → void` | POST event to `receivers/simple` with `sourcetype=ponypoll_answer`. Index resolved via `getPollIndex()`. |
+| `submitQuizAttempt(eventData)` | `async (object) → void` | POST event with `sourcetype=ponypoll_attempt` (quiz completion record). Index resolved via `getPollIndex()`. |
+| `getIndexMacro()` | `async () → { definition, indexName } \| null` | GET the `ponypoll_index` Splunk search macro and parse its `index=<name>` definition. Returns `null` on any error. |
+| `saveIndexMacro(name)` | `async (string) → string` | POST the `ponypoll_index` macro with `definition=index=<name>` (writes to `local/macros.conf`). Sanitises the name first; throws on invalid input. Refreshes the in-memory cache. |
+| `getPollIndex()` | `async () → string` | Resolve the currently-configured bare index name (cached 60 s). Falls back to `ponypoll` if the macro is missing/unreachable. |
+| `invalidateIndexCache()` | `() → void` | Force-clear the `getPollIndex()` cache (e.g. after an external macro change). |
+| `sanitizeIndexName(raw)` | `(string) → string \| null` | Lowercase, trim, validate against `^[a-z0-9_][a-z0-9_-]{0,79}$`. Returns null when invalid. |
 | `getSession()` | `async () → Session\|null` | GET `ponypoll_session/active`; returns null if no session exists |
 | `updateSession(doc)` | `async (object) → void` | POST full session document (tries update, falls back to create) |
 | `joinSession(sessionId, nickname)` | `async (string, string) → void` | Write participant presence to KV Store and fire a `ponypoll_presence` event; never throws |
@@ -342,7 +347,7 @@ Single-file page. Renders filter controls (time range, quiz, session, nickname) 
 
 ### `pages/SettingsPage.jsx`
 
-Single-file page. Loads config via `loadConfig()`, presents editable fields (poll title, index, default view), and saves via `saveConfig()`. Also displays version info fetched via `getVersionInfo()`.
+Single-file page. Loads config via `loadConfig()` (poll title, default view, music/SFX toggles) and the `ponypoll_index` macro via `getIndexMacro()` (Splunk index for poll answers). Save persists changed cfg via `saveConfig()` and changed macro via `saveIndexMacro()`. Embeds the **System Check** sub-component which verifies KV read/write, macro parseability, configured index existence, event count, and `receivers/simple` write access. Also displays Splunk + app version info via `getVersionInfo()`.
 
 ### `components/Timer.jsx`
 
@@ -380,7 +385,7 @@ is sent as X-Splunk-Form-Key.
 |---|---|---|---|
 | `ponypoll_quizzes` | auto | `name`, `created_at` | One document per quiz |
 | `ponypoll_questions` | auto | `quiz_id`, `sort_order`, `type`, `text`, `timeLimit`, `options[]`, `explanation`, `imageUrl`, `sliderMin/Max/Step/Unit`, `wordcloudMaxWords/MaxChars` | `sort_order` is integer index; all CRUD via REST |
-| `ponypoll_config` | `"default"` | `poll_subject`, `active_quiz_id`, `default_view` | Single document; `loadConfig()` caches with 60 s TTL. `poll_index` may exist in upgraded docs but is ignored — the app always writes to `index=ponypoll` |
+| `ponypoll_config` | `"default"` | `poll_subject`, `active_quiz_id`, `default_view` | Single document; `loadConfig()` caches with 60 s TTL. The Splunk index for events is **not** stored here — it lives in the `ponypoll_index` search macro (see `default/macros.conf`). A legacy `poll_index` field may exist in upgraded docs but is ignored. |
 | `ponypoll_session` | `"active"` | `phase`, `quiz_id`, `session_id`, `question_index`, `questions[]`, `question_started_at`, `scores{}`, `answer_counts{}` | Single document; host overwrites on every transition; participants poll |
 | `ponypoll_presence` | `{sessionId}_{nickname}` | `session_id`, `nickname`, `joined_at`, `last_seen` | One document per participant per session; cleared by host after session ends |
 

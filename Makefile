@@ -24,6 +24,7 @@ package: build
 	--exclude='__pycache__' \
 	--exclude='./$(APP_NAME)/local' \
 	--exclude='*.pyc' \
+	--exclude='*.bak' \
 	-cvzf $(APP_NAME).tar.gz \
 	-C /tmp \
 	$(APP_NAME)/

@@ -219,7 +219,7 @@ export default function SyncPollPage() {
         if (!sid) return;
         try {
             const rows = await runSearch(
-                `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" | stats sum(points) as score by nickname | sort -score | head 10`,
+                `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sid}" | stats sum(points) as score by nickname | sort -score | head 10`,
                 { earliest: '-1d' }
             );
             setLeaderboard(rows);
@@ -233,11 +233,11 @@ export default function SyncPollPage() {
         try {
             const [distRows, totalRows] = await Promise.all([
                 runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIx} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
+                    `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIx} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
                     { earliest: '-1d' }
                 ),
                 runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIx} | stats count as total`,
+                    `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sid}" question_index=${qIx} | stats count as total`,
                     { earliest: '-1d' }
                 ),
             ]);

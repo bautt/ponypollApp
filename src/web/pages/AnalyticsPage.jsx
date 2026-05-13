@@ -303,7 +303,7 @@ function fmtTime(isoOrUnix) {
 // All-time quiz catalogue — reads from the index so deleted quizzes still appear.
 // Uses stats first() instead of dedup for a deterministic single-pass aggregation.
 function quizListSpl() {
-    return `index=ponypoll sourcetype=ponypoll_attempt
+    return `\`ponypoll_index\` sourcetype=ponypoll_attempt
         | stats first(quiz_name) as quiz_name by quiz_id
         | eval label=if(isnotnull(quiz_name) AND quiz_name!="", quiz_name, quiz_id)
         | fields quiz_id label
@@ -313,7 +313,7 @@ function quizListSpl() {
 function attemptBaseSpl(quizId) {
     const safe = sanitizeId(quizId);
     const qf = safe ? ` quiz_id="${safe}"` : '';
-    return `index=ponypoll sourcetype=ponypoll_attempt${qf}
+    return `\`ponypoll_index\` sourcetype=ponypoll_attempt${qf}
         | table _time event nickname session_id session_name total_score question_count quiz_id quiz_name
         | sort -_time`;
 }
@@ -321,14 +321,14 @@ function attemptBaseSpl(quizId) {
 function answerBaseSpl(quizId) {
     const safe = sanitizeId(quizId);
     const qf = safe ? ` quiz_id="${safe}"` : '';
-    return `index=ponypoll sourcetype=ponypoll_answer${qf}
+    return `\`ponypoll_index\` sourcetype=ponypoll_answer${qf}
         | table _time nickname session_id session_name question correct points type quiz_id
         | sort -_time`;
 }
 
 // Distinct sync session names from ponypoll_answer events — most recent first by event time.
 function sessionListSpl() {
-    return `index=ponypoll sourcetype=ponypoll_answer session_name=*
+    return `\`ponypoll_index\` sourcetype=ponypoll_answer session_name=*
         | stats max(_time) as last_event by session_name
         | sort -last_event
         | fields session_name`;

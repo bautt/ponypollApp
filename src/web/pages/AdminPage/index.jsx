@@ -179,7 +179,7 @@ export default function AdminPage() {
                             const sidSafe = sanitizeId(sid);
                             if (sidSafe) {
                                 const rows = await runSearch(
-                                    `index=ponypoll sourcetype=ponypoll_presence session_id="${sidSafe}" | stats dc(nickname) as n`,
+                                    `\`ponypoll_index\` sourcetype=ponypoll_presence session_id="${sidSafe}" | stats dc(nickname) as n`,
                                     { earliest: '-2h' }
                                 );
                                 idxCount = Number(rows[0]?.n || 0);
@@ -193,7 +193,7 @@ export default function AdminPage() {
                     if (sidSafe) {
                         try {
                             const rows = await runSearch(
-                                `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" | stats dc(nickname) as n`,
+                                `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" | stats dc(nickname) as n`,
                                 { earliest: '-2h' }
                             );
                             if (mounted) setParticipants(Number(rows[0]?.n || 0));
@@ -205,7 +205,7 @@ export default function AdminPage() {
                     if (qType === 'wordcloud' && sidSafe && (sess.phase === 'question' || sess.phase === 'reveal')) {
                         try {
                             const wcRows = await runSearch(
-                                `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIdx} | eval words=split(answer,",") | mvexpand words | eval word=trim(words) | where len(word)>0 | stats count by word | sort -count | rename word as answer`,
+                                `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIdx} | eval words=split(answer,",") | mvexpand words | eval word=trim(words) | where len(word)>0 | stats count by word | sort -count | rename word as answer`,
                                 { earliest: '-1d' }
                             );
                             if (mounted) {
@@ -366,7 +366,7 @@ export default function AdminPage() {
         try {
             if (qType === 'wordcloud') {
                 const rows = await runSearch(
-                    `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIxSafe} | eval words=split(answer,",") | mvexpand words | eval word=trim(words) | where len(word)>0 | stats count by word | sort -count | rename word as answer`,
+                    `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIxSafe} | eval words=split(answer,",") | mvexpand words | eval word=trim(words) | where len(word)>0 | stats count by word | sort -count | rename word as answer`,
                     { earliest: '-1d' }
                 );
                 setWordcloudWords(
@@ -375,11 +375,11 @@ export default function AdminPage() {
             } else {
                 const [distRows, totalRows] = await Promise.all([
                     runSearch(
-                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIxSafe} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
+                        `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIxSafe} | eval opts=split(answer,",") | mvexpand opts | stats count by opts | rename opts as option`,
                         { earliest: '-1d' }
                     ),
                     runSearch(
-                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIxSafe} | stats count as total`,
+                        `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" question_index=${qIxSafe} | stats count as total`,
                         { earliest: '-1d' }
                     ),
                 ]);
@@ -405,7 +405,7 @@ export default function AdminPage() {
                 setWordcloudWords([]);
                 const [lbRows] = await Promise.all([
                     runSearch(
-                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" | stats sum(points) as score by nickname | sort -score | head 10`,
+                        `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" | stats sum(points) as score by nickname | sort -score | head 10`,
                         { earliest: '-1d' }
                     ),
                     fetchDist(sid, qIdx, qType),
@@ -430,7 +430,7 @@ export default function AdminPage() {
                 const sidSafe = sanitizeId(sessionRef.current?.session_id);
                 if (sidSafe) {
                     const rows = await runSearch(
-                        `index=ponypoll sourcetype=ponypoll_answer session_id="${sidSafe}" | stats sum(points) as score by nickname | sort -score | head 10`,
+                        `\`ponypoll_index\` sourcetype=ponypoll_answer session_id="${sidSafe}" | stats sum(points) as score by nickname | sort -score | head 10`,
                         { earliest: '-1d' }
                     );
                     setLeaderboard(rows);
