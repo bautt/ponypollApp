@@ -1,0 +1,38 @@
+[
+  {
+    "id": "default-lobby",
+    "name": "8-bit Bossa",
+    "file": "lobby.mp3",
+    "loop": true,
+    "duration_sec": 60,
+    "recommended_slot": "lobby",
+    "author": "Joth",
+    "license": "CC0",
+    "source": "https://opengameart.org/content/bossa-nova",
+    "bundled": true
+  },
+  {
+    "id": "default-question",
+    "name": "Along the Way",
+    "file": "question.ogg",
+    "loop": true,
+    "duration_sec": 201,
+    "recommended_slot": "question",
+    "author": "congusbongus",
+    "license": "CC0",
+    "source": "https://opengameart.org/content/along-the-way",
+    "bundled": true
+  },
+  {
+    "id": "default-win",
+    "name": "Win Music #1",
+    "file": "win.mp3",
+    "loop": false,
+    "duration_sec": 15,
+    "recommended_slot": "win",
+    "author": "remaxim",
+    "license": "CC0",
+    "source": "https://opengameart.org/content/win-music-1",
+    "bundled": true
+  }
+]

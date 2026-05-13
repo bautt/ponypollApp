@@ -139,10 +139,12 @@ ponypollApp/
         ├── index.js            # Webpack entry point — mounts <App /> into #root
         ├── App.jsx             # Root component; nav, tab routing, seed logic
         ├── lib/
-        │   ├── kvstore.js      # All REST API calls (KV Store, receivers, search)
-        │   ├── questions.js    # Question model, type definitions, seed data
-        │   ├── theme.js        # Design tokens (colours, fonts)
-        │   └── utils.js        # Shared utilities (scoring, shuffle, sanitize)
+        │   ├── kvstore.js          # All REST API calls (KV Store, receivers, search)
+        │   ├── questions.js        # Question model, type definitions, seed data
+        │   ├── theme.js            # Design tokens (colours, fonts)
+        │   ├── audio.js            # Music + SFX manager (slot resolver, autoplay retry)
+        │   ├── audio-catalogue.js  # Music catalogue loader (bundled + GitHub merge, validator)
+        │   └── utils.js            # Shared utilities (scoring, shuffle, sanitize)
         ├── components/
         │   ├── Timer.jsx       # Countdown ring displayed during questions
         │   └── DistBars.jsx    # Horizontal answer distribution bars (post-reveal)
@@ -236,6 +238,29 @@ Question model and utilities:
 - `shuffle(arr)` — Fisher-Yates in-place shuffle (used for random question subsets)
 - `sanitizeId(str)` — strips non-alphanumeric characters from quiz/session IDs before embedding them in SPL strings (injection prevention)
 - `scoreAnswer(question, answer, elapsed, timeLimit)` — calculates points for a submitted answer (speed bonus for single/multi/yesno, flat points for freetext/slider/wordcloud)
+
+### `lib/audio.js` + `lib/audio-catalogue.js`
+
+Music plays in three slots (`lobby`, `question`, `win`). Per-slot track selection is stored in `localStorage` (`ponypoll_track_<slot>`), independent of the existing `ponypoll_music` / `ponypoll_sfx` on-off toggles.
+
+`lib/audio-catalogue.js` owns the catalogue:
+
+- `loadBundledManifest()` — fetch `/static/app/ponypollapp/audio/manifest.json` (ships in the tarball).
+- `loadGitHubManifest({ forceRefresh })` — fetch the live catalogue from `https://raw.githubusercontent.com/bautt/ponypollApp/main/audio/manifest.json`. Caches in `sessionStorage` per tab.
+- `loadMergedManifest({ includeGitHub, forceRefresh })` — returns `{ tracks, githubLoaded, githubError }`. GitHub entries take precedence; bundled entries remain as offline fallback.
+- `validateEntry(entry)` — strict allow-list (`id` `^[a-z0-9_-]{1,40}$`, `file` `[a-zA-Z0-9_/-]+\.(mp3|ogg|wav)`, `source` `https://`). Invalid entries are dropped with `console.warn` so a malformed GitHub PR cannot break Settings.
+- `trackUrl(entry)` — hard-coded prefix per source (`/static/app/ponypollapp/audio/...` vs `raw.githubusercontent.com/...`). No user-controlled URL ever lands in `<audio src>`.
+
+`lib/audio.js` adds resolver + lifecycle on top:
+
+- `playTrack(slot)` — looks up the selected track id, resolves it via the cached catalogue, falls back to bundled defaults if missing.
+- `getSelectedTrackId(slot)` / `setSelectedTrackId(slot, id)` — read/write the per-browser slot selection. Hot-swaps the current track if it's playing.
+- `refreshCatalogue({ includeGitHub, forceRefresh })` — Settings calls this after the user clicks **↻ GitHub** so the player resolves new tracks without a page reload.
+- The retry-on-gesture autoplay logic (touch/keyboard/click) and fade-out machinery survive the refactor unchanged. SFX (`playSfx`) remains procedural via Web Audio API — no files involved.
+
+Settings exposes per-slot dropdowns and a **↻ GitHub** button via `MusicTrackSection` in `pages/SettingsPage.jsx`. The **System Check** has a `music` row that HEADs the bundled audio files and warns (not fails) if missing.
+
+To add tracks: drop file under `audio/<subfolder>/`, add an entry to `audio/manifest.json`, open a PR. No app rebuild — live via **↻ GitHub** as soon as the PR lands.
 
 ---
 

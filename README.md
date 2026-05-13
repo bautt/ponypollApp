@@ -82,7 +82,7 @@ The built-in **System Check** runs automatically when you open Settings and veri
 
 ![System Check — all checks passing with event count](docs/screenshots/settings-system-check.png)
 
-The **Quiz music** and **Sound effects** toggles let each participant enable or disable background music and SFX independently. The preference is stored per browser. See [Music Credits](#music-credits) for track attribution.
+The **Quiz music** and **Sound effects** toggles let each participant enable or disable background music and SFX independently. The preference is stored per browser. Three per-slot **Music tracks** dropdowns (Lobby / Question / Win) sit just below the music toggle — pick a different track for any slot from the bundled set, or click **↻ GitHub** to merge in extra tracks from the live catalogue at [`audio/manifest.json`](audio/manifest.json) (requires outbound HTTPS to `raw.githubusercontent.com`). See [Music Credits](#music-credits) for track attribution.
 
 ![Settings — default view, poll title, audio toggles, system check](docs/screenshots/settings-music.png)
 
@@ -512,7 +512,15 @@ Quiz music is played during the lobby, questions, and win screen. All tracks are
 | Along the Way | Questions / countdown | congusbongus | [opengameart.org/content/along-the-way](https://opengameart.org/content/along-the-way) |
 | Win Music #1 (track 1-3) | Win / results | commissioned by OpenGameArt | [opengameart.org/content/win-music-1](https://opengameart.org/content/win-music-1) |
 
-Music can be toggled on or off per browser in **Settings → Quiz music**.
+Music can be toggled on or off per browser in **Settings → Quiz music**. Each browser can also pick a different track per slot from the **Music tracks** dropdowns, and merge in extra tracks from the live catalogue at [`audio/manifest.json`](audio/manifest.json) via the **↻ GitHub** button. Sound effects are synthesised in the browser (Web Audio API) and do not depend on any files.
+
+### Contributing tracks
+
+The music catalogue is fully extensible without rebuilding the app:
+
+1. Drop a CC0 / public-domain audio file under [`audio/<subfolder>/`](audio/).
+2. Add an entry to [`audio/manifest.json`](audio/manifest.json) — schema documented in [`audio/README.md`](audio/README.md).
+3. Open a PR. Once merged, the track is live for any installation via **↻ GitHub**.
 
 ---
 

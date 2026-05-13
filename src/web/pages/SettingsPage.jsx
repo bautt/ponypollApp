@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { isMusicEnabled, setMusicEnabled, isSfxEnabled, setSfxEnabled } from '../lib/audio';
+import {
+    isMusicEnabled, setMusicEnabled, isSfxEnabled, setSfxEnabled,
+    getSelectedTrackId, setSelectedTrackId, refreshCatalogue,
+} from '../lib/audio';
+import {
+    SLOTS, DEFAULT_IDS, loadMergedManifest, invalidateGitHubCache,
+    listTracksForSlot,
+} from '../lib/audio-catalogue';
 
 const IconSearch = () => (
     <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
@@ -185,6 +192,33 @@ async function fetchUserContext() {
     }
 }
 
+async function checkMusicCatalogue() {
+    const base = '/static/app/ponypollapp/audio/';
+    const manifestRes = await fetch(`${base}manifest.json`, { credentials: 'include' });
+    if (!manifestRes.ok) throw new Error(`manifest.json HTTP ${manifestRes.status}`);
+    const manifest = await manifestRes.json();
+    if (!Array.isArray(manifest)) throw new Error('manifest.json is not an array');
+    const ids = manifest.map(t => t?.id);
+    const required = ['default-lobby', 'default-question', 'default-win'];
+    const missing  = required.filter(id => !ids.includes(id));
+    if (missing.length) throw new Error(`Missing default entries: ${missing.join(', ')}`);
+
+    // HEAD the 3 bundled files — silent failure here means the tarball was
+    // truncated or the static handler is misconfigured.
+    const files = ['lobby.mp3', 'question.ogg', 'win.mp3'];
+    const probes = await Promise.all(files.map(async (f) => {
+        try {
+            const r = await fetch(`${base}${f}`, { method: 'HEAD', credentials: 'include' });
+            return r.ok ? null : `${f} → HTTP ${r.status}`;
+        } catch (e) {
+            return `${f} → ${e.message}`;
+        }
+    }));
+    const broken = probes.filter(Boolean);
+    if (broken.length) throw new Error(broken.join('; '));
+    return `${manifest.length} track${manifest.length === 1 ? '' : 's'}`;
+}
+
 async function checkAnswerSubmission(pollIndex, username) {
     const url = `${locale()}/splunkd/__raw/services/receivers/simple?sourcetype=ponypoll_healthcheck&index=${encodeURIComponent(pollIndex)}`;
     const body = `event=health_check source=ponypoll_settings splunk_user=${encodeURIComponent(username || 'unknown')}`;
@@ -255,6 +289,7 @@ function SystemCheck({ pollIndex }) {
             macro:      'busy',
             idx_exists: 'busy',
             idx_data:   'busy',
+            music:      'busy',
             answers:    writeProbe ? 'busy' : 'idle',
         });
         const ctx = await fetchUserContext();
@@ -307,6 +342,16 @@ function SystemCheck({ pollIndex }) {
         }
         setResults(r => ({ ...r, ...next }));
 
+        // Music catalogue — informational warn-only check. Music is non-essential
+        // so a tarball missing audio doesn't fail the overall health badge.
+        try {
+            const detail = await checkMusicCatalogue();
+            next.music = { state: 'ok', detail };
+        } catch (e) {
+            next.music = { state: 'warn', detail: e.message };
+        }
+        setResults(r => ({ ...r, ...next }));
+
         // Answer submission — only on explicit Re-check (writes an audited event).
         if (writeProbe) {
             try { await checkAnswerSubmission(pollIndex, ctx?.username); next.answers = { state: 'ok' }; }
@@ -329,6 +374,7 @@ function SystemCheck({ pollIndex }) {
         { key: 'macro',     label: 'ponypoll_index macro',       hint: 'The Splunk search macro the app uses to know which index holds quiz events.' },
         { key: 'idx_exists',label: 'Poll index exists',          hint: `Index "${pollIndex}" must exist before answers can be stored.` },
         { key: 'idx_data',  label: 'Poll index has data',        hint: 'At least one quiz has been completed and answers stored.' },
+        { key: 'music',     label: 'Music catalogue OK',         hint: 'Bundled music manifest parses and the 3 default audio files are reachable. Non-essential.' },
         { key: 'answers',   label: 'Answer submission works',    hint: 'Verifies receivers/simple is accessible for the current user.' },
     ];
 
@@ -439,6 +485,171 @@ function SystemCheck({ pollIndex }) {
     );
 }
 
+// ── Music toggle row ─────────────────────────────────────────────────────────
+// Shared shape between the Music and SFX toggles, extracted so the music
+// track section can sit between them without duplicating the JSX.
+function renderToggle({ name, label, val, toggle, onHint, offHint }) {
+    return (
+        <Section key={name}>
+            <Label>{label}</Label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                {[
+                    { v: true,  text: 'On',  hint: onHint  },
+                    { v: false, text: 'Off', hint: offHint },
+                ].map(({ v, text, hint }) => (
+                    <label key={text} style={{
+                        flex: 1, display: 'flex', flexDirection: 'column', gap: 4,
+                        padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
+                        border: `2px solid ${val === v ? C.blue : C.border}`,
+                        background: val === v ? C.blue + '18' : 'transparent',
+                    }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: val === v ? '#fff' : C.text, fontWeight: 600, fontSize: 13 }}>
+                            <input
+                                type="radio"
+                                name={name}
+                                checked={val === v}
+                                onChange={() => toggle(v)}
+                                style={{ accentColor: C.blue }}
+                            />
+                            {text}
+                        </span>
+                        <span style={{ fontSize: 11, color: C.muted, paddingLeft: 20 }}>{hint}</span>
+                    </label>
+                ))}
+            </div>
+            <Hint>Saved per browser — does not affect other participants.</Hint>
+        </Section>
+    );
+}
+
+// ── Music track section (per-slot dropdowns + 🔄 GitHub) ─────────────────────
+
+const SLOT_LABELS = {
+    lobby:    'Lobby track',
+    question: 'Question track',
+    win:      'Win track',
+};
+
+function describeTrack(track) {
+    if (!track) return '';
+    const tags = [];
+    if (track.license) tags.push(track.license);
+    tags.push(track._source === 'github' ? 'GitHub' : 'bundled');
+    return `${track.name} (${tags.join(', ')})`;
+}
+
+function MusicTrackSection({
+    tracks, tracksLoaded, selectedIds, musicOn,
+    githubLoaded, githubError, githubBusy,
+    onRefreshGitHub, onSelect,
+}) {
+    return (
+        <Section>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                <Label style={{ flex: 1, marginBottom: 0 }}>Music tracks</Label>
+                <button
+                    type="button"
+                    onClick={onRefreshGitHub}
+                    disabled={githubBusy}
+                    title="Fetch the live music catalogue from GitHub. Requires outbound HTTPS to raw.githubusercontent.com."
+                    style={{
+                        padding: '4px 10px', borderRadius: 6,
+                        border: `1px solid ${C.border}`,
+                        background: githubBusy ? C.surface : 'transparent',
+                        color: githubLoaded ? C.accent : C.text,
+                        fontSize: 11, fontWeight: 600,
+                        cursor: githubBusy ? 'default' : 'pointer',
+                        opacity: githubBusy ? 0.6 : 1,
+                    }}
+                >
+                    {githubBusy
+                        ? '… loading'
+                        : githubLoaded ? '↻ GitHub (loaded)' : '↻ GitHub'}
+                </button>
+            </div>
+
+            {!tracksLoaded ? (
+                <Hint style={{ marginTop: 8 }}>Loading catalogue…</Hint>
+            ) : (
+                <div style={{ marginTop: 8, opacity: musicOn ? 1 : 0.5 }}>
+                    {SLOTS.map((slot) => {
+                        const ordered = listTracksForSlot(tracks, slot);
+                        const recommended = ordered.filter(t => t.recommended_slot === slot);
+                        const other       = ordered.filter(t => t.recommended_slot !== slot);
+                        const sel = selectedIds[slot];
+                        const known = ordered.some(t => t.id === sel);
+                        const fallbackId = DEFAULT_IDS[slot];
+                        return (
+                            <div key={slot} style={{
+                                display: 'flex', alignItems: 'center', gap: 12,
+                                marginBottom: 8,
+                            }}>
+                                <span style={{
+                                    minWidth: 120, fontSize: 13, color: C.text, fontWeight: 500,
+                                }}>
+                                    {SLOT_LABELS[slot]}
+                                </span>
+                                <select
+                                    value={known ? sel : fallbackId}
+                                    onChange={(e) => onSelect(slot, e.target.value)}
+                                    disabled={!musicOn}
+                                    style={{
+                                        flex: 1,
+                                        padding: '7px 9px',
+                                        background: C.bg,
+                                        color: C.text,
+                                        border: `1px solid ${C.border}`,
+                                        borderRadius: 6,
+                                        fontSize: 13,
+                                        cursor: musicOn ? 'pointer' : 'default',
+                                    }}
+                                >
+                                    {recommended.length > 0 && (
+                                        <optgroup label={`Recommended for ${slot}`}>
+                                            {recommended.map((t) => (
+                                                <option key={t.id} value={t.id}>{describeTrack(t)}</option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                    {other.length > 0 && (
+                                        <optgroup label="Other tracks">
+                                            {other.map((t) => (
+                                                <option key={t.id} value={t.id}>{describeTrack(t)}</option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                </select>
+                            </div>
+                        );
+                    })}
+
+                    {/* Per-slot missing-selection warnings */}
+                    {SLOTS.map((slot) => {
+                        const sel = selectedIds[slot];
+                        const known = tracks.some(t => t.id === sel);
+                        if (known) return null;
+                        return (
+                            <Hint key={`miss-${slot}`} style={{ color: C.yellow, marginTop: 4 }}>
+                                Previous {SLOT_LABELS[slot].toLowerCase()} <code style={{ color: C.yellow }}>{sel}</code> is no longer in the catalogue — falling back to the default. Pick a track above to clear this warning.
+                            </Hint>
+                        );
+                    })}
+
+                    {githubError && (
+                        <Hint style={{ color: C.red, marginTop: 8 }}>
+                            GitHub catalogue unreachable: {githubError}. Bundled tracks still work.
+                        </Hint>
+                    )}
+
+                    <Hint style={{ marginTop: 8 }}>
+                        Per-slot picks saved per browser. Click <strong>↻ GitHub</strong> to add tracks from the live catalogue (requires outbound HTTPS).
+                    </Hint>
+                </div>
+            )}
+        </Section>
+    );
+}
+
 export default function SettingsPage() {
     const [cfg, setCfg] = useState({ poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
     const [saving, setSaving] = useState(false);
@@ -446,6 +657,48 @@ export default function SettingsPage() {
     const [versions, setVersions] = useState(null);
     const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
     const [sfxOn,   setSfxOn]   = useState(() => isSfxEnabled());
+
+    // ── Music track catalogue + per-slot selection ────────────────────────────
+    // Catalogue is loaded on mount (bundled only). GitHub is fetched on demand
+    // via the 🔄 GitHub button to avoid a third-party request on every page open.
+    const [tracks, setTracks] = useState([]);
+    const [tracksLoaded, setTracksLoaded] = useState(false);
+    const [githubLoaded, setGithubLoaded] = useState(false);
+    const [githubError,  setGithubError]  = useState(null);
+    const [githubBusy,   setGithubBusy]   = useState(false);
+    const [selectedIds,  setSelectedIds]  = useState(() => ({
+        lobby:    getSelectedTrackId('lobby'),
+        question: getSelectedTrackId('question'),
+        win:      getSelectedTrackId('win'),
+    }));
+
+    const loadCatalogue = useCallback(async ({ includeGitHub, forceRefresh } = {}) => {
+        const result = await loadMergedManifest({ includeGitHub, forceRefresh });
+        setTracks(result.tracks);
+        setTracksLoaded(true);
+        setGithubLoaded(result.githubLoaded);
+        setGithubError(result.githubError);
+        // Push the same merged list into the audio player so user selections
+        // resolve correctly without a hard reload of the page.
+        refreshCatalogue({ includeGitHub: !!includeGitHub, forceRefresh: !!forceRefresh }).catch(() => {});
+        return result;
+    }, []);
+
+    const handleRefreshGitHub = useCallback(async () => {
+        if (githubBusy) return;
+        setGithubBusy(true);
+        invalidateGitHubCache();
+        try {
+            await loadCatalogue({ includeGitHub: true, forceRefresh: true });
+        } finally {
+            setGithubBusy(false);
+        }
+    }, [githubBusy, loadCatalogue]);
+
+    const handleSelectTrack = useCallback((slot, trackId) => {
+        setSelectedTrackId(slot, trackId);
+        setSelectedIds((prev) => ({ ...prev, [slot]: trackId }));
+    }, []);
 
     // ponypoll_index search macro state — independent of cfg because it lives
     // in macros.conf, not the KV config collection. `idxInput` mirrors the
@@ -466,6 +719,7 @@ export default function SettingsPage() {
     }, []);
 
     useEffect(() => {
+        loadCatalogue({ includeGitHub: false }).catch(() => {});
         getVersionInfo().then(setVersions).catch(() => {});
 
         loadConfig()
@@ -607,54 +861,35 @@ export default function SettingsPage() {
                     )}
                 </Section>
 
-                {[
-                    {
-                        name:    'music_enabled',
-                        label:   'Quiz music',
-                        val:     musicOn,
-                        toggle:  handleMusicToggle,
-                        onHint:  'Lobby, question and win music play during the quiz',
-                        offHint: 'No background music',
-                    },
-                    {
-                        name:    'sfx_enabled',
-                        label:   'Sound effects',
-                        val:     sfxOn,
-                        toggle:  handleSfxToggle,
-                        onHint:  'Click, submit and timeout sounds play during the quiz',
-                        offHint: 'No sound effects',
-                    },
-                ].map(({ name, label, val, toggle, onHint, offHint }) => (
-                    <Section key={name}>
-                        <Label>{label}</Label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                            {[
-                                { v: true,  text: 'On',  hint: onHint  },
-                                { v: false, text: 'Off', hint: offHint },
-                            ].map(({ v, text, hint }) => (
-                                <label key={text} style={{
-                                    flex: 1, display: 'flex', flexDirection: 'column', gap: 4,
-                                    padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
-                                    border: `2px solid ${val === v ? C.blue : C.border}`,
-                                    background: val === v ? C.blue + '18' : 'transparent',
-                                }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: val === v ? '#fff' : C.text, fontWeight: 600, fontSize: 13 }}>
-                                        <input
-                                            type="radio"
-                                            name={name}
-                                            checked={val === v}
-                                            onChange={() => toggle(v)}
-                                            style={{ accentColor: C.blue }}
-                                        />
-                                        {text}
-                                    </span>
-                                    <span style={{ fontSize: 11, color: C.muted, paddingLeft: 20 }}>{hint}</span>
-                                </label>
-                            ))}
-                        </div>
-                        <Hint>Saved per browser — does not affect other participants.</Hint>
-                    </Section>
-                ))}
+                {renderToggle({
+                    name:    'music_enabled',
+                    label:   'Quiz music',
+                    val:     musicOn,
+                    toggle:  handleMusicToggle,
+                    onHint:  'Lobby, question and win music play during the quiz',
+                    offHint: 'No background music',
+                })}
+
+                <MusicTrackSection
+                    tracks={tracks}
+                    tracksLoaded={tracksLoaded}
+                    selectedIds={selectedIds}
+                    musicOn={musicOn}
+                    githubLoaded={githubLoaded}
+                    githubError={githubError}
+                    githubBusy={githubBusy}
+                    onRefreshGitHub={handleRefreshGitHub}
+                    onSelect={handleSelectTrack}
+                />
+
+                {renderToggle({
+                    name:    'sfx_enabled',
+                    label:   'Sound effects',
+                    val:     sfxOn,
+                    toggle:  handleSfxToggle,
+                    onHint:  'Click, submit and timeout sounds play during the quiz',
+                    offHint: 'No sound effects',
+                })}
 
                 <SaveBtn onClick={handleSave} disabled={saving}>
                     {saving ? 'Saving…' : 'Save Settings'}
