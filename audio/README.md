@@ -16,13 +16,16 @@ Each browser stores its own per-slot selection in `localStorage` — there is no
 
 ## Bundled vs GitHub-only
 
-| Track | File | Bundled with app | Available via 🔄 GitHub |
-|---|---|---|---|
-| 8-bit Bossa (Joth, CC0) | `lobby.mp3` | ✅ | ✅ |
-| Along the Way (congusbongus, CC0) | `question.ogg` | ✅ | ✅ |
-| Win Music #1 (remaxim, CC0) | `win.mp3` | ✅ | ✅ |
+| Track | File | Recommended slot | Bundled with app | Available via 🔄 GitHub |
+|---|---|---|---|---|
+| 8-bit Bossa (Joth, CC0) | `lobby.mp3` | lobby | ✅ | ✅ |
+| Along the Way (congusbongus, CC0) | `question.ogg` | question | ✅ | ✅ |
+| Win Music #1 (remaxim, CC0) | `win.mp3` | win | ✅ | ✅ |
+| Neonpunkte (Henri Mak, CC0) | `henri-mak/neonpunkte.mp3` | lobby | — | ✅ |
+| Neonquiz (Henri Mak, CC0) | `henri-mak/neonquiz.mp3` | question | — | ✅ |
+| Leiser Münzregen (Henri Mak, CC0) | `henri-mak/leiser-muenzregen.mp3` | lobby | — | ✅ |
 
-> **Bundled** tracks ship inside the `splunk4champions2` tarball and work on air-gapped Splunk instances. **GitHub-only** tracks need outbound HTTPS to `raw.githubusercontent.com`.
+> **Bundled** tracks ship inside the `ponypollapp` tarball and work on air-gapped Splunk instances. **GitHub-only** tracks need outbound HTTPS to `raw.githubusercontent.com`.
 
 The catalogue is intentionally small — extending it is a pull request, see below.
 

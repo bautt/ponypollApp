@@ -11,6 +11,10 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Local virtualenvs (e.g. splunk-appinspect)
+.venv*/
+venv/
+
 # macOS
 .DS_Store
 

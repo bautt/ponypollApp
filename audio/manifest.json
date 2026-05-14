@@ -34,5 +34,41 @@
     "license": "CC0",
     "source": "https://opengameart.org/content/win-music-1",
     "bundled": true
+  },
+  {
+    "id": "henri-mak-neonpunkte",
+    "name": "Neonpunkte",
+    "file": "henri-mak/neonpunkte.mp3",
+    "loop": true,
+    "duration_sec": 105,
+    "recommended_slot": "lobby",
+    "author": "Henri Mak",
+    "license": "CC0",
+    "source": "https://github.com/bautt/ponypollApp/tree/main/audio/henri-mak",
+    "bundled": false
+  },
+  {
+    "id": "henri-mak-neonquiz",
+    "name": "Neonquiz",
+    "file": "henri-mak/neonquiz.mp3",
+    "loop": true,
+    "duration_sec": 35,
+    "recommended_slot": "question",
+    "author": "Henri Mak",
+    "license": "CC0",
+    "source": "https://github.com/bautt/ponypollApp/tree/main/audio/henri-mak",
+    "bundled": false
+  },
+  {
+    "id": "henri-mak-leiser-muenzregen",
+    "name": "Leiser Münzregen",
+    "file": "henri-mak/leiser-muenzregen.mp3",
+    "loop": true,
+    "duration_sec": 109,
+    "recommended_slot": "lobby",
+    "author": "Henri Mak",
+    "license": "CC0",
+    "source": "https://github.com/bautt/ponypollApp/tree/main/audio/henri-mak",
+    "bundled": false
   }
 ]
