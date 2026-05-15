@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     isMusicEnabled, setMusicEnabled, isSfxEnabled, setSfxEnabled,
     getSelectedTrackId, setSelectedTrackId, refreshCatalogue,
 } from '../lib/audio';
 import {
     SLOTS, DEFAULT_IDS, loadMergedManifest, invalidateGitHubCache,
-    listTracksForSlot,
+    listTracksForSlot, trackUrl,
 } from '../lib/audio-catalogue';
 
 const IconSearch = () => (
@@ -538,11 +538,275 @@ function describeTrack(track) {
     return `${track.name} (${tags.join(', ')})`;
 }
 
+const PREVIEW_MS = 8000;
+
+// ── Custom dropdown row: a clickable track row with an inline ▶ button ──
+// Nested <button> is invalid HTML, so the row is a focusable <div> that
+// handles Enter/Space; the play control is the only real <button> inside.
+function TrackRow({ track, selected, previewingTrackId, onSelect, onPreview }) {
+    const isPreviewing = previewingTrackId === track.id;
+    const commit = () => onSelect(track.id);
+    return (
+        <div
+            role="option"
+            aria-selected={selected}
+            tabIndex={0}
+            onClick={commit}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    commit();
+                }
+            }}
+            style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '6px 10px',
+                background: selected ? C.surface : 'transparent',
+                borderLeft: `2px solid ${selected ? C.accent : 'transparent'}`,
+                cursor: 'pointer',
+                fontSize: 12, color: C.text,
+                outline: 'none',
+            }}
+            onFocus={(e) => { e.currentTarget.style.background = C.bg; }}
+            onBlur={(e) => { e.currentTarget.style.background = selected ? C.surface : 'transparent'; }}
+            onMouseEnter={(e) => { if (!selected) e.currentTarget.style.background = C.bg; }}
+            onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+        >
+            <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onPreview(track); }}
+                title={isPreviewing ? 'Stop preview' : `Preview "${track.name}"`}
+                aria-label={isPreviewing ? `Stop ${track.name} preview` : `Preview ${track.name}`}
+                style={{
+                    flexShrink: 0,
+                    width: 22, height: 22, padding: 0,
+                    borderRadius: 4,
+                    border: `1px solid ${C.border}`,
+                    background: isPreviewing ? C.accent : 'transparent',
+                    color: isPreviewing ? '#000' : C.text,
+                    fontSize: 9, fontWeight: 700, lineHeight: 1,
+                    cursor: 'pointer',
+                }}
+            >
+                {isPreviewing ? '■' : '▶'}
+            </button>
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {describeTrack(track)}
+            </span>
+        </div>
+    );
+}
+
+// ── Custom popover dropdown that replaces native <select> ──
+// Native <select> can't host interactive children, so we roll our own to
+// put a ▶ button on every row for "audition without committing". The
+// trigger reproduces the visual of the original select; the popover is
+// absolutely-positioned with scroll when overflowing.
+function MusicTrackPicker({
+    slot, tracks, selectedId, previewingTrackId,
+    musicOn, tracksLoaded, onSelect, onPreview, onClosePreview,
+}) {
+    const [open, setOpen] = useState(false);
+    const rootRef = useRef(null);
+
+    const ordered = listTracksForSlot(tracks, slot);
+    const recommended = ordered.filter((t) => t.recommended_slot === slot);
+    const other = ordered.filter((t) => t.recommended_slot !== slot);
+    const fallbackId = DEFAULT_IDS[slot];
+    const known = ordered.some((t) => t.id === selectedId);
+    const effectiveId = known ? selectedId : fallbackId;
+    const selectedTrack = ordered.find((t) => t.id === effectiveId);
+
+    // Close on outside-click or Escape. Stops any in-flight preview too —
+    // preview is scoped to the open picker, so closing it cancels.
+    useEffect(() => {
+        if (!open) return undefined;
+        const onDown = (e) => {
+            if (rootRef.current && !rootRef.current.contains(e.target)) {
+                setOpen(false);
+                onClosePreview();
+            }
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') {
+                setOpen(false);
+                onClosePreview();
+            }
+        };
+        document.addEventListener('mousedown', onDown);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onDown);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [open, onClosePreview]);
+
+    const commit = (id) => {
+        onSelect(slot, id);
+        setOpen(false);
+        onClosePreview();
+    };
+
+    return (
+        <div ref={rootRef} style={{ flex: 1, position: 'relative' }}>
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                disabled={!tracksLoaded || !musicOn}
+                style={{
+                    width: '100%',
+                    padding: '7px 9px',
+                    background: C.bg,
+                    color: C.text,
+                    border: `1px solid ${open ? C.accent : C.border}`,
+                    borderRadius: 6,
+                    fontSize: 13,
+                    cursor: musicOn ? 'pointer' : 'default',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                }}
+            >
+                <span style={{
+                    flex: 1,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                    {selectedTrack ? describeTrack(selectedTrack) : 'Loading…'}
+                </span>
+                <span style={{ opacity: 0.6, fontSize: 10 }} aria-hidden>
+                    {open ? '▲' : '▼'}
+                </span>
+            </button>
+            {open && (
+                <div
+                    role="listbox"
+                    aria-label={`${slot} track`}
+                    style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 4px)',
+                        left: 0, right: 0,
+                        zIndex: 10,
+                        background: C.surface,
+                        border: `1px solid ${C.border}`,
+                        borderRadius: 6,
+                        maxHeight: 260,
+                        overflowY: 'auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                        padding: '4px 0',
+                    }}
+                >
+                    {recommended.length > 0 && (
+                        <>
+                            <div style={{
+                                padding: '4px 10px',
+                                fontSize: 10, color: C.muted,
+                                textTransform: 'uppercase', letterSpacing: '0.05em',
+                            }}>
+                                Recommended for {slot}
+                            </div>
+                            {recommended.map((t) => (
+                                <TrackRow
+                                    key={t.id}
+                                    track={t}
+                                    selected={t.id === effectiveId}
+                                    previewingTrackId={previewingTrackId}
+                                    onSelect={commit}
+                                    onPreview={onPreview}
+                                />
+                            ))}
+                        </>
+                    )}
+                    {other.length > 0 && (
+                        <>
+                            <div style={{
+                                padding: '4px 10px',
+                                marginTop: recommended.length > 0 ? 4 : 0,
+                                fontSize: 10, color: C.muted,
+                                textTransform: 'uppercase', letterSpacing: '0.05em',
+                            }}>
+                                Other tracks
+                            </div>
+                            {other.map((t) => (
+                                <TrackRow
+                                    key={t.id}
+                                    track={t}
+                                    selected={t.id === effectiveId}
+                                    previewingTrackId={previewingTrackId}
+                                    onSelect={commit}
+                                    onPreview={onPreview}
+                                />
+                            ))}
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
 function MusicTrackSection({
     tracks, tracksLoaded, selectedIds, musicOn,
     githubLoaded, githubError, githubBusy,
     onRefreshGitHub, onSelect,
 }) {
+    // Audition any track for a few seconds without committing. Uses a
+    // single private <audio> element that has no overlap with audio.js
+    // (which manages quiz playback in lobby/question/win phases — none of
+    // which happen on the Settings page).
+    const audioRef = useRef(null);
+    const timerRef = useRef(null);
+    const [previewingTrackId, setPreviewingTrackId] = useState(null);
+
+    const stopPreview = useCallback(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+        const a = audioRef.current;
+        if (a) {
+            a.onended = null;
+            a.pause();
+            try { a.currentTime = 0; } catch (_) { /* ignore */ }
+        }
+        setPreviewingTrackId(null);
+    }, []);
+
+    const handlePreview = useCallback((track) => {
+        if (!track) return;
+        if (previewingTrackId === track.id) {
+            stopPreview();
+            return;
+        }
+        const url = trackUrl(track);
+        if (!url) return;
+        stopPreview();
+        if (!audioRef.current) audioRef.current = new Audio();
+        const a = audioRef.current;
+        a.src = url;
+        a.volume = 0.6;
+        a.onended = stopPreview;
+        a.play()
+            .then(() => {
+                setPreviewingTrackId(track.id);
+                timerRef.current = setTimeout(stopPreview, PREVIEW_MS);
+            })
+            .catch((e) => {
+                console.warn('[music-preview] play failed:', e?.message || e);
+                stopPreview();
+            });
+    }, [previewingTrackId, stopPreview]);
+
+    // Cleanup on unmount; also bail if the currently-previewing track
+    // vanishes from the catalogue (e.g. after a GitHub refresh).
+    useEffect(() => () => stopPreview(), [stopPreview]);
+    useEffect(() => {
+        if (!previewingTrackId) return;
+        if (!tracks.some((t) => t.id === previewingTrackId)) stopPreview();
+    }, [tracks, previewingTrackId, stopPreview]);
+
     return (
         <Section>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
@@ -572,56 +836,29 @@ function MusicTrackSection({
                 <Hint style={{ marginTop: 8 }}>Loading catalogue…</Hint>
             ) : (
                 <div style={{ marginTop: 8, opacity: musicOn ? 1 : 0.5 }}>
-                    {SLOTS.map((slot) => {
-                        const ordered = listTracksForSlot(tracks, slot);
-                        const recommended = ordered.filter(t => t.recommended_slot === slot);
-                        const other       = ordered.filter(t => t.recommended_slot !== slot);
-                        const sel = selectedIds[slot];
-                        const known = ordered.some(t => t.id === sel);
-                        const fallbackId = DEFAULT_IDS[slot];
-                        return (
-                            <div key={slot} style={{
-                                display: 'flex', alignItems: 'center', gap: 12,
-                                marginBottom: 8,
+                    {SLOTS.map((slot) => (
+                        <div key={slot} style={{
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            marginBottom: 8,
+                        }}>
+                            <span style={{
+                                minWidth: 120, fontSize: 13, color: C.text, fontWeight: 500,
                             }}>
-                                <span style={{
-                                    minWidth: 120, fontSize: 13, color: C.text, fontWeight: 500,
-                                }}>
-                                    {SLOT_LABELS[slot]}
-                                </span>
-                                <select
-                                    value={known ? sel : fallbackId}
-                                    onChange={(e) => onSelect(slot, e.target.value)}
-                                    disabled={!musicOn}
-                                    style={{
-                                        flex: 1,
-                                        padding: '7px 9px',
-                                        background: C.bg,
-                                        color: C.text,
-                                        border: `1px solid ${C.border}`,
-                                        borderRadius: 6,
-                                        fontSize: 13,
-                                        cursor: musicOn ? 'pointer' : 'default',
-                                    }}
-                                >
-                                    {recommended.length > 0 && (
-                                        <optgroup label={`Recommended for ${slot}`}>
-                                            {recommended.map((t) => (
-                                                <option key={t.id} value={t.id}>{describeTrack(t)}</option>
-                                            ))}
-                                        </optgroup>
-                                    )}
-                                    {other.length > 0 && (
-                                        <optgroup label="Other tracks">
-                                            {other.map((t) => (
-                                                <option key={t.id} value={t.id}>{describeTrack(t)}</option>
-                                            ))}
-                                        </optgroup>
-                                    )}
-                                </select>
-                            </div>
-                        );
-                    })}
+                                {SLOT_LABELS[slot]}
+                            </span>
+                            <MusicTrackPicker
+                                slot={slot}
+                                tracks={tracks}
+                                selectedId={selectedIds[slot]}
+                                previewingTrackId={previewingTrackId}
+                                musicOn={musicOn}
+                                tracksLoaded={tracksLoaded}
+                                onSelect={onSelect}
+                                onPreview={handlePreview}
+                                onClosePreview={stopPreview}
+                            />
+                        </div>
+                    ))}
 
                     {/* Per-slot missing-selection warnings */}
                     {SLOTS.map((slot) => {
