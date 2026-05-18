@@ -72,6 +72,17 @@ export const SessionNumber = styled.div`
 `;
 
 // ── Inputs ────────────────────────────────────────────────────────────────────
+// Visually-hidden but screen-reader-accessible label (sr-only pattern).
+export const SrOnly = styled.span`
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+`;
+
 export const NicknameInput = styled.input`
     width: 100%;
     background: ${C.surface2};
@@ -151,6 +162,7 @@ export const OptionsGrid = styled.div`
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-bottom: 8px;
+    @media (max-width: 600px) { grid-template-columns: 1fr; }
 `;
 
 export const OptionBtn = styled.button`
@@ -205,6 +217,38 @@ export const FeedbackBox = styled.div`
     color: ${({ $correct }) => ($correct ? C.green : C.red)};
 `;
 
+// Inline banner shown when submitAnswer's retry chain fails.
+// Amber, not red — the answer is held client-side and re-sendable on tap.
+export const SubmitErrorBox = styled.div`
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #2a1f00;
+    border: 1px solid #ED8B00;
+    color: #F5C16C;
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+`;
+
+export const SubmitRetryBtn = styled.button`
+    align-self: stretch;
+    padding: 12px 18px;
+    min-height: 44px;
+    border: 1px solid #ED8B00;
+    border-radius: 8px;
+    background: transparent;
+    color: #F5C16C;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: ${({ disabled }) => (disabled ? 'default' : 'pointer')};
+    opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
+    touch-action: manipulation;
+    &:hover:not(:disabled) { background: #3a2a00; }
+`;
+
 export const ScoreCircle = styled.div`
     width: 110px; height: 110px;
     border-radius: 50%;
@@ -224,6 +268,7 @@ export const Waiting = styled.div`
     color: ${C.muted};
     font-size: 15px;
     ${css`animation: ${pulse} 2s infinite;`}
+    @media (prefers-reduced-motion: reduce) { animation: none; }
 `;
 
 // ── Leaderboard ───────────────────────────────────────────────────────────────

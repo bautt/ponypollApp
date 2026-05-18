@@ -42,6 +42,27 @@ function answerString(type, selected, sliderVal, freetextVal, wcWords) {
     return selected.join(',');
 }
 
+// Submit one answer payload with bounded retries + exponential backoff with
+// jitter. Used by handleSubmit and the inline "Retry" affordance. Network
+// flakiness on mobile (WiFi handoff, captive portal, screen-off radio drop)
+// makes single-shot POSTs surprisingly fragile, so we give the user a few
+// silent retries before surfacing the error.
+async function submitWithRetry(payload, { attempts = 4, baseDelayMs = 500 } = {}) {
+    let lastErr = null;
+    for (let i = 0; i < attempts; i++) {
+        try {
+            await submitAnswer(payload);
+            return null;
+        } catch (e) {
+            lastErr = e;
+            if (i === attempts - 1) break;
+            const delay = baseDelayMs * Math.pow(2, i) + Math.floor(Math.random() * 200);
+            await new Promise((r) => setTimeout(r, delay));
+        }
+    }
+    return lastErr || new Error('Submit failed');
+}
+
 function isCorrect(type, selected, options) {
     if (type === 'freetext' || type === 'slider' || type === 'wordcloud') return null;
     if (type === 'single' || type === 'yesno') {
@@ -75,6 +96,9 @@ export default function SyncPollPage() {
     const [wcInput, setWcInput]       = useState('');
     const [sliderVal, setSliderVal]   = useState(null);
     const [submitted, setSubmitted]   = useState(false);
+    const [submitError, setSubmitError] = useState(null);
+    const [submitRetrying, setSubmitRetrying] = useState(false);
+    const lastPayloadRef              = useRef(null);
     const [pointsEarned, setPointsEarned] = useState(0);
     const [wasCorrect, setWasCorrect] = useState(null);
     const [timeLeft, setTimeLeft]     = useState(0);
@@ -183,6 +207,9 @@ export default function SyncPollPage() {
         setWcInput('');
         setSliderVal(null);
         setSubmitted(false);
+        setSubmitError(null);
+        setSubmitRetrying(false);
+        lastPayloadRef.current = null;
         setWasCorrect(null);
         setPointsEarned(0);
 
@@ -296,24 +323,39 @@ export default function SyncPollPage() {
             return next;
         });
 
-        const ansStr = answerString(q.type, selected, sliderVal, freetextVal, wcWords);
-        try {
-            await submitAnswer({
-                session_id:     session.session_id,
-                session_name:   session.session_name || '',
-                quiz_id:        session.quiz_id || '',
-                quiz_name:      session.quiz_name || '',
-                nickname:       nicknameRef.current,
-                question_index: Number(session.question_index) || 0,
-                question:       q.text,
-                type:           q.type,
-                answer:         ansStr,
-                correct:        correct === null ? 'n/a' : String(correct),
-                points:         pts,
-                time_remaining: tLeft,
-            });
-        } catch (_) { /* best-effort */ }
+        const ansStr  = answerString(q.type, selected, sliderVal, freetextVal, wcWords);
+        const payload = {
+            session_id:     session.session_id,
+            session_name:   session.session_name || '',
+            quiz_id:        session.quiz_id || '',
+            quiz_name:      session.quiz_name || '',
+            nickname:       nicknameRef.current,
+            question_index: Number(session.question_index) || 0,
+            question:       q.text,
+            type:           q.type,
+            answer:         ansStr,
+            correct:        correct === null ? 'n/a' : String(correct),
+            points:         pts,
+            time_remaining: tLeft,
+        };
+        lastPayloadRef.current = payload;
+        setSubmitError(null);
+        const err = await submitWithRetry(payload);
+        if (err) setSubmitError(err.message || 'Could not reach Splunk');
     }, [submitted, question, session, selected, sliderVal, freetextVal, wcWords]);
+
+    // Manual retry — re-uses the snapshot taken at submission time so the
+    // answer/score the user saw is what lands on the server (no second-guess
+    // window after pressing Submit).
+    const handleRetrySubmit = useCallback(async () => {
+        const payload = lastPayloadRef.current;
+        if (!payload || submitRetrying) return;
+        setSubmitRetrying(true);
+        setSubmitError(null);
+        const err = await submitWithRetry(payload);
+        if (err) setSubmitError(err.message || 'Could not reach Splunk');
+        setSubmitRetrying(false);
+    }, [submitRetrying]);
 
     // ── Derived state ─────────────────────────────────────────────────────────
     const phase    = session?.phase || 'idle';
@@ -387,6 +429,9 @@ export default function SyncPollPage() {
                 onSubmit={handleSubmit}
                 locked={locked}
                 wcEmpty={wcEmpty}
+                submitError={submitError}
+                submitRetrying={submitRetrying}
+                onRetrySubmit={handleRetrySubmit}
             />
         );
     }

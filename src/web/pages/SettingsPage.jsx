@@ -614,13 +614,14 @@ function MusicTrackSection({
                     disabled={githubBusy}
                     title="Fetch the live music catalogue from GitHub. Requires outbound HTTPS to raw.githubusercontent.com."
                     style={{
-                        padding: '4px 10px', borderRadius: 6,
+                        padding: '8px 14px', minHeight: 36, borderRadius: 6,
                         border: `1px solid ${C.border}`,
                         background: githubBusy ? C.surface : 'transparent',
                         color: githubLoaded ? C.accent : C.text,
-                        fontSize: 11, fontWeight: 600,
+                        fontSize: 12, fontWeight: 600,
                         cursor: githubBusy ? 'default' : 'pointer',
                         opacity: githubBusy ? 0.6 : 1,
+                        touchAction: 'manipulation',
                     }}
                 >
                     {githubBusy
@@ -690,18 +691,20 @@ function MusicTrackSection({
                                     aria-label={previewing === slot
                                         ? `Stop ${slot} preview`
                                         : `Preview ${slot} track`}
+                                    aria-pressed={previewing === slot}
                                     style={{
                                         flexShrink: 0,
-                                        width: 30, height: 30, padding: 0,
+                                        width: 40, height: 40, padding: 0,
                                         borderRadius: 6,
                                         border: `1px solid ${C.border}`,
                                         background: previewing === slot ? C.accent : 'transparent',
                                         color: previewing === slot ? '#000' : C.text,
-                                        fontSize: 11,
+                                        fontSize: 14,
                                         fontWeight: 700,
                                         lineHeight: 1,
                                         cursor: tracksLoaded ? 'pointer' : 'default',
                                         opacity: tracksLoaded ? 1 : 0.5,
+                                        touchAction: 'manipulation',
                                     }}
                                 >
                                     {previewing === slot ? '■' : '▶'}
@@ -893,7 +896,7 @@ export default function SettingsPage() {
                     {cfg.default_view === 'play' && (
                         <Hint style={{ marginTop: 10, background: C.blue + '12', border: `1px solid ${C.blue}44`, borderRadius: 6, padding: '8px 10px' }}>
                             <strong style={{ color: C.blue }}>Admin access when Play is default:</strong><br />
-                            • <strong>⚙ Admin</strong> link — hover the bottom-right corner of the Play view<br />
+                            • <strong>⚙ Admin</strong> button — bottom-right corner of the Play view (always visible)<br />
                             • <strong>URL bypass</strong> — bookmark <code style={{ color: C.accent }}>/app/ponypollapp/poll?admin</code> to always open the full app
                         </Hint>
                     )}

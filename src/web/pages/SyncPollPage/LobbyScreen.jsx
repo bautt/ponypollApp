@@ -1,6 +1,6 @@
 import React from 'react';
 import { C } from '../../lib/theme';
-import { Page, Card, Title, Sub, NicknameInput, JoinBtn, Waiting, SessionNumber } from './styles';
+import { Page, Card, Title, Sub, NicknameInput, JoinBtn, Waiting, SessionNumber, SrOnly } from './styles';
 import AudioToggles from '../../components/AudioToggles';
 
 export default function LobbyScreen({ phase, sessionName, joined, nickname, setNickname, splunkUser, onJoin, joinBusy, nicknameRef }) {
@@ -29,7 +29,11 @@ export default function LobbyScreen({ phase, sessionName, joined, nickname, setN
                     )}
                     <Title>Join the Quiz</Title>
                     <Sub>Choose a nickname — it will appear on the leaderboard.</Sub>
+                    <SrOnly as="label" htmlFor="sync-nickname-input">
+                        Your nickname (required)
+                    </SrOnly>
                     <NicknameInput
+                        id="sync-nickname-input"
                         type="text"
                         maxLength={32}
                         placeholder={splunkUser ? `e.g. ${splunkUser}` : 'e.g. jane_doe'}
@@ -37,6 +41,7 @@ export default function LobbyScreen({ phase, sessionName, joined, nickname, setN
                         onChange={(e) => setNickname(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && nickname.trim() && onJoin()}
                         $empty={!nickname.trim()}
+                        autoComplete="off"
                         autoFocus
                     />
                     {!nickname.trim() && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Component } from 'react';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { C } from './lib/theme';
 import PollPage from './pages/PollPage';
 import AdminPage from './pages/AdminPage';
@@ -71,6 +71,26 @@ class ErrorBoundary extends Component {
     }
 }
 
+// Belt-and-braces guard against a child component ever pushing the page
+// sideways on mobile (Splunk Web ships its own viewport meta but we can't
+// control the chrome — see the iPhone bug fixed in v1.3.49). The
+// box-sizing reset (added v1.3.51) is the real fix: several styled
+// components combine `width: 100%` with `padding` and would compute to
+// `100vw + 2 * padding` without it, causing the right-edge clipping that
+// pre-1.3.51 mobile screenshots showed even after the overflow guard.
+const GlobalStyle = createGlobalStyle`
+    #ponypoll-root,
+    #ponypoll-root *,
+    #ponypoll-root *::before,
+    #ponypoll-root *::after {
+        box-sizing: border-box;
+    }
+    #ponypoll-root {
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+`;
+
 const NavBar = styled.nav`
     display: flex;
     align-items: center;
@@ -78,6 +98,16 @@ const NavBar = styled.nav`
     padding: 0 16px;
     background: ${C.surface};
     border-bottom: 1px solid ${C.border};
+    /* Defensive fallback: if a future tab is added and the bar runs out of
+       room, let the user swipe instead of pushing the viewport sideways. */
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+    @media (max-width: 600px) {
+        padding: 0 8px;
+    }
 `;
 
 const NavTab = styled.button`
@@ -90,15 +120,30 @@ const NavTab = styled.button`
     font-weight: ${({ $active }) => ($active ? '700' : '500')};
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+    min-height: 44px;
+    touch-action: manipulation;
     &:hover { color: #fff; }
+    /* Mobile: drop labels on inactive tabs so all 5 fit on an iPhone.
+       The active tab keeps its label for orientation. */
+    @media (max-width: 600px) {
+        padding: 10px 12px;
+        font-size: 13px;
+        .nav-label {
+            display: ${({ $active }) => ($active ? 'inline' : 'none')};
+        }
+    }
 `;
 
+// Each label wraps its text in a `.nav-label` span so the responsive CSS
+// rule on NavTab can hide it on inactive tabs at narrow viewport widths
+// without losing the icon (which carries the navigation cue).
 const TABS = [
-    { id: 'poll',      label: <><IconPlay      style={tabIconStyle} />Poll</>      },
-    { id: 'host',      label: <><IconProjector style={tabIconStyle} />Admin</>     },
-    { id: 'analytics', label: <><IconBarChart  style={tabIconStyle} />Analytics</> },
-    { id: 'editor',    label: <><IconPencil    style={tabIconStyle} />Editor</>    },
-    { id: 'settings',  label: <><IconGear      style={tabIconStyle} />Settings</>  },
+    { id: 'poll',      title: 'Poll',      label: <><IconPlay      style={tabIconStyle} /><span className="nav-label">Poll</span></>      },
+    { id: 'host',      title: 'Admin',     label: <><IconProjector style={tabIconStyle} /><span className="nav-label">Admin</span></>     },
+    { id: 'analytics', title: 'Analytics', label: <><IconBarChart  style={tabIconStyle} /><span className="nav-label">Analytics</span></> },
+    { id: 'editor',    title: 'Editor',    label: <><IconPencil    style={tabIconStyle} /><span className="nav-label">Editor</span></>    },
+    { id: 'settings',  title: 'Settings',  label: <><IconGear      style={tabIconStyle} /><span className="nav-label">Settings</span></>  },
 ];
 
 const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
@@ -183,19 +228,33 @@ function PlayApp() {
     return (
         <>
             {syncActive ? <SyncPollPage /> : <PollPage />}
+            {/* Discreet but always-tappable admin link — hover-only opacity is
+                hostile on touch devices that have no hover state. Sized to
+                meet the 44×44 touch-target minimum without dominating the UI. */}
             <a
                 href={adminUrl}
                 title="Open full admin app"
+                aria-label="Open full admin app"
                 style={{
-                    position: 'fixed', bottom: 12, right: 14,
-                    fontSize: 11, color: '#555', opacity: 0.4,
-                    textDecoration: 'none', zIndex: 9999,
-                    transition: 'opacity 0.2s',
+                    position: 'fixed',
+                    bottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+                    right:  'calc(8px + env(safe-area-inset-right, 0px))',
+                    minWidth: 44, minHeight: 44,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px 12px',
+                    borderRadius: 22,
+                    fontSize: 12,
+                    color: '#aaa',
+                    background: 'rgba(0, 0, 0, 0.35)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    textDecoration: 'none',
+                    zIndex: 9999,
+                    touchAction: 'manipulation',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.4'}
             >
-                ⚙ Admin
+                ⚙&nbsp;Admin
             </a>
         </>
     );
@@ -237,7 +296,13 @@ function FullApp() {
         <>
             <NavBar>
                 {TABS.map((t) => (
-                    <NavTab key={t.id} $active={tab === t.id} onClick={() => switchTab(t.id)}>
+                    <NavTab
+                        key={t.id}
+                        $active={tab === t.id}
+                        onClick={() => switchTab(t.id)}
+                        title={t.title}
+                        aria-label={t.title}
+                    >
                         {t.label}
                     </NavTab>
                 ))}
@@ -257,6 +322,7 @@ export default function App() {
         || window.location.pathname.endsWith('/play');
     return (
         <ErrorBoundary>
+            <GlobalStyle />
             {isPlay ? <PlayApp /> : <FullApp />}
         </ErrorBoundary>
     );

@@ -441,18 +441,6 @@ export default function AnalyticsPage() {
 
     const maxLbPts = Math.max(...leaderboard.map((r) => r.best_score), 1);
 
-    // Load quiz list + sync session list from the index (all-time).
-    // Sessions stay un-selected on first load — Analytics defaults to showing
-    // all data across all sessions; user picks one to drill in.
-    useEffect(() => {
-        runSearch(quizListSpl(), { earliest: '0', latest: 'now', count: 200 })
-            .then((rows) => setQuizzes(rows.filter((r) => r.quiz_id)))
-            .catch(() => {});
-        runSearch(sessionListSpl(), { earliest: '0', latest: 'now', count: 500 })
-            .then((rows) => setSyncSessions(rows.filter((r) => r.session_name)))
-            .catch(() => {});
-    }, []);
-
     // Fetch both base searches; time + quiz filter applied in SPL
     const runAll = useCallback(async () => {
         setLoading(true);
@@ -473,7 +461,28 @@ export default function AnalyticsPage() {
         }
     }, [timeIdx, quizId]);
 
-    useEffect(() => { runAll(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Load filter data (quiz list + session list) and then runAll. Sequenced
+    // into two batches of two so we never have more than two historical
+    // searches in flight — the default `user` role only allows three concurrent
+    // (`srchJobsQuota = 3`), and firing all four at once 503'd for non-admin
+    // participants (v1.3.50 regression report).
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const [quizList, sessionList] = await Promise.all([
+                    runSearch(quizListSpl(),    { earliest: '0', latest: 'now', count: 200 }).catch(() => []),
+                    runSearch(sessionListSpl(), { earliest: '0', latest: 'now', count: 500 }).catch(() => []),
+                ]);
+                if (cancelled) return;
+                setQuizzes(quizList.filter((r) => r.quiz_id));
+                setSyncSessions(sessionList.filter((r) => r.session_name));
+            } catch (_) { /* filter data is best-effort */ }
+            if (cancelled) return;
+            runAll();
+        })();
+        return () => { cancelled = true; };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Page>

@@ -78,7 +78,7 @@ export default function ActiveScreen({
             <TopBar>
                 <SubjectTitle>{config.poll_subject || 'Pony Poll'}</SubjectTitle>
                 <Progress>Q {qIndex + 1} / {questions.length}</Progress>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto', flexShrink: 0 }}>
                     {onExit && (
                         <button
                             type="button"
@@ -86,9 +86,10 @@ export default function ActiveScreen({
                             title="Leave the poll without saving"
                             style={{
                                 background: 'none', border: `1px solid ${C.border}`,
-                                color: C.muted, fontSize: 11, fontWeight: 500,
-                                padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
-                                letterSpacing: '0.04em',
+                                color: C.muted, fontSize: 12, fontWeight: 500,
+                                padding: '8px 14px', minHeight: 36, borderRadius: 6,
+                                cursor: 'pointer', letterSpacing: '0.04em',
+                                touchAction: 'manipulation',
                             }}
                         >
                             Exit poll

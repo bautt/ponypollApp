@@ -49,10 +49,11 @@ export default function WordcloudInput({
             >
                 {wcWords.map((w, i) => (
                     <span key={i} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        display: 'inline-flex', alignItems: 'center', gap: 2,
                         background: C.blue + '33', border: `1px solid ${C.blue}`,
-                        borderRadius: 20, padding: '2px 8px 2px 11px',
+                        borderRadius: 20, padding: '2px 4px 2px 11px',
                         fontSize: 14, color: C.text, whiteSpace: 'nowrap',
+                        minHeight: 32,
                     }}>
                         {w}
                         {!locked && (
@@ -60,9 +61,12 @@ export default function WordcloudInput({
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => setWcWords((prev) => prev.filter((_, j) => j !== i))}
+                                aria-label={`Remove "${w}"`}
                                 style={{
                                     background: 'none', border: 'none', color: C.muted,
-                                    cursor: 'pointer', padding: 0, fontSize: 13, lineHeight: 1,
+                                    cursor: 'pointer', fontSize: 18, lineHeight: 1,
+                                    padding: '4px 8px', minWidth: 28, minHeight: 28,
+                                    borderRadius: 14, touchAction: 'manipulation',
                                 }}
                             >×</button>
                         )}

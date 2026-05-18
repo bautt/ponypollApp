@@ -29,6 +29,10 @@ const Fill = styled.div`
         $pct > 50 ? '#65A637' : $pct > 25 ? '#ED8B00' : '#DC4E41'};
     width: ${({ $pct }) => $pct}%;
     ${({ $pct }) => $pct <= 15 && css`animation: ${pulse} 0.6s ease-in-out infinite;`}
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        transition: width 0.5s linear, background 0.5s;
+    }
 `;
 
 const Num = styled.span`

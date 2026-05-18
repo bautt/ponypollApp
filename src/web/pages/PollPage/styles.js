@@ -18,6 +18,14 @@ export const TopBar = styled.div`
     padding: 12px 20px;
     background: ${C.surface};
     border-bottom: 1px solid ${C.border};
+    /* On narrow viewports the four children (title, progress, exit, score)
+       won't fit on one line. Allow wrap and pull the score badge tight on
+       the right so the topbar never overflows the viewport. */
+    @media (max-width: 600px) {
+        padding: 10px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 `;
 
 export const SubjectTitle = styled.h2`
@@ -26,11 +34,22 @@ export const SubjectTitle = styled.h2`
     font-weight: 600;
     color: ${C.text};
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    @media (max-width: 600px) {
+        font-size: 14px;
+        flex-basis: 100%;
+        order: -1;
+    }
 `;
 
 export const Progress = styled.span`
     font-size: 13px;
     color: ${C.muted};
+    white-space: nowrap;
+    flex-shrink: 0;
 `;
 
 export const ScoreBadge = styled.span`
@@ -41,6 +60,8 @@ export const ScoreBadge = styled.span`
     font-size: 13px;
     font-weight: 700;
     color: ${C.accent};
+    white-space: nowrap;
+    flex-shrink: 0;
 `;
 
 export const Body = styled.div`

@@ -4,7 +4,8 @@ import WordcloudInput from '../../components/WordcloudInput';
 import {
     Page, Card, TimerBar, TimerFill, QuestionText, QuestionImage,
     OptionsGrid, OptionBtn, OptionBadge, NicknameInput,
-    FeedbackBox, SubmitBtn, Waiting, LETTER_COLORS,
+    FeedbackBox, SubmitBtn, SubmitErrorBox, SubmitRetryBtn,
+    Waiting, LETTER_COLORS,
 } from './styles';
 
 export default function QuestionScreen({
@@ -15,6 +16,7 @@ export default function QuestionScreen({
     sliderVal, setSliderVal,
     submitted, wasCorrect, pointsEarned,
     onSubmit, locked, wcEmpty,
+    submitError, submitRetrying, onRetrySubmit,
 }) {
     if (!question) {
         return <Page><Card><Waiting>Loading question…</Waiting></Card></Page>;
@@ -43,7 +45,7 @@ export default function QuestionScreen({
 
                 {/* Multiple choice */}
                 {isMC && (
-                    <OptionsGrid style={opts.length === 2 ? { gridTemplateColumns: '1fr 1fr' } : {}}>
+                    <OptionsGrid>
                         {opts.map((opt, i) => {
                             const sel = selected.includes(opt.id);
                             return (
@@ -134,6 +136,29 @@ export default function QuestionScreen({
                                     : `Recorded +${pointsEarned} pts`;
                     return <FeedbackBox $correct={wasCorrect !== false}>{text}</FeedbackBox>;
                 })()}
+
+                {/* Inline retry — submitAnswer failed after silent retries.
+                    The answer/score the user saw is still locked in; only the
+                    server-side record is missing. */}
+                {submitted && submitError && (
+                    <SubmitErrorBox role="alert" aria-live="polite">
+                        <div>
+                            <strong>⚠ Couldn't save your answer.</strong>
+                            <br />
+                            Your score is held on this device until it lands on the server.
+                            <div style={{ marginTop: 4, fontSize: 11, opacity: 0.8 }}>
+                                {submitError}
+                            </div>
+                        </div>
+                        <SubmitRetryBtn
+                            type="button"
+                            onClick={onRetrySubmit}
+                            disabled={submitRetrying}
+                        >
+                            {submitRetrying ? 'Retrying…' : 'Retry now'}
+                        </SubmitRetryBtn>
+                    </SubmitErrorBox>
+                )}
 
                 {/* Submit button */}
                 {!submitted && timeLeft > 0 && (

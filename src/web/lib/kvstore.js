@@ -235,6 +235,41 @@ export async function getCurrentUser() {
     }
 }
 
+/**
+ * Returns the current user's full Splunk context — `{ username, roles }` —
+ * or `null` if the call fails (e.g. anonymous, network error). Roles is
+ * always an array. Used by features that need to gate write-paths on
+ * the user actually having permission for the underlying KV collection,
+ * so we don't surface a 403 to a participant who clicks an admin-only
+ * control (see PollPage's quiz picker).
+ */
+export async function getCurrentUserContext() {
+    try {
+        const data = await kvFetch(
+            `${splunkdBase()}/services/authentication/current-context?output_mode=json`
+        );
+        const content = data?.entry?.[0]?.content || {};
+        return {
+            username: content.username || '',
+            roles: Array.isArray(content.roles) ? content.roles : [],
+        };
+    } catch (_) {
+        return null;
+    }
+}
+
+/**
+ * True if `roles` grants write access to ponypoll_config / ponypoll_quizzes /
+ * ponypoll_questions. Kept in lockstep with metadata/default.meta — any role
+ * listed here as a writer for those collections belongs in this set.
+ */
+const PONYPOLL_ADMIN_ROLES = new Set(['admin', 'sc_admin', 'ponypoll_admin', 'power']);
+
+export function canManageQuizzes(roles) {
+    if (!Array.isArray(roles)) return false;
+    return roles.some((r) => PONYPOLL_ADMIN_ROLES.has(r));
+}
+
 // ── Version info ──────────────────────────────────────────────────────────────
 
 /**

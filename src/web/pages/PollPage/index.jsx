@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { listQuestions, loadConfig, submitAnswer, submitQuizAttempt, getCurrentUser, getQuiz } from '../../lib/kvstore';
+import {
+    listQuestions, loadConfig, saveConfig, submitAnswer, submitQuizAttempt,
+    getCurrentUserContext, canManageQuizzes,
+    getQuiz, listQuizzes,
+} from '../../lib/kvstore';
 import { fromKvDoc, SEED_QUESTIONS } from '../../lib/questions';
 import { calcPoints, uid, shuffle } from '../../lib/utils';
 import { playTrack, fadeOutAndStop, playSfx } from '../../lib/audio';
@@ -50,6 +54,9 @@ export default function PollPage() {
     const [phase, setPhase] = useState(PHASE.SETUP);
     const [questions, setQuestions] = useState([]);
     const [config, setConfig] = useState({ poll_subject: 'Pony Poll' });
+    const [quizzes, setQuizzes] = useState([]);
+    const [switchingQuiz, setSwitchingQuiz] = useState(false);
+    const [canPersistConfig, setCanPersistConfig] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nickname, setNickname] = useState('');
@@ -71,10 +78,12 @@ export default function PollPage() {
     const nextQuestionFn = useRef(null);
 
     useEffect(() => {
-        Promise.all([loadConfig(), getCurrentUser()])
-            .then(async ([cfg, user]) => {
+        Promise.all([loadConfig(), getCurrentUserContext(), listQuizzes()])
+            .then(async ([cfg, userCtx, allQuizzes]) => {
                 setConfig(cfg);
-                if (user) { setSplunkUser(user); }
+                setQuizzes(Array.isArray(allQuizzes) ? allQuizzes : []);
+                if (userCtx?.username) setSplunkUser(userCtx.username);
+                setCanPersistConfig(canManageQuizzes(userCtx?.roles));
                 const quizId = cfg.active_quiz_id || null;
                 const [docs, quizMeta] = await Promise.all([
                     listQuestions(quizId),
@@ -258,6 +267,38 @@ export default function PollPage() {
 
     nextQuestionFn.current = nextQuestion;
 
+    // ── Switch quiz from the SetupScreen picker (mobile-friendly entry point) ─
+    // Permission model: ponypoll_config is admin-write per metadata/default.meta
+    // (otherwise any participant could globally retarget the active quiz for
+    // everyone else). For admins we persist the change so it becomes the new
+    // default; for non-admins we apply the swap to local state only — the
+    // participant gets to play whichever quiz they pick without surfacing a 403,
+    // and the global default the admin set survives untouched. Selection mode
+    // is reset to 'all' either way so we never carry over a stale random/range
+    // config from a quiz with a different question count.
+    const handleSwitchQuiz = useCallback(async (newQuizId) => {
+        if (!newQuizId || newQuizId === config.active_quiz_id || switchingQuiz) return;
+        setSwitchingQuiz(true);
+        setError(null);
+        try {
+            const updated = {
+                ...config,
+                active_quiz_id: newQuizId,
+                active_question_mode: 'all',
+            };
+            if (canPersistConfig) {
+                await saveConfig(updated);
+            }
+            setConfig(updated);
+            const docs = await listQuestions(newQuizId);
+            setQuestions(docs.map(fromKvDoc));
+        } catch (e) {
+            setError(e.message || 'Could not switch quiz');
+        } finally {
+            setSwitchingQuiz(false);
+        }
+    }, [config, switchingQuiz, canPersistConfig]);
+
     // ── Music ──────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (phase === PHASE.SETUP)    playTrack('lobby');
@@ -283,6 +324,10 @@ export default function PollPage() {
                 onStart={startPoll}
                 loading={loading}
                 error={error}
+                quizzes={quizzes}
+                onSwitchQuiz={handleSwitchQuiz}
+                switchingQuiz={switchingQuiz}
+                canPersistQuizChoice={canPersistConfig}
             />
         );
     }
