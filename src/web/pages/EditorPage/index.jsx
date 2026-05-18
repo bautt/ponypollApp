@@ -24,7 +24,7 @@ const IconPlay = () => (
 );
 import {
     listQuestions, deleteQuestion, saveAllQuestions, saveQuestion,
-    listQuizzes, createQuiz, deleteQuiz, updateQuiz,
+    listQuizzes, createQuiz, deleteQuiz, updateQuiz, duplicateQuiz,
     loadConfig, saveConfig,
     fetchLibraryManifest, fetchLibraryQuiz,
     fetchGitHubManifest, fetchGitHubQuiz,
@@ -215,6 +215,26 @@ export default function EditorPage() {
             setStatus({ error: false, msg: `Quiz "${name}" deleted.` });
         } catch (e) {
             setStatus({ error: true, msg: e.message });
+        }
+    };
+
+    const handleDuplicateQuiz = async () => {
+        if (!activeQuizId) return;
+        const sourceName = quizzes.find((q) => q._key === activeQuizId)?.name || 'Quiz';
+        const name = window.prompt('Name for the copy:', `Copy of ${sourceName}`);
+        if (!name?.trim()) return;
+        setQuizLoading(true);
+        try {
+            const newId = await duplicateQuiz(activeQuizId, name.trim());
+            const freshQuizzes = await listQuizzes();
+            setQuizzes(freshQuizzes);
+            setActiveQuizId(newId);
+            await loadQuestionsForQuiz(newId);
+            setStatus({ error: false, msg: `Quiz duplicated as "${name.trim()}".` });
+        } catch (e) {
+            setStatus({ error: true, msg: e.message });
+        } finally {
+            setQuizLoading(false);
         }
     };
 
@@ -493,6 +513,7 @@ export default function EditorPage() {
                 onQuizSwitch={handleQuizSwitch}
                 onNewQuiz={handleNewQuiz}
                 onRenameQuiz={handleRenameQuiz}
+                onDuplicateQuiz={handleDuplicateQuiz}
                 onDeleteQuiz={handleDeleteQuiz}
                 questions={questions}
                 activeIdx={activeIdx}

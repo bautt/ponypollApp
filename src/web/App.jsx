@@ -7,6 +7,7 @@ import SyncPollPage from './pages/SyncPollPage';
 import EditorPage from './pages/EditorPage';
 import SettingsPage from './pages/SettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ProjectorPage from './pages/ProjectorPage';
 import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig, getSession, fetchLibraryQuiz } from './lib/kvstore';
 import { SEED_QUESTIONS, toKvDoc, newQuestion } from './lib/questions';
 import { IconPlay, IconPencil, IconGear, IconProjector, IconBarChart } from './components/icons';
@@ -320,10 +321,12 @@ function FullApp() {
 export default function App() {
     const isPlay = window.PONYPOLL_MODE === 'play'
         || window.location.pathname.endsWith('/play');
+    const isProjector = window.PONYPOLL_MODE === 'projector'
+        || window.location.pathname.endsWith('/projector');
     return (
         <ErrorBoundary>
             <GlobalStyle />
-            {isPlay ? <PlayApp /> : <FullApp />}
+            {isProjector ? <ProjectorPage /> : isPlay ? <PlayApp /> : <FullApp />}
         </ErrorBoundary>
     );
 }

@@ -8,7 +8,7 @@ import {
 
 export default function QuizSidebar({
     quizzes, activeQuizId, liveQuizId, quizLoading,
-    onQuizSwitch, onNewQuiz, onRenameQuiz, onDeleteQuiz,
+    onQuizSwitch, onNewQuiz, onRenameQuiz, onDuplicateQuiz, onDeleteQuiz,
     questions, activeIdx, onSelectQuestion, onAddQuestion,
     onReorder, loading,
 }) {
@@ -65,6 +65,7 @@ export default function QuizSidebar({
                 <QuizRow>
                     <SmallBtn $primary onClick={onNewQuiz}>+ New</SmallBtn>
                     <SmallBtn onClick={onRenameQuiz} disabled={!activeQuizId}>Rename</SmallBtn>
+                    <SmallBtn onClick={onDuplicateQuiz} disabled={!activeQuizId}>Copy</SmallBtn>
                     <SmallBtn $danger onClick={onDeleteQuiz} disabled={!activeQuizId || quizzes.length <= 1}>
                         Delete
                     </SmallBtn>

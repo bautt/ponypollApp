@@ -73,6 +73,7 @@ export default function PollPage() {
     const [timerRunning, setTimerRunning] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [timedOut, setTimedOut] = useState(false);
+    const [results, setResults] = useState([]);
 
     const sessionId = useRef(uid());
     const nextQuestionFn = useRef(null);
@@ -163,6 +164,26 @@ export default function PollPage() {
         else if (currentQ.type === 'freetext') answerValue = freetextVal;
         else if (currentQ.type === 'slider') answerValue = String(sliderVal ?? '');
         else answerValue = selected.join(',');
+
+        const correctOptions = (currentQ.options || [])
+            .filter((o) => o.correct)
+            .map((o) => o.text);
+        const userAnswerLabel = currentQ.type === 'wordcloud' || currentQ.type === 'freetext' || currentQ.type === 'slider'
+            ? answerValue
+            : (currentQ.options || [])
+                .filter((o) => selected.includes(o.id))
+                .map((o) => o.text)
+                .join(', ') || '—';
+
+        setResults((prev) => [...prev, {
+            text: currentQ.text,
+            type: currentQ.type,
+            userAnswer: userAnswerLabel,
+            correct,
+            points,
+            explanation: currentQ.explanation || '',
+            correctOptions,
+        }]);
 
         submitAnswer({
             session_id: sessionId.current,
@@ -336,7 +357,12 @@ export default function PollPage() {
         return (
             <DoneScreen
                 score={score}
-                onRestart={() => { setPhase(PHASE.SETUP); sessionId.current = uid(); }}
+                results={results}
+                onRestart={() => {
+                    setPhase(PHASE.SETUP);
+                    sessionId.current = uid();
+                    setResults([]);
+                }}
             />
         );
     }

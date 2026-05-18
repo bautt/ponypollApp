@@ -36,6 +36,12 @@ function getPlayUrl() {
     return `${protocol}//${host}${base}/play`;
 }
 
+function getProjectorUrl() {
+    const { protocol, host, pathname } = window.location;
+    const base = pathname.replace(/\/[^/]+(\?.*)?$/, '');
+    return `${protocol}//${host}${base}/projector`;
+}
+
 async function fetchShortUrl(url) {
     try {
         const res = await fetch(
@@ -75,6 +81,7 @@ export default function AdminPage() {
     const [randomCount, setRandomCount]           = useState(5);
 
     const [playUrl]        = useState(getPlayUrl);
+    const [projectorUrl]   = useState(getProjectorUrl);
     const [shortUrl, setShortUrl]             = useState('');
     const [shorteningUrl, setShorteningUrl]   = useState(false);
     const [copied, setCopied]                 = useState(false);
@@ -521,7 +528,7 @@ export default function AdminPage() {
     const timeLim  = Number(session?.time_limit) || 30;
     const pct      = total > 0 ? Math.round(((qIdx + (phase === 'done' ? 1 : 0)) / total) * 100) : 0;
 
-    const joinProps = { playUrl, shortUrl, copied, shorteningUrl, onShorten: handleShorten, onCopy: handleCopy };
+    const joinProps = { playUrl, shortUrl, projectorUrl, copied, shorteningUrl, onShorten: handleShorten, onCopy: handleCopy };
 
     return (
         <Page>

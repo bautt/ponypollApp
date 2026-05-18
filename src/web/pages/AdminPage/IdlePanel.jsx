@@ -30,6 +30,7 @@ export default function IdlePanel({
     randomCount,
     playUrl,
     shortUrl,
+    projectorUrl,
     copied,
     shorteningUrl,
     busy,
@@ -233,6 +234,7 @@ export default function IdlePanel({
                 large={false}
                 playUrl={playUrl}
                 shortUrl={shortUrl}
+                projectorUrl={projectorUrl}
                 copied={copied}
                 shorteningUrl={shorteningUrl}
                 onShorten={onShorten}

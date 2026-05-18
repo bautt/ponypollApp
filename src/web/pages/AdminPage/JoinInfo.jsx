@@ -30,7 +30,7 @@ const IconCheck = () => (
     </svg>
 );
 
-export default function JoinInfo({ large, sessionName, playUrl, shortUrl, copied, shorteningUrl, onShorten, onCopy }) {
+export default function JoinInfo({ large, sessionName, playUrl, shortUrl, projectorUrl, copied, shorteningUrl, onShorten, onCopy }) {
     const Panel = large ? JoinPanelLarge : JoinPanel;
     const qrSize = large ? 180 : 110;
 
@@ -105,6 +105,21 @@ export default function JoinInfo({ large, sessionName, playUrl, shortUrl, copied
                         </CopyBtn>
                     )}
                 </ShortUrlRow>
+                {projectorUrl && (
+                    <ShortUrlRow style={{ marginTop: 6 }}>
+                        <a
+                            href={projectorUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                fontSize: 11, color: C.muted, textDecoration: 'none',
+                                display: 'inline-flex', alignItems: 'center', gap: 4,
+                            }}
+                        >
+                            📽 Projector view ↗
+                        </a>
+                    </ShortUrlRow>
+                )}
             </div>
         </Panel>
     );

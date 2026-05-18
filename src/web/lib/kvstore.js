@@ -91,6 +91,17 @@ export async function updateQuiz(key, doc) {
     });
 }
 
+export async function duplicateQuiz(sourceKey, newName) {
+    const created = await createQuiz(newName);
+    const newId = created._key || created.key;
+    const sourceQuestions = await listQuestions(sourceKey);
+    for (let i = 0; i < sourceQuestions.length; i++) {
+        const { _key, ...rest } = sourceQuestions[i];
+        await saveQuestion({ ...rest, quiz_id: newId, sort_order: i });
+    }
+    return newId;
+}
+
 export async function deleteQuiz(key) {
     // Delete all questions for this quiz first
     const query = encodeURIComponent(JSON.stringify({ quiz_id: key }));

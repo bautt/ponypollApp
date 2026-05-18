@@ -343,3 +343,43 @@ export const RestartBtn = styled.button`
     cursor: pointer;
     &:hover { background: rgba(255,255,255,0.06); }
 `;
+
+export const ReviewList = styled.div`
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin: 4px 0 8px;
+`;
+
+export const ReviewItem = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: ${C.surface};
+    border: 1px solid ${C.border};
+    border-left: 4px solid ${({ $correct }) =>
+        $correct === true ? '#2ecc71' : $correct === false ? '#e74c3c' : '#555'};
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    text-align: left;
+`;
+
+export const ReviewBadge = styled.span`
+    flex-shrink: 0;
+    min-width: 46px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 20px;
+    background: ${({ $correct }) =>
+        $correct === true ? '#2ecc7122' : $correct === false ? '#e74c3c22' : '#55555522'};
+    color: ${({ $correct }) =>
+        $correct === true ? '#2ecc71' : $correct === false ? '#e74c3c' : '#aaa'};
+`;

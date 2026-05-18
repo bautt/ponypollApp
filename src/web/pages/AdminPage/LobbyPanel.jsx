@@ -10,6 +10,7 @@ export default function LobbyPanel({
     participantCount,
     playUrl,
     shortUrl,
+    projectorUrl,
     copied,
     shorteningUrl,
     busy,
@@ -36,6 +37,7 @@ export default function LobbyPanel({
                 sessionName={sessionName}
                 playUrl={playUrl}
                 shortUrl={shortUrl}
+                projectorUrl={projectorUrl}
                 copied={copied}
                 shorteningUrl={shorteningUrl}
                 onShorten={onShorten}
