@@ -2,8 +2,6 @@ import React from 'react';
 import { C } from '../../lib/theme';
 import { Page, Card, Title, Sub, NicknameInput, JoinBtn, Waiting, SessionNumber, SrOnly } from './styles';
 import AudioToggles from '../../components/AudioToggles';
-import { isMinigameEnabled } from '../SettingsPage';
-import FlappyMinigame from '../../components/FlappyMinigame';
 
 export default function LobbyScreen({ phase, sessionName, joined, nickname, setNickname, splunkUser, onJoin, joinBusy, nicknameRef }) {
     // No active session
@@ -61,7 +59,6 @@ export default function LobbyScreen({ phase, sessionName, joined, nickname, setN
     }
 
     // Waiting — joined, waiting for host to launch
-    const showGame = isMinigameEnabled();
     return (
         <Page>
             <Card>
@@ -74,14 +71,6 @@ export default function LobbyScreen({ phase, sessionName, joined, nickname, setN
                 <Title>You're in, {nicknameRef.current}! 🎉</Title>
                 <Waiting>Waiting for the host to launch the quiz…</Waiting>
                 <AudioToggles />
-                {showGame && (
-                    <div style={{ marginTop: 20 }}>
-                        <p style={{ margin: '0 0 8px', fontSize: 12, color: C.muted, textAlign: 'center' }}>
-                            Kill some time while you wait ↓
-                        </p>
-                        <FlappyMinigame />
-                    </div>
-                )}
             </Card>
         </Page>
     );
