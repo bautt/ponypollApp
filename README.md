@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="src/package/appserver/static/buttercup.png" alt="Buttercup mascot" width="160" />
-  <img src="src/package/appserver/static/appIcon_240.png" alt="Pony Poll app icon" width="96" style="margin-left:24px" />
+  <img src="src/package/appserver/static/banner.png" alt="Pony Poll banner" width="520" />
 
   # Pony Poll
 
