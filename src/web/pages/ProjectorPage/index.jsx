@@ -301,13 +301,21 @@ export default function ProjectorPage() {
     const lastRevealKey = useRef(null);
     const lastDoneKey   = useRef(null);
 
-    // Load questions when quiz changes
+    // Load questions ordered by session.question_keys (mirrors how AdminPage builds its list)
     useEffect(() => {
-        if (!session?.quiz_id) return;
+        if (!session?.quiz_id || !session?.question_keys) return;
         listQuestions(session.quiz_id)
-            .then((docs) => setQuestions(docs.map(fromKvDoc)))
+            .then((docs) => {
+                const byKey = Object.fromEntries(docs.map((d) => [d._key, fromKvDoc(d)]));
+                try {
+                    const keys = JSON.parse(session.question_keys);
+                    setQuestions(keys.map((k) => byKey[k]).filter(Boolean));
+                } catch (_) {
+                    setQuestions(docs.map(fromKvDoc));
+                }
+            })
             .catch(() => {});
-    }, [session?.quiz_id]);
+    }, [session?.quiz_id, session?.question_keys]);
 
     // Poll participant count during waiting phase
     useEffect(() => {
