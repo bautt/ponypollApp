@@ -7,6 +7,8 @@ import {
     FeedbackBox, SubmitBtn, SubmitErrorBox, SubmitRetryBtn,
     Waiting, LETTER_COLORS,
 } from './styles';
+import { isMinigameEnabled } from '../SettingsPage';
+import FlappyMinigame from '../../components/FlappyMinigame';
 
 export default function QuestionScreen({
     question, session, qIdx, total, totalScore, timerPct, timeLeft,
@@ -172,9 +174,16 @@ export default function QuestionScreen({
 
                 {/* Waiting for host after submit */}
                 {submitted && (
-                    <Waiting style={{ marginTop: 20, fontSize: 13 }}>
-                        Waiting for host to reveal…
-                    </Waiting>
+                    <>
+                        <Waiting style={{ marginTop: 20, fontSize: 13 }}>
+                            Waiting for host to reveal…
+                        </Waiting>
+                        {isMinigameEnabled() && (
+                            <div style={{ marginTop: 16 }}>
+                                <FlappyMinigame />
+                            </div>
+                        )}
+                    </>
                 )}
             </Card>
         </Page>

@@ -740,6 +740,14 @@ function MusicTrackSection({
     );
 }
 
+const MINIGAME_KEY = 'ponypoll_minigame';
+export function isMinigameEnabled() {
+    try { return localStorage.getItem(MINIGAME_KEY) !== 'off'; } catch { return true; }
+}
+function setMinigameEnabled(val) {
+    try { localStorage.setItem(MINIGAME_KEY, val ? 'on' : 'off'); } catch {}
+}
+
 export default function SettingsPage() {
     const [cfg, setCfg] = useState({ poll_subject: 'Pony Poll', active_quiz_id: '', default_view: 'poll' });
     const [saving, setSaving] = useState(false);
@@ -747,6 +755,7 @@ export default function SettingsPage() {
     const [versions, setVersions] = useState(null);
     const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
     const [sfxOn,   setSfxOn]   = useState(() => isSfxEnabled());
+    const [minigameOn, setMinigameOnState] = useState(() => isMinigameEnabled());
 
     // ── Music track catalogue + per-slot selection ────────────────────────────
     // Catalogue is loaded on mount (bundled only). GitHub is fetched on demand
@@ -806,6 +815,11 @@ export default function SettingsPage() {
     const handleSfxToggle = useCallback((val) => {
         setSfxEnabled(val);
         setSfxOn(val);
+    }, []);
+
+    const handleMinigameToggle = useCallback((val) => {
+        setMinigameEnabled(val);
+        setMinigameOnState(val);
     }, []);
 
     useEffect(() => {
@@ -979,6 +993,15 @@ export default function SettingsPage() {
                     toggle:  handleSfxToggle,
                     onHint:  'Click, submit and timeout sounds play during the quiz',
                     offHint: 'No sound effects',
+                })}
+
+                {renderToggle({
+                    name:    'minigame_enabled',
+                    label:   'Lobby mini-game',
+                    val:     minigameOn,
+                    toggle:  handleMinigameToggle,
+                    onHint:  'Flappy Buttercup appears in the lobby and between questions',
+                    offHint: 'No mini-game shown',
                 })}
 
                 <SaveBtn onClick={handleSave} disabled={saving}>
