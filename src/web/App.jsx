@@ -319,10 +319,9 @@ function FullApp() {
 }
 
 export default function App() {
-    const isPlay = window.PONYPOLL_MODE === 'play'
-        || window.location.pathname.endsWith('/play');
-    const isProjector = window.PONYPOLL_MODE === 'projector'
-        || window.location.pathname.endsWith('/projector');
+    const pathEnd = window.location.pathname.replace(/\/$/, '').split('/').pop();
+    const isPlay      = window.PONYPOLL_MODE === 'play'      || pathEnd === 'play';
+    const isProjector = window.PONYPOLL_MODE === 'projector' || pathEnd === 'projector';
     return (
         <ErrorBoundary>
             <GlobalStyle />
