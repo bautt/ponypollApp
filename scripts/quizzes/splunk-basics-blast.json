@@ -1,0 +1,454 @@
+{
+  "name": "Splunk Basics Blast 🎯",
+  "description": "32 questions covering SPL, Dashboard Studio, alerts, schema on read, scalability, plus introductory ITSI, ES, and Observability Cloud. Fun distractors included.",
+  "images": {
+    "note": "Images reference /static/app/splunk4champions2/images/* — the Splunk4Champions2 app must be installed on the same Splunk instance.",
+    "credit": "Splunk4Champions2 Workshop — https://github.com/tbaublys/splunk4champions2"
+  },
+  "questions": [
+    {
+      "sort_order": 0,
+      "text": "What does SPL stand for?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "SPL = Search Processing Language — the query language behind every Splunk search bar. It uses a pipe-based syntax similar to Unix shell pipes. Source: Splunk Docs — Search Processing Language overview.",
+      "options": [
+        { "id": "A", "text": "Search Processing Language", "correct": true  },
+        { "id": "B", "text": "Splunk Pipeline Logic",      "correct": false },
+        { "id": "C", "text": "System Performance Layer",   "correct": false },
+        { "id": "D", "text": "Streaming Parse Language",   "correct": false }
+      ]
+    },
+    {
+      "sort_order": 1,
+      "text": "Which SPL command aggregates events into statistics?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "`stats` is Splunk's workhorse aggregation command — count, avg, sum, max, min, dc (distinct count) and more. `table` just selects columns, `eval` creates fields, `rex` extracts fields.",
+      "options": [
+        { "id": "A", "text": "stats",  "correct": true  },
+        { "id": "B", "text": "table",  "correct": false },
+        { "id": "C", "text": "eval",   "correct": false },
+        { "id": "D", "text": "rex",    "correct": false }
+      ]
+    },
+    {
+      "sort_order": 2,
+      "text": "Splunk applies field extraction (schema) at which point?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "",
+      "explanation": "\"Schema on read\" means Splunk stores raw events as-is and extracts fields only when you search. This lets you add new field extractions later without re-indexing — a huge advantage over traditional databases. Source: Splunk Docs — About Splunk schema on the fly.",
+      "options": [
+        { "id": "A", "text": "At search time (schema on read)",         "correct": true  },
+        { "id": "B", "text": "At index time only",                      "correct": false },
+        { "id": "C", "text": "During data ingestion in the forwarder",  "correct": false },
+        { "id": "D", "text": "When a dashboard is saved",               "correct": false }
+      ]
+    },
+    {
+      "sort_order": 3,
+      "text": "Which of these is a valid native Splunk data input type?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "/static/app/splunk4champions2/images/datasources.png",
+      "explanation": "HEC (HTTP Event Collector) lets any app send JSON events to Splunk over HTTP/S with a token — no forwarder needed. Splunk also supports file/directory monitoring, TCP/UDP, Syslog, and scripted inputs. The others are made up. Image credit: Splunk4Champions2 Workshop (datasources.png).",
+      "options": [
+        { "id": "A", "text": "HEC — HTTP Event Collector",        "correct": true  },
+        { "id": "B", "text": "Direct MySQL write-back push",       "correct": false },
+        { "id": "C", "text": "Bluetooth Beacon ingestion",         "correct": false },
+        { "id": "D", "text": "Native WebSocket real-time stream",  "correct": false }
+      ]
+    },
+    {
+      "sort_order": 4,
+      "text": "What does the `|` (pipe) symbol do in an SPL search?",
+      "type": "single",
+      "timeLimit": 20,
+      "image": "",
+      "explanation": "The pipe passes the result set of one command as input to the next — just like Unix shell pipes. This chains transformations: search → filter → aggregate → visualise.",
+      "options": [
+        { "id": "A", "text": "Passes the output of one command as input to the next", "correct": true  },
+        { "id": "B", "text": "Boolean OR between two field conditions",                "correct": false },
+        { "id": "C", "text": "Marks a comment in the search string",                  "correct": false },
+        { "id": "D", "text": "Separates multiple index names",                        "correct": false }
+      ]
+    },
+    {
+      "sort_order": 5,
+      "text": "Which SPL command extracts new fields from raw events using named regex groups?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "`rex` extracts fields on the fly using named capture groups, e.g. `| rex field=_raw \"user=(?<username>\\w+)\"`. Fields created this way exist only for the current search — no re-indexing needed. Source: Splunk Docs — rex command reference.",
+      "options": [
+        { "id": "A", "text": "rex",           "correct": true  },
+        { "id": "B", "text": "extract",       "correct": false },
+        { "id": "C", "text": "fieldextract",  "correct": false },
+        { "id": "D", "text": "parse",         "correct": false }
+      ]
+    },
+    {
+      "sort_order": 6,
+      "text": "What is the default TCP port for Splunk Web?",
+      "type": "single",
+      "timeLimit": 20,
+      "image": "",
+      "explanation": "Port 8000 → Splunk Web UI. Port 8089 → REST API / splunkd management. Port 9997 → default receiver for Universal Forwarders. Port 8088 → HEC (HTTP Event Collector).",
+      "options": [
+        { "id": "A", "text": "8000", "correct": true  },
+        { "id": "B", "text": "8080", "correct": false },
+        { "id": "C", "text": "8089", "correct": false },
+        { "id": "D", "text": "9997", "correct": false }
+      ]
+    },
+    {
+      "sort_order": 7,
+      "text": "In the Splunk data pipeline, at which stage are TSIDX index files written to disk?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "/static/app/splunk4champions2/images/pipeline.png",
+      "explanation": "The Index Pipeline is the last stage — it writes compressed raw events (rawdata/journal.gz), creates TSIDX time-series index files, and adds Bloom filters. The Parsing Pipeline handles line-breaking and event processing before that. Image credit: Splunk4Champions2 Workshop (pipeline.png).",
+      "options": [
+        { "id": "A", "text": "Index Pipeline",                        "correct": true  },
+        { "id": "B", "text": "Parsing Queue",                         "correct": false },
+        { "id": "C", "text": "At search time, not during ingestion",  "correct": false },
+        { "id": "D", "text": "Input stage, before any processing",    "correct": false }
+      ]
+    },
+    {
+      "sort_order": 8,
+      "text": "What is a Splunk Universal Forwarder?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "The Universal Forwarder (UF) is a tiny (~50 MB) Splunk agent — no Web UI, no local indexing — that tails files, monitors ports, and forwards compressed data to indexers. It runs on servers, containers, VMs, even Raspberry Pis. Source: Splunk Docs — About forwarding and receiving.",
+      "options": [
+        { "id": "A", "text": "A lightweight agent that ships data to Splunk indexers",     "correct": true  },
+        { "id": "B", "text": "A full Splunk instance tuned for low-latency searching",     "correct": false },
+        { "id": "C", "text": "A load balancer that routes user queries across indexers",   "correct": false },
+        { "id": "D", "text": "The mascot of Splunk's data-forwarding team 🐴",             "correct": false }
+      ]
+    },
+    {
+      "sort_order": 9,
+      "text": "What is the primary role of a Splunk Indexer?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "Indexers receive data from forwarders or inputs, parse events, and write them to on-disk buckets. In a clustered deployment they also replicate bucket copies across peers for high availability. Source: Splunk Docs — How indexing works.",
+      "options": [
+        { "id": "A", "text": "Store, index, and make incoming data searchable",     "correct": true  },
+        { "id": "B", "text": "Create visualisations from raw search results",       "correct": false },
+        { "id": "C", "text": "Manage user permissions and role assignments",        "correct": false },
+        { "id": "D", "text": "Route user searches across the deployment",           "correct": false }
+      ]
+    },
+    {
+      "sort_order": 10,
+      "text": "In a distributed Splunk deployment, which component coordinates searches across indexers?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "/static/app/splunk4champions2/images/architecture.png",
+      "explanation": "The Search Head is the user-facing tier — it receives queries from the browser, fans them out to all Indexer Peers, and merges the results back. Knowledge objects (saved searches, lookups, field extractions) live here. Image credit: Splunk4Champions2 Workshop (architecture.png).",
+      "options": [
+        { "id": "A", "text": "Search Head",        "correct": true  },
+        { "id": "B", "text": "Heavy Forwarder",    "correct": false },
+        { "id": "C", "text": "Deployment Server",  "correct": false },
+        { "id": "D", "text": "License Manager",    "correct": false }
+      ]
+    },
+    {
+      "sort_order": 11,
+      "text": "What does `| stats count BY host` return?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "`stats count BY host` groups all events by unique host values and returns one row per host with the event count. Replace `count` with `avg(field)`, `sum(field)`, or `dc(field)` for other aggregations.",
+      "options": [
+        { "id": "A", "text": "One row per host with the event count for each",   "correct": true  },
+        { "id": "B", "text": "The total event count across all hosts combined",  "correct": false },
+        { "id": "C", "text": "A sorted list of unique hostnames only",           "correct": false },
+        { "id": "D", "text": "Bytes indexed per host over the selected range",   "correct": false }
+      ]
+    },
+    {
+      "sort_order": 12,
+      "text": "What does `| table _time host status` do to the result set?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "`table` is purely cosmetic — it keeps only the named fields and presents them as columns in that order, removing all others. It does not change event count or values. Great for clean exports!",
+      "options": [
+        { "id": "A", "text": "Keeps only _time, host, status and displays them as columns",  "correct": true  },
+        { "id": "B", "text": "Stores results into a KV Store lookup table",                  "correct": false },
+        { "id": "C", "text": "Creates an HTML table attachment for email alerts",            "correct": false },
+        { "id": "D", "text": "Sorts results by time descending",                             "correct": false }
+      ]
+    },
+    {
+      "sort_order": 13,
+      "text": "What is the correct order of Splunk index bucket lifecycle stages?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "/static/app/splunk4champions2/images/hot_warm1.png",
+      "explanation": "Hot → Warm → Cold → Frozen. Hot: open for writing (newest data). Warm: closed, still on fast disk. Cold: moved to slower/cheaper storage. Frozen: archived or deleted. Thawed: a frozen bucket restored for searching. Image credit: Splunk4Champions2 Workshop (hot_warm1.png).",
+      "options": [
+        { "id": "A", "text": "Hot → Warm → Cold → Frozen",           "correct": true  },
+        { "id": "B", "text": "New → Active → Archive → Deleted",     "correct": false },
+        { "id": "C", "text": "Raw → Parsed → Indexed → Searchable",  "correct": false },
+        { "id": "D", "text": "Open → Sealed → Compressed → Purged",  "correct": false }
+      ]
+    },
+    {
+      "sort_order": 14,
+      "text": "What does this SPL do?\n`| eval label = if(status==200, \"OK\", \"Error\")`",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "",
+      "explanation": "`eval` computes and creates new fields. `if(condition, true, false)` is SPL's ternary operator — if status equals 200 the new field `label` gets \"OK\", otherwise \"Error\". Source: Splunk Docs — eval command.",
+      "options": [
+        { "id": "A", "text": "Creates a new field called label with a conditional value",  "correct": true  },
+        { "id": "B", "text": "Filters events to only those where status equals 200",       "correct": false },
+        { "id": "C", "text": "Renames the status field to label",                          "correct": false },
+        { "id": "D", "text": "Counts events where status is 200",                          "correct": false }
+      ]
+    },
+    {
+      "sort_order": 15,
+      "text": "What does `| dedup host` do?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "`dedup field` keeps only the FIRST event for each unique value of that field (sorted by time, most recent first, unless you specify sortby). Useful to de-duplicate noisy data or get one representative event per source.",
+      "options": [
+        { "id": "A", "text": "Keeps only the first event for each unique host value",  "correct": true  },
+        { "id": "B", "text": "Counts the number of distinct host values",              "correct": false },
+        { "id": "C", "text": "Removes the host field from all events",                 "correct": false },
+        { "id": "D", "text": "Joins events sharing the same host from two indexes",   "correct": false }
+      ]
+    },
+    {
+      "sort_order": 16,
+      "text": "Which of these are the 'Four Horsemen' of terrible SPL performance? (select ALL that apply)",
+      "type": "multi",
+      "timeLimit": 40,
+      "image": "/static/app/splunk4champions2/images/slow_search_bw.jpg",
+      "explanation": "All four are search-killers:\n• No index filter → scans everything\n• All Time range → no time-based pruning\n• Leading wildcards (e.g. *error) → cannot use the index at all\n• JOIN → forces huge data to the search head\nUse `stats`, `lookup`, or `append` instead of JOIN. Image credit: Splunk4Champions2 Workshop (slow_search_bw.jpg).",
+      "options": [
+        { "id": "A", "text": "No index specified (searching index=*)",     "correct": true  },
+        { "id": "B", "text": "All Time time-range",                        "correct": true  },
+        { "id": "C", "text": "Leading wildcard in search term (*error)",   "correct": true  },
+        { "id": "D", "text": "Using JOIN to combine different data sets",  "correct": true  }
+      ]
+    },
+    {
+      "sort_order": 17,
+      "text": "What does a Splunk lookup do?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "Lookups enrich your search results by joining external data — CSV files, KV Store collections, database (JDBC), Python scripts — adding new fields based on matching keys. Think of it as a LEFT JOIN from SPL into a reference table. Source: Splunk Docs — Add lookup data to Splunk searches.",
+      "options": [
+        { "id": "A", "text": "Enriches events by matching fields against an external reference table",  "correct": true  },
+        { "id": "B", "text": "Searches events across a remote federated Splunk deployment",             "correct": false },
+        { "id": "C", "text": "Retrieves a saved search definition from the config",                    "correct": false },
+        { "id": "D", "text": "Finds the physical disk location of the bucket holding your events",     "correct": false }
+      ]
+    },
+    {
+      "sort_order": 18,
+      "text": "Dashboard Studio dashboards are defined in what format?",
+      "type": "single",
+      "timeLimit": 20,
+      "image": "",
+      "explanation": "Dashboard Studio uses JSON. Classic (Simple XML) dashboards used XML — Studio replaced that from Splunk 8.x onwards. You can edit the raw JSON directly via the source-code editor in Studio. Source: Splunk Docs — Dashboard Studio overview.",
+      "options": [
+        { "id": "A", "text": "JSON",      "correct": true  },
+        { "id": "B", "text": "XML",       "correct": false },
+        { "id": "C", "text": "YAML",      "correct": false },
+        { "id": "D", "text": "Estonian",  "correct": false }
+      ]
+    },
+    {
+      "sort_order": 19,
+      "text": "What are tokens used for in Dashboard Studio?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "/static/app/splunk4champions2/images/ButtercupMascotDashStudio.png",
+      "explanation": "Tokens (written as `$token_name$`) are Dashboard Studio's variables — they carry dynamic values from inputs (dropdowns, time pickers, text boxes, map clicks) into search queries, panel configs, or conditional visibility. Image credit: Splunk4Champions2 Workshop (ButtercupMascotDashStudio.png).",
+      "options": [
+        { "id": "A", "text": "Passing dynamic values between inputs and visualisations",  "correct": true  },
+        { "id": "B", "text": "Authenticating external viewers to the dashboard",          "correct": false },
+        { "id": "C", "text": "Storing API keys for external data connections",            "correct": false },
+        { "id": "D", "text": "Licensing premium visualisations from Splunkbase",          "correct": false }
+      ]
+    },
+    {
+      "sort_order": 20,
+      "text": "What triggers a Splunk scheduled alert?",
+      "type": "single",
+      "timeLimit": 25,
+      "image": "",
+      "explanation": "A scheduled alert is a saved search that runs on a cron-defined schedule. If the condition is met (e.g. result count > 0) the configured alert actions fire — email, webhook, script, ticketing, etc. Source: Splunk Docs — About Splunk alerts.",
+      "options": [
+        { "id": "A", "text": "A search runs on cron schedule and the condition is met",  "correct": true  },
+        { "id": "B", "text": "A user clicks the Trigger button in the UI",               "correct": false },
+        { "id": "C", "text": "Any user logs into the Splunk instance",                   "correct": false },
+        { "id": "D", "text": "The indexing rate exceeds the licensed threshold",         "correct": false }
+      ]
+    },
+    {
+      "sort_order": 21,
+      "text": "Which alert action sends alert results to an external HTTP/S endpoint?",
+      "type": "single",
+      "timeLimit": 20,
+      "image": "",
+      "explanation": "The Webhook alert action POSTs a JSON payload to any HTTP/HTTPS URL you configure. Perfect for integrating with Slack, PagerDuty, ServiceNow, Jira, and custom APIs — no extra app required. Source: Splunk Docs — Set up alert actions.",
+      "options": [
+        { "id": "A", "text": "Webhook",                          "correct": true  },
+        { "id": "B", "text": "Email",                            "correct": false },
+        { "id": "C", "text": "Custom alert action script",       "correct": false },
+        { "id": "D", "text": "Slack (built-in, no app needed)",  "correct": false }
+      ]
+    },
+    {
+      "sort_order": 22,
+      "text": "On a scale of 1–10, how confident do you feel about Splunk so far?",
+      "type": "slider",
+      "timeLimit": 30,
+      "image": "",
+      "explanation": "No wrong answers — this is a pulse check! Keep learning, you're doing great. 🐴",
+      "options": [],
+      "sliderMin": 1,
+      "sliderMax": 10,
+      "sliderStep": 1,
+      "sliderUnit": "/10"
+    },
+    {
+      "sort_order": 23,
+      "text": "What does ITSI stand for?",
+      "type": "single",
+      "timeLimit": 20,
+      "image": "",
+      "explanation": "ITSI = Splunk IT Service Intelligence. It provides service health monitoring, AIOps, and anomaly detection built on top of Splunk. Services are broken down into KPIs that roll up into a colour-coded Service Health Score (0–100). Source: Splunk ITSI product page.",
+      "options": [
+        { "id": "A", "text": "IT Service Intelligence",             "correct": true  },
+        { "id": "B", "text": "Integrated Threat Security Index",    "correct": false },
+        { "id": "C", "text": "Index Time Search Infrastructure",    "correct": false },
+        { "id": "D", "text": "Interactive Time Series Interface",   "correct": false }
+      ]
+    },
+    {
+      "sort_order": 24,
+      "text": "In Splunk ITSI, a KPI (Key Performance Indicator) represents...",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "",
+      "explanation": "A KPI in ITSI is an SPL search that measures one specific health aspect of a service (e.g. web server error rate, CPU utilisation, payment success rate). Multiple KPIs roll up into a single Service Health Score. KPIs can also trigger episodes and drive AIOps-based alerting. Source: Splunk ITSI docs — KPI overview.",
+      "options": [
+        { "id": "A", "text": "A measurable health aspect of a specific service",     "correct": true  },
+        { "id": "B", "text": "The number of active concurrent user sessions",        "correct": false },
+        { "id": "C", "text": "An alert response-time SLA in Enterprise Security",   "correct": false },
+        { "id": "D", "text": "Indexer storage utilisation expressed as a percent",  "correct": false }
+      ]
+    },
+    {
+      "sort_order": 25,
+      "text": "What does this image represent?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "/static/app/splunk4champions2/images/rebus.png",
+      "explanation": "The bucket icons represent Splunk's data lifecycle: Hot (writing) → Warm (searchable) → Cold (archived) → Frozen (deleted/exported). This is the original conceptual design from Splunk documentation. Image credit: Splunk4Champions2 Workshop (rebus.png).",
+      "options": [
+        { "id": "A", "text": "Splunk data lifecycle (Hot → Warm → Cold → Frozen)",  "correct": true  },
+        { "id": "B", "text": "The DevOps CI/CD pipeline",                           "correct": false },
+        { "id": "C", "text": "A very confusing recycling diagram",                  "correct": false },
+        { "id": "D", "text": "The four cloud regions of AWS us-east",               "correct": false }
+      ]
+    },
+    {
+      "sort_order": 26,
+      "text": "What does Splunk ES stand for?",
+      "type": "single",
+      "timeLimit": 20,
+      "image": "",
+      "explanation": "Splunk Enterprise Security (ES) is Splunk's SIEM (Security Information and Event Management) premium app. It provides threat detection, investigation workflows, risk-based alerting, and compliance dashboards on top of Splunk Enterprise or Cloud. Source: Splunk ES product page.",
+      "options": [
+        { "id": "A", "text": "Enterprise Security",  "correct": true  },
+        { "id": "B", "text": "Event Streaming",      "correct": false },
+        { "id": "C", "text": "Extended Search",      "correct": false },
+        { "id": "D", "text": "Edge Server",          "correct": false }
+      ]
+    },
+    {
+      "sort_order": 27,
+      "text": "In Splunk Enterprise Security, what is a 'Notable Event'?",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "",
+      "explanation": "Notable Events are ES's alert output — generated by Correlation Searches when suspicious patterns are detected. They appear in the Incident Review dashboard with urgency, owner, status, and risk scores. Analysts triage and investigate them like tickets. Source: Splunk ES docs — Incident Review.",
+      "options": [
+        { "id": "A", "text": "An alert from a correlation search indicating a potential security issue",  "correct": true  },
+        { "id": "B", "text": "A Windows Event Log entry above severity level Critical",                   "correct": false },
+        { "id": "C", "text": "An event that caused the indexing rate to spike",                          "correct": false },
+        { "id": "D", "text": "A manually bookmarked interesting event in the search timeline",           "correct": false }
+      ]
+    },
+    {
+      "sort_order": 28,
+      "text": "Splunk Observability Cloud (formerly SignalFx) is primarily designed for...",
+      "type": "single",
+      "timeLimit": 30,
+      "image": "",
+      "explanation": "Splunk Observability Cloud focuses on cloud-native, real-time observability using OpenTelemetry — streaming metrics (Infrastructure Monitoring), distributed tracing (APM), log correlation, and Synthetic Monitoring. Optimised for ephemeral, containerised environments. Source: Splunk Observability Cloud overview.",
+      "options": [
+        { "id": "A", "text": "Real-time monitoring of cloud-native apps via metrics, traces, and logs",  "correct": true  },
+        { "id": "B", "text": "Security information and event management (SIEM)",                          "correct": false },
+        { "id": "C", "text": "IT service health scoring and AIOps (that's ITSI)",                        "correct": false },
+        { "id": "D", "text": "Managing Splunk license consumption and compliance",                        "correct": false }
+      ]
+    },
+    {
+      "sort_order": 29,
+      "text": "Which files would you find inside a Splunk index bucket?",
+      "type": "single",
+      "timeLimit": 35,
+      "image": "/static/app/splunk4champions2/images/inabucket.png",
+      "explanation": "A bucket contains: compressed raw events (rawdata/journal.gz), TSIDX time-series index files (for time-based retrieval), and a Bloom filter (probabilistic structure for fast term lookups). No SQL, no Parquet — Splunk has its own storage format. Image credit: Splunk4Champions2 Workshop (inabucket.png).",
+      "options": [
+        { "id": "A", "text": "TSIDX files, compressed rawdata journal, Bloom filter",   "correct": true  },
+        { "id": "B", "text": "SQL database files, WAL logs, and transaction pages",      "correct": false },
+        { "id": "C", "text": "JSON documents, an Avro schema, and a manifest file",     "correct": false },
+        { "id": "D", "text": "Apache Parquet files and a column store index",           "correct": false }
+      ]
+    },
+    {
+      "sort_order": 30,
+      "text": "What does `| rex field=url mode=sed \"s/\\?.*//\"` do?",
+      "type": "single",
+      "timeLimit": 35,
+      "image": "",
+      "explanation": "`rex mode=sed` performs in-place search-and-replace using Unix sed syntax: `s/pattern/replacement/flags`. This example strips everything after `?` from the url field — handy for normalising URLs before stats or dedup. Source: Splunk Docs — rex command, mode=sed.",
+      "options": [
+        { "id": "A", "text": "Removes the query string (everything after ?) from the url field",         "correct": true  },
+        { "id": "B", "text": "Switches rex into streaming execution mode for better performance",         "correct": false },
+        { "id": "C", "text": "Extracts fields using a sed configuration file from the filesystem",       "correct": false },
+        { "id": "D", "text": "Applies the regex only to _raw, ignoring previously extracted fields",     "correct": false }
+      ]
+    },
+    {
+      "sort_order": 31,
+      "text": "In one word — what is Splunk to you? 🐴",
+      "type": "wordcloud",
+      "timeLimit": 30,
+      "image": "/static/app/ponypollapp/buttercup.png",
+      "explanation": "No wrong answers here! Word size reflects how many participants shared the same word. We're curious what comes to mind first.",
+      "options": [],
+      "wordcloudMaxChars": 32,
+      "wordcloudMaxWords": 7
+    }
+  ]
+}
