@@ -79,7 +79,7 @@ function IdleView({ playUrl }) {
     );
 }
 
-function WaitingView({ session, playUrl, participantCount }) {
+function WaitingView({ session, playUrl, participantCount, participantNames = [] }) {
     return (
         <div style={{ ...S.root, gap: 28, textAlign: 'center' }}>
             <div style={S.label}>Join the quiz</div>
@@ -106,6 +106,19 @@ function WaitingView({ session, playUrl, participantCount }) {
                 <div style={{ fontSize: 22, color: C.muted }}>
                     <span style={{ fontWeight: 700, color: C.text, fontSize: 36 }}>{participantCount}</span>
                     {' '}participant{participantCount !== 1 ? 's' : ''} joined
+                </div>
+            )}
+            {participantNames.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 720 }}>
+                    {participantNames.map((name) => (
+                        <span key={name} style={{
+                            padding: '8px 18px', borderRadius: 24,
+                            background: '#00000033', border: `2px solid ${C.green}55`,
+                            color: C.green, fontSize: 22, fontWeight: 700,
+                        }}>
+                            {name}
+                        </span>
+                    ))}
                 </div>
             )}
         </div>
@@ -294,6 +307,7 @@ export default function ProjectorPage() {
 
     const [questions,        setQuestions]        = useState([]);
     const [participantCount, setParticipantCount] = useState(0);
+    const [participantNames, setParticipantNames] = useState([]);
     const [answerDist,       setAnswerDist]        = useState([]);
     const [distTotal,        setDistTotal]         = useState(0);
     const [leaderboard,      setLeaderboard]       = useState([]);
@@ -323,7 +337,12 @@ export default function ProjectorPage() {
         let mounted = true;
         const tick = () => {
             getPresence(session?.session_id)
-                .then((rows) => { if (mounted) setParticipantCount(Array.isArray(rows) ? rows.length : 0); })
+                .then((rows) => {
+                    if (!mounted) return;
+                    const names = [...new Set((Array.isArray(rows) ? rows : []).map((r) => r.nickname).filter(Boolean))];
+                    setParticipantCount(names.length);
+                    if (names.length > 0) setParticipantNames(names);
+                })
                 .catch(() => {});
         };
         tick();
@@ -392,7 +411,7 @@ export default function ProjectorPage() {
     }, [phase, session]);
 
     if (phase === 'idle')     return <IdleView playUrl={playUrl} />;
-    if (phase === 'waiting')  return <WaitingView session={session} playUrl={playUrl} participantCount={participantCount} />;
+    if (phase === 'waiting')  return <WaitingView session={session} playUrl={playUrl} participantCount={participantCount} participantNames={participantNames} />;
     if (phase === 'question') return <QuestionView session={session} questions={questions} />;
     if (phase === 'reveal')   return <RevealView session={session} questions={questions} answerDist={answerDist} distTotal={distTotal} leaderboard={leaderboard} />;
     if (phase === 'done')     return <DoneView leaderboard={leaderboard} />;

@@ -8,6 +8,7 @@ export default function LobbyPanel({
     quizName,
     total,
     participantCount,
+    participantNames = [],
     playUrl,
     shortUrl,
     projectorUrl,
@@ -44,7 +45,7 @@ export default function LobbyPanel({
                 onCopy={onCopy}
             />
 
-            <Grid2 style={{ gridTemplateColumns: '1fr 1fr', maxWidth: 320, marginBottom: 20 }}>
+            <Grid2 style={{ gridTemplateColumns: '1fr 1fr', maxWidth: 320, marginBottom: 16 }}>
                 <Stat>
                     <StatVal $color={C.green}>{participantCount}</StatVal>
                     <StatLabel>Joined</StatLabel>
@@ -55,7 +56,22 @@ export default function LobbyPanel({
                 </Stat>
             </Grid2>
 
-            {participantCount === 0 && (
+            {participantNames.length > 0 ? (
+                <div style={{
+                    display: 'flex', flexWrap: 'wrap', gap: 6,
+                    maxWidth: 480, marginBottom: 16, justifyContent: 'center',
+                }}>
+                    {participantNames.map((name) => (
+                        <span key={name} style={{
+                            padding: '4px 10px', borderRadius: 20,
+                            background: C.surface, border: `1px solid ${C.green}55`,
+                            color: C.green, fontSize: 13, fontWeight: 600,
+                        }}>
+                            {name}
+                        </span>
+                    ))}
+                </div>
+            ) : (
                 <div style={{ color: C.muted, fontSize: 13, marginBottom: 16 }}>
                     Waiting for participants to scan the QR code and join…
                 </div>

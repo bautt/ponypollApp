@@ -61,6 +61,7 @@ export default function AdminPage() {
     const [questions, setQuestions]           = useState([]);
     const [quizName, setQuizName]             = useState('');
     const [participantCount, setParticipants] = useState(0);
+    const [participantNames, setParticipantNames] = useState([]);
     const [leaderboard, setLeaderboard]       = useState([]);
     const [answerDist, setAnswerDist]         = useState([]);
     const [distTotal, setDistTotal]           = useState(0);
@@ -174,10 +175,12 @@ export default function AdminPage() {
                 tickCount++;
                 if (sess?.session_id && sess.phase === 'waiting') {
                     const sid = sess.session_id;
+                    let kvNames = [];
                     let kvCount = 0;
                     try {
                         const docs = await getPresence(sid);
-                        kvCount = new Set(docs.map((d) => d.nickname).filter(Boolean)).size;
+                        kvNames = [...new Set(docs.map((d) => d.nickname).filter(Boolean))];
+                        kvCount = kvNames.length;
                     } catch (_) {}
 
                     let idxCount = 0;
@@ -193,7 +196,10 @@ export default function AdminPage() {
                             }
                         } catch (_) {}
                     }
-                    if (mounted) setParticipants(Math.max(kvCount, idxCount));
+                    if (mounted) {
+                        setParticipants(Math.max(kvCount, idxCount));
+                        if (kvNames.length > 0) setParticipantNames(kvNames);
+                    }
 
                 } else if (sess?.session_id && sess.phase !== 'idle' && tickCount % 4 === 0) {
                     const sidSafe = sanitizeId(sess.session_id);
@@ -342,6 +348,7 @@ export default function AdminPage() {
             sessionRef.current = doc;
             setSession({ ...doc });
             setParticipants(0);
+            setParticipantNames([]);
             setLeaderboard([]);
         } catch (e) {
             setStatus({ error: true, msg: e.message });
@@ -460,6 +467,7 @@ export default function AdminPage() {
         questionsRef.current = [];
         setLeaderboard([]);
         setParticipants(0);
+        setParticipantNames([]);
     };
 
     const handleEndSession = async () => {
@@ -569,6 +577,7 @@ export default function AdminPage() {
                     quizName={quizName}
                     total={total}
                     participantCount={participantCount}
+                    participantNames={participantNames}
                     busy={busy}
                     onLaunch={handleLaunchQuiz}
                     onEndSession={handleEndSession}
