@@ -48,9 +48,17 @@
     "file": "sample-all-types.json"
   },
   {
+    "id": "splunk-basics-blast",
+    "name": "Splunk Basics Blast 🎯",
+    "description": "32 questions covering SPL, Dashboard Studio, alerts, schema on read, scalability, plus introductory ITSI, ES, and Observability Cloud. Fun pub-quiz-style distractors, 10 images embedded from the Splunk4Champions2 workshop. Great for onboarding or a warm-up at a Splunk event.",
+    "questionCount": 32,
+    "difficulty": "Beginner",
+    "file": "splunk-basics-blast.json"
+  },
+  {
     "id": "european-history",
     "name": "European History & Geography Trivia",
-    "description": "42 questions spanning Ukraine, the Baltic States, Lithuania, Poland, Germany, France, and Britain — capitals, key dates, famous firsts, and fun facts. Ends with a self-rating slider.",
+    "description": "42 pub-quiz-style questions spanning Ukraine, the Baltic States, Lithuania, Poland, Germany, France, and Britain — capitals, key dates, famous firsts, and fun distractors. 10 Wikipedia CC-licensed images embedded (Kyiv, Chernobyl, Tallinn, Vilnius, Berlin Wall, Neuschwanstein, Eiffel Tower, Napoleon, Tower of London, Shakespeare). Ends with a self-rating slider.",
     "questionCount": 42,
     "difficulty": "Intermediate",
     "file": "european-history.json"
