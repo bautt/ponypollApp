@@ -458,8 +458,8 @@ export default function EditorPage() {
     };
 
     // ── Library ───────────────────────────────────────────────────────────────
-    const loadLibrarySource = async (source) => {
-        if (libraryItems[source]) return;
+    const loadLibrarySource = async (source, force = false) => {
+        if (!force && libraryItems[source]) return;
         setLibraryLoading(true);
         setLibraryError(null);
         try {
@@ -486,9 +486,8 @@ export default function EditorPage() {
     };
 
     const refreshGitHub = () => {
-        setLibraryItems((prev) => ({ ...prev, github: null }));
         setLibraryError(null);
-        loadLibrarySource('github');
+        loadLibrarySource('github', true);
     };
 
     const handleLibraryImport = async (item) => {
