@@ -580,9 +580,15 @@ export async function joinSession(sessionId, nickname) {
 export async function heartbeatPresence(sessionId, nickname) {
     const key = presenceKey(sessionId, nickname);
     try {
+        // Splunk KV Store POST replaces the entire document — always include
+        // session_id and nickname so getPresence queries keep matching.
         await kvFetch(`${kvBase()}/ponypoll_presence/${encodeURIComponent(key)}?output_mode=json`, {
             method: 'POST',
-            body: JSON.stringify({ last_seen: new Date().toISOString() }),
+            body: JSON.stringify({
+                session_id: sessionId,
+                nickname,
+                last_seen: new Date().toISOString(),
+            }),
         });
     } catch (_) { /* best-effort */ }
 }

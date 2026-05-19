@@ -5,7 +5,7 @@
 
   **Interactive quiz app for Splunk — no extra infrastructure needed**
 
-  ![version](https://img.shields.io/badge/version-1.3.56-blue)
+  ![version](https://img.shields.io/badge/version-1.3.57-blue)
   ![Splunk](https://img.shields.io/badge/Splunk-≥8.x-orange)
   ![AppInspect](https://img.shields.io/badge/AppInspect-approved-green)
   ![React](https://img.shields.io/badge/React-16-61dafb)
