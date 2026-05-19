@@ -211,6 +211,10 @@ The projector URL is also available in the Splunk navigation bar as **📽 Proje
 | **Reveal** | Question + answer distribution bars (% per option), top-5 leaderboard |
 | **Done** | Podium (🥇🥈🥉) with names and scores, full top-10 below |
 
+| Waiting — lobby | Question live |
+|---|---|
+| ![Projector — waiting lobby, session number, QR code, play URL](docs/screenshots/projector-lobby.png) | ![Projector — question with image, answer tiles, countdown timer](docs/screenshots/projector-question.png) |
+
 The projector view contains no admin controls — it is safe to leave open on a shared screen.
 
 ---
