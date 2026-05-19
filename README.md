@@ -28,6 +28,7 @@ Install app → create questions in the Editor → share the /play URL → watch
 |---|---|
 | Run a self-paced quiz | **Poll** tab → nickname → Start |
 | Host a live synchronized session | **Admin** tab → pick quiz → Synchronized → Start |
+| Show a wall-screen during a session | Open `/projector` on a second display — auto-updates with each phase |
 | Build or edit questions | **Editor** tab — 6 question types, drag-to-reorder, images |
 | Import a ready-made quiz | Editor → **Library** (bundled) or **GitHub** (live sync) |
 | Analyse results | **Analytics** tab — leaderboard, KPIs, difficulty breakdown, session filter |
@@ -94,8 +95,10 @@ The **Quiz music** and **Sound effects** toggles let each participant enable or 
 | **6 question types** | Single correct · Multiple correct · Yes / No · Free text · Slider / Rating · Word cloud |
 | **Synchronized host mode** | Presenter controls pace; sessions auto-numbered `00001`, `00002`, …; server-authoritative timer; answer distribution + explanation callout + per-question leaderboard |
 | **Self-paced mode** | Each participant runs at their own speed |
-| **Admin tab** | Unified control room for both modes — includes QR code, short URL, session badge |
-| **Editor** | WYSIWYG question editor — 6 types, drag-to-reorder, image support, explanations |
+| **Projector view** | Read-only `/projector` URL mirrors the live session on a wall screen — phases: idle QR, lobby nicknames, question + timer, reveal bars, final podium |
+| **Post-quiz review** | After finishing, participants see a per-question breakdown: correct/incorrect, their answer, the correct answer, and explanation hints |
+| **Admin tab** | Unified control room for both modes — QR code, short URL, session badge, projector link, live participant nickname list |
+| **Editor** | WYSIWYG question editor — 6 types, drag-to-reorder, image support, explanations, **duplicate quiz** |
 | **Quiz library** | Bundled quizzes importable with one click; **GitHub** button syncs latest quizzes live |
 | **Export / Import** | JSON file per quiz — portable between any Splunk instances |
 | **Random question subset** | Play N random questions from a larger pool each session |
@@ -130,14 +133,15 @@ Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/late
 3. Go to the **Admin** tab, pick a quiz, and click **Activate for Self-paced** (or start a Synchronized session).
 4. Share the **Play URL** with participants.
 
-### Two entry points
+### Three entry points
 
 | URL | Who it's for | What they see |
 |---|---|---|
 | `/app/ponypollapp/poll` | Host / presenter | Full app — Poll, Editor, Analytics, Settings |
 | `/app/ponypollapp/play` | Participants | Quiz only — nickname input, questions, score |
+| `/app/ponypollapp/projector` | Wall screen / projector | Read-only audience display, auto-updates with session |
 
-Share `/play` with your audience. Both URLs appear in the Splunk navigation bar.
+Share `/play` with your audience. All three URLs appear in the Splunk navigation bar.
 
 **Getting back to the admin app when Play is the default view:**
 
@@ -183,6 +187,33 @@ Admin tab → pick a quiz → Mode: Synchronized → Start Synchronized Session
   → final podium shown to all participants
   → Start New Session returns to the control room
 ```
+
+### Projector view
+
+The projector view is a dedicated read-only display designed to be shown on a wall screen, TV, or second monitor while the host runs the quiz from their own device.
+
+**How to set it up:**
+
+1. Start a synchronized session from the **Admin** tab.
+2. In the JoinInfo panel (Idle or Lobby screen), click **📽 Projector view ↗** — this opens the projector URL in a new tab.
+3. Move or cast that tab to the projector / second display.
+4. The screen requires no interaction — it polls the session every 3 seconds and updates automatically.
+
+The projector URL is also available in the Splunk navigation bar as **📽 Projector**.
+
+**What the audience sees at each phase:**
+
+| Phase | Display |
+|---|---|
+| **Idle** (no session) | App logo, large QR code + play URL — participants can scan in advance |
+| **Waiting** (lobby open) | Giant session number `#XYZ`, QR code + play URL, live participant count, nickname chips as people join |
+| **Question live** | Question number, question text, colour-coded option tiles (A/B/C/D), live countdown timer bar |
+| **Reveal** | Question + answer distribution bars (% per option), top-5 leaderboard |
+| **Done** | Podium (🥇🥈🥉) with names and scores, full top-10 below |
+
+The projector view contains no admin controls — it is safe to leave open on a shared screen.
+
+---
 
 ### Key features
 
