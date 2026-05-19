@@ -43,17 +43,21 @@ function getProjectorUrl() {
 }
 
 async function fetchShortUrl(url) {
-    try {
-        const res = await fetch(
-            `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
-            { signal: AbortSignal.timeout(5000) }
-        );
-        if (!res.ok) return null;
-        const text = (await res.text()).trim();
-        return text.startsWith('http') ? text : null;
-    } catch (_) {
-        return null;
+    // Try is.gd then v.gd — both have clean single-hop redirects with no tracker intermediaries.
+    // TinyURL was replaced because it now routes through redirect.viglink.com (affiliate tracker).
+    const apis = [
+        `https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`,
+        `https://v.gd/create.php?format=simple&url=${encodeURIComponent(url)}`,
+    ];
+    for (const endpoint of apis) {
+        try {
+            const res = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
+            if (!res.ok) continue;
+            const text = (await res.text()).trim();
+            if (text.startsWith('http')) return text;
+        } catch (_) { /* try next */ }
     }
+    return null;
 }
 
 export default function AdminPage() {
@@ -106,11 +110,11 @@ export default function AdminPage() {
 
     const handleShorten = useCallback(async () => {
         // Per-tab consent: once the host approves sending the hostname to
-        // tinyurl.com, skip the confirm() on subsequent calls in the same tab.
+        // is.gd, skip the confirm() on subsequent calls in the same tab.
         if (!sessionStorage.getItem('ponypoll_tinyurl_consent')) {
             if (!window.confirm(
-                'Shorten URL via TinyURL?\n\n' +
-                'This will send your Splunk server hostname to tinyurl.com ' +
+                'Shorten URL via is.gd?\n\n' +
+                'This will send your Splunk server hostname to is.gd ' +
                 '(a third-party service). Only click OK if that is acceptable ' +
                 'in your environment.\n\n' +
                 "Your choice is remembered for the rest of this tab's session."
@@ -121,7 +125,7 @@ export default function AdminPage() {
         try {
             const s = await fetchShortUrl(playUrl);
             if (s) setShortUrl(s);
-            else alert('TinyURL did not return a short link. Check internet connectivity.');
+            else alert('Could not create a short link. Check internet connectivity.');
         } finally {
             setShorteningUrl(false);
         }

@@ -85,12 +85,12 @@ export default function JoinInfo({ large, sessionName, playUrl, shortUrl, projec
                         <CopyBtn
                             onClick={onShorten}
                             disabled={shorteningUrl}
-                            title="Sends your server hostname to tinyurl.com"
+                            title="Sends your server hostname to is.gd to create a short URL"
                         >
                             {shorteningUrl ? '…' : <><IconLink />Shorten URL</>}
                         </CopyBtn>
                         <span style={{ fontSize: 11, color: C.muted }}>
-                            (sends hostname to tinyurl.com)
+                            (sends hostname to is.gd)
                         </span>
                     </ShortUrlRow>
                 )}
