@@ -18,6 +18,43 @@ Wondering why there is a pony? Meet Buttercup in Splunk's own story: [The Story 
 
 ---
 
+## Table of contents
+
+- [Quick start](#quick-start)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Installation](#installation)
+- [Architecture](#architecture)
+- [Admin tab — running a quiz](#admin-tab--running-a-quiz)
+- [Editor](#editor)
+- [Analytics](#analytics)
+- [Quiz library & GitHub sync](#quiz-library--github-sync)
+- [Question types reference](#question-types-reference)
+- [Import/Export JSON format](#importexport-json-format)
+- [Configuration](#configuration)
+- [Roles & permissions](#roles--permissions)
+- [Splunk SPL examples](#splunk-spl-examples)
+- [Upgrade instructions](#upgrade-instructions)
+- [External data sources](#external-data-sources)
+- [Music Credits](#music-credits)
+- [Support](#support)
+- [License](#license)
+
+---
+
+## Audience & prerequisites
+
+| Who | What they need |
+|---|---|
+| **Host / presenter** | Splunk admin or `ponypoll_admin` role; access to Splunk Web |
+| **Participants** | Any modern browser with access to Splunk Web (no Splunk account required if anonymous access is configured) |
+| **App installer** | Splunk admin rights to upload apps and restart Splunk |
+
+> Participants do **not** need Splunk knowledge — they interact only with the `/play` URL.  
+> Hosts are assumed to be comfortable with Splunk Web basics.
+
+---
+
 ## Quick start
 
 ```
@@ -159,6 +196,38 @@ Share `/play` with your audience. All three URLs appear in the Splunk navigation
 | Browser | Any modern browser (Chrome, Firefox, Edge, Safari) |
 
 > No Node.js, Python, or build tools are needed to run the app — the pre-built JavaScript bundle is included in the tarball.
+
+---
+
+## Architecture
+
+Pony Poll runs entirely inside Splunk — no external database, no sidecar processes, no Python scripts on the critical path.
+
+```
+Browser (host)        Browser (participant)         Splunk
+      │                        │                       │
+      │── KV Store REST ───────┼───────────────────────▶ ponypoll_quizzes
+      │   (questions, config,  │                         ponypoll_questions
+      │    session state)      │                         ponypoll_config
+      │                        │                         ponypoll_presence
+      │── receivers/simple ────┼───────────────────────▶ index=ponypoll
+      │   (answer events)      │── receivers/simple ──▶   sourcetype=ponypoll_answer
+      │                        │                                      ponypoll_attempt
+      │◀─ Analytics (SPL) ─────┼───────────────────────▶             ponypoll_presence
+```
+
+**Key components:**
+
+| Component | Technology | Purpose |
+|---|---|---|
+| Frontend | React 16 + Splunk UI Toolkit, served as a compiled JS bundle | All UI — Poll, Admin, Editor, Analytics, Projector, Settings |
+| Session state | KV Store (`ponypoll_presence`, `ponypoll_config`) | Lobby nicknames, active quiz, synchronized session control |
+| Quiz storage | KV Store (`ponypoll_quizzes`, `ponypoll_questions`) | Question bank, quiz metadata |
+| Answer events | `receivers/simple` → Splunk index `ponypoll` | All participant answers stored as searchable events |
+| Analytics | Splunk search (SPL via REST) | Leaderboard, difficulty, session history |
+| Index macro | `ponypoll_index` in `macros.conf` | Single source of truth for the target index across all queries |
+
+The app is a **single-page React app** embedded in Splunk XML dashboard templates. It uses the Splunk REST API (`/services/`) directly from the browser for all data access — no custom Python scripts run at query time.
 
 ---
 
@@ -555,6 +624,29 @@ The music catalogue is fully extensible without rebuilding the app:
 1. Drop a CC0 / public-domain audio file under [`audio/<subfolder>/`](audio/).
 2. Add an entry to [`audio/manifest.json`](audio/manifest.json) — schema documented in [`audio/README.md`](audio/README.md).
 3. Open a PR. Once merged, the track is live for any installation via **↻ GitHub**.
+
+---
+
+## Upgrade instructions
+
+Pony Poll stores all user data (questions, quizzes, config, answers) outside the app bundle — in Splunk KV Store and the `ponypoll` index — so upgrades are non-destructive.
+
+### Standard upgrade
+
+1. Download the latest `ponypollapp.tar.gz` from the [Releases page](https://github.com/bautt/ponypollApp/releases/latest).
+2. Go to **Apps → Manage Apps → Install app from file**.
+3. Select the tarball, check **Upgrade app**, and click **Upload**.
+4. Restart Splunk if prompted.
+
+All questions, quizzes, and historical answers are preserved. Settings (poll title, index, default view, music preferences) are stored in KV Store and in `local/macros.conf` — neither is touched by the upgrade.
+
+### What changes between versions
+
+Each release includes a changelog on the [Releases page](https://github.com/bautt/ponypollApp/releases). Check there for any manual migration steps if upgrading across multiple major versions.
+
+### Downgrade
+
+Reinstall any previous release tarball using the same **Upgrade app** flow. KV Store schema changes are backward-compatible in all released versions.
 
 ---
 
