@@ -35,6 +35,7 @@ Wondering why there is a pony? Meet Buttercup in Splunk's own story: [The Story 
 - [Roles & permissions](#roles--permissions)
 - [Splunk SPL examples](#splunk-spl-examples)
 - [Upgrade instructions](#upgrade-instructions)
+- [Troubleshooting](#troubleshooting)
 - [External data sources](#external-data-sources)
 - [Music Credits](#music-credits)
 - [Support](#support)
@@ -661,6 +662,45 @@ Pony Poll makes outbound requests to the following third-party services. All cal
 | GitHub (raw content) | `https://raw.githubusercontent.com/bautt/ponypollApp/main/audio/` | User clicks **↻ GitHub** in Settings → Music tracks | Fetches the public audio manifest. No credentials are sent. |
 
 No data is collected or transmitted automatically. All external calls require explicit user action.
+
+---
+
+## Troubleshooting
+
+### Participants cannot join or submit answers
+
+> ⚠️ **Participants must be logged into Splunk Web** with an account that has the `ponypoll_user` role (or `admin`). Without it, they can open `/play` but cannot register their nickname in the lobby or submit answers.
+
+Assign the `ponypoll_user` role to all participant accounts before the session — this is a one-time setup by a Splunk admin:
+
+1. Go to **Settings → Users and Authentication → Users**.
+2. Edit each participant's account and add the `ponypoll_user` role.
+3. Alternatively, assign the role to an existing role that participants already have (e.g. `user`) by editing it under **Settings → Users and Authentication → Roles**.
+
+> For open workshops where participants have no personal Splunk account, ask your Splunk admin to create shared workshop credentials with the `ponypoll_user` role assigned in advance.
+
+### System Check failures
+
+Open the **Settings** tab — the System Check runs automatically and shows a green tick or red flag for each component:
+
+| Red item | What to do |
+|---|---|
+| **KV Store readable / writable** | Confirm KV Store is running: **Settings → Server controls → KVStore** should show "Running" |
+| **ponypoll_index macro** | Go to **Settings → Advanced Search → Search macros** and verify `ponypoll_index` exists; re-install the app if missing |
+| **Poll index exists** | The `ponypoll` index is created by `indexes.conf` on install — a Splunk restart is required for new indexes to become active |
+| **Poll index has data** | Run at least one quiz to generate events, or verify the index name in Settings matches where events are being written |
+| **Answer submission works** | The `ponypoll_user` role needs the `edit_tcp` capability — assign it or add the role to the participant's account |
+
+### Other symptoms
+
+| Symptom | What to do |
+|---|---|
+| Lobby shows 0 participants despite people joining | Check KV Store status — presence heartbeats use KV Store writes |
+| Participant count flickers (1 → 0 → 1) | Harmless — KV Store presence write timing; resolves within one heartbeat cycle (~10 s) |
+| Projector shows wrong or stale content | Refresh the projector page; confirm the session is still active in the Admin tab |
+| Analytics shows no answers | Run the System Check — confirm the index and macro are correct |
+| Short URL button fails | Outbound HTTPS to `is.gd` / `v.gd` must be reachable from the browser |
+| App not visible in the Splunk nav menu | Go to **Apps → Manage Apps** and confirm Pony Poll is enabled |
 
 ---
 
