@@ -70,5 +70,13 @@
     "questionCount": 47,
     "difficulty": "Intermediate",
     "file": "greek-mythology.json"
+  },
+  {
+    "id": "roman-mythology",
+    "name": "Roman Mythology, Culture & History 🏛️",
+    "description": "32 questions covering Roman mythology, Latin phrases, emperors, gladiators, military customs, and daily life — with 10 Wikimedia images (Caesar, Augustus, the Colosseum, Capitoline Wolf, Pantheon, gladiator mosaics, Nero, Trajan's Column, a Vestal Virgin, and Cleopatra). Fun, non-trivial, with several Latin-language challenges.",
+    "questionCount": 32,
+    "difficulty": "Intermediate",
+    "file": "roman-mythology.json"
   }
 ]

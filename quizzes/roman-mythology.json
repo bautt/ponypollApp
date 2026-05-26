@@ -1,0 +1,381 @@
+[
+  {
+    "text": "After which battle did Julius Caesar famously declare 'Veni, Vidi, Vici' (I came, I saw, I conquered)?",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Retrato_de_Julio_C%C3%A9sar_%2826724093101%29_%28cropped%29.jpg/330px-Retrato_de_Julio_C%C3%A9sar_%2826724093101%29_%28cropped%29.jpg",
+    "explanation": "Caesar wrote these three words in a letter to the Senate after crushing Pharnaces II of Pontus at the Battle of Zela in 47 BC — mocking the speed and ease of his victory. Pharsalus was against Pompey; Alesia defeated Vercingetorix. 📷 Marble portrait of Julius Caesar, Archaeological Museum, Turin. Wikimedia Commons, Public Domain.",
+    "options": [
+      { "id": "A", "text": "Battle of Pharsalus (vs. Pompey, 48 BC)", "correct": false },
+      { "id": "B", "text": "Battle of Alesia (vs. Vercingetorix, 52 BC)", "correct": false },
+      { "id": "C", "text": "Battle of Zela (vs. Pharnaces II, 47 BC)", "correct": true },
+      { "id": "D", "text": "Battle of the Nile (vs. Ptolemy XIII, 47 BC)", "correct": false }
+    ]
+  },
+  {
+    "text": "Julius Caesar was the first Roman Emperor. True or false?",
+    "type": "yesno",
+    "timeLimit": 15,
+    "explanation": "False! Caesar held the title Dictator Perpetuo — dictator in perpetuity — not Emperor. It was his great-nephew and adopted son Octavian, renamed Augustus, who became Rome's first Emperor in 27 BC after the Senate granted him the honorary title 'Augustus' (The Revered One).",
+    "options": [
+      { "id": "yes", "text": "True", "correct": false },
+      { "id": "no", "text": "False", "correct": true }
+    ]
+  },
+  {
+    "text": "In 27 BC the Senate awarded Octavian the honorary title 'Augustus'. What does 'Augustus' mean in Latin?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Augustus_of_Prima_Porta.jpg/330px-Augustus_of_Prima_Porta.jpg",
+    "explanation": "Augustus derives from 'augere' (to increase, to consecrate) — meaning 'the revered' or 'the majestic one'. It carried religious connotations of divine favour. The month August is named after him, just as July honours Julius Caesar. 📷 Augustus of Prima Porta (1st century AD), Vatican Museums. Wikimedia Commons, Public Domain.",
+    "options": [
+      { "id": "A", "text": "The Victorious Conqueror", "correct": false },
+      { "id": "B", "text": "Father of the Fatherland (Pater Patriae)", "correct": false },
+      { "id": "C", "text": "The Revered / The Majestic One", "correct": true },
+      { "id": "D", "text": "First Citizen (Princeps)", "correct": false }
+    ]
+  },
+  {
+    "text": "What does 'Carpe Diem' literally mean — beyond the lazy translation 'seize the day'?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "'Carpe' is the imperative of 'carpere' — to pluck or harvest, as you would pick fruit at peak ripeness. Horace's full line (Odes I.11) is 'carpe diem, quam minimum credula postero' — pluck today, trust as little as possible in tomorrow. The fruit metaphor is far more poetic than just 'seize'!",
+    "options": [
+      { "id": "A", "text": "Chase the day", "correct": false },
+      { "id": "B", "text": "Pluck the day (like a ripe fruit)", "correct": true },
+      { "id": "C", "text": "Count your days", "correct": false },
+      { "id": "D", "text": "Live only for today", "correct": false }
+    ]
+  },
+  {
+    "text": "The Colosseum's official architectural name is the Flavian Amphitheatre. Who were 'the Flavians'?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/330px-Colosseo_2020.jpg",
+    "explanation": "The Flavian dynasty consisted of Vespasian (who began construction in 72 AD on land drained from Nero's private lake), his son Titus (who opened it in 80 AD with 100 days of games), and Domitian (who added the top tier). 'Colosseum' is a medieval nickname, likely from a colossal statue of Nero nearby. 📷 The Colosseum, Rome, 2020. Wikimedia Commons, CC BY-SA 4.0.",
+    "options": [
+      { "id": "A", "text": "A noble family who donated the land to the public", "correct": false },
+      { "id": "B", "text": "The dynasty of Vespasian, Titus, and Domitian who built it", "correct": true },
+      { "id": "C", "text": "The architects commissioned by Nero", "correct": false },
+      { "id": "D", "text": "The gladiatorial school that funded the games", "correct": false }
+    ]
+  },
+  {
+    "text": "Which three gods formed the Capitoline Triad — Rome's holiest divine trinity, sharing the great temple on the Capitoline Hill?",
+    "type": "multi",
+    "timeLimit": 30,
+    "explanation": "Jupiter (king of the gods), Juno (his queen, goddess of marriage), and Minerva (goddess of wisdom and crafts) made up the Capitoline Triad. They shared a three-cella temple — the Temple of Capitoline Jupiter. Mars was important but not part of this triad; he had his own temples.",
+    "options": [
+      { "id": "A", "text": "Jupiter", "correct": true },
+      { "id": "B", "text": "Mars", "correct": false },
+      { "id": "C", "text": "Juno", "correct": true },
+      { "id": "D", "text": "Minerva", "correct": true }
+    ]
+  },
+  {
+    "text": "After the she-wolf nursed the abandoned twins Romulus and Remus, who raised them as his own children?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Lupa_Capitolina%2C_Rome.jpg/330px-Lupa_Capitolina%2C_Rome.jpg",
+    "explanation": "The shepherd Faustulus discovered the she-wolf nursing the twins near the Tiber and brought them home to his wife Acca Larentia. The twins' grandfather was King Numitor of Alba Longa, whose throne had been usurped. The wolf herself became Rome's most enduring symbol. 📷 Capitoline Wolf (Lupa Capitolina), Musei Capitolini, Rome. Wikimedia Commons, CC BY-SA 3.0.",
+    "options": [
+      { "id": "A", "text": "King Numitor, their grandfather", "correct": false },
+      { "id": "B", "text": "The river god Tiberinus", "correct": false },
+      { "id": "C", "text": "A shepherd named Faustulus", "correct": true },
+      { "id": "D", "text": "A priestess of Vesta who found them floating", "correct": false }
+    ]
+  },
+  {
+    "text": "The satirist Juvenal coined 'Panem et Circenses' around 100 AD. What was his actual point in using this phrase?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Juvenal (Satires X) used 'bread and circuses' with bitter sarcasm — criticising how Roman emperors bought public passivity by providing free grain (panem) and free entertainment (circenses). The people had traded meaningful political engagement for food and spectacle. Sound familiar?",
+    "options": [
+      { "id": "A", "text": "Praising the generosity of Roman emperors", "correct": false },
+      { "id": "B", "text": "Criticising how emperors bought public complacency with food and entertainment", "correct": true },
+      { "id": "C", "text": "Describing the ideal Roman banquet", "correct": false },
+      { "id": "D", "text": "Celebrating the founding of the Circus Maximus", "correct": false }
+    ]
+  },
+  {
+    "text": "Latin challenge: 'Semper Fidelis' (Always Faithful) is the motto of which branch of the US armed forces?",
+    "type": "single",
+    "timeLimit": 15,
+    "explanation": "The US Marine Corps adopted 'Semper Fidelis' as its official motto in 1883. It was also used earlier by units in Devizes (England), Exeter (England), and Chester (England). The US Army's motto is 'This We'll Defend', the Navy's is 'Fortes Fortuna Adiuvat' (Fortune Favours the Bold — also a Latin phrase!).",
+    "options": [
+      { "id": "A", "text": "US Army", "correct": false },
+      { "id": "B", "text": "US Navy", "correct": false },
+      { "id": "C", "text": "US Marine Corps", "correct": true },
+      { "id": "D", "text": "US Air Force", "correct": false }
+    ]
+  },
+  {
+    "text": "What year does the Roman numeral MCMXCIX represent?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "M=1000, CM=900 (1000-100), XC=90 (100-10), IX=9 (10-1). So: 1000+900+90+9 = 1999. Roman numerals use subtraction notation when a smaller value precedes a larger one. MCMXCIX is the last year before the millennium — which would be MM (2000).",
+    "options": [
+      { "id": "A", "text": "1899", "correct": false },
+      { "id": "B", "text": "1999", "correct": true },
+      { "id": "C", "text": "2009", "correct": false },
+      { "id": "D", "text": "1099", "correct": false }
+    ]
+  },
+  {
+    "text": "The Pantheon's portico inscription reads 'M·AGRIPPA·L·F·COS·TERTIVM·FECIT' — yet the version standing today was built by a different emperor. Who actually built our Pantheon?",
+    "type": "single",
+    "timeLimit": 25,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Pantheon_%28Rome%29_-_Right_side_and_front.jpg/330px-Pantheon_%28Rome%29_-_Right_side_and_front.jpg",
+    "explanation": "Hadrian rebuilt the Pantheon around 118–125 AD, but humbly kept Agrippa's original dedication on the new portico. The inscription honours Marcus Agrippa, who built the first Pantheon around 27 BC (it burned down twice). Hadrian routinely attributed his buildings to their original commissioners — a rare act of imperial modesty. 📷 Pantheon, Rome. Wikimedia Commons, CC BY-SA 3.0.",
+    "options": [
+      { "id": "A", "text": "Nero (54–68 AD)", "correct": false },
+      { "id": "B", "text": "Augustus (27 BC–14 AD)", "correct": false },
+      { "id": "C", "text": "Hadrian (117–138 AD)", "correct": true },
+      { "id": "D", "text": "Trajan (98–117 AD)", "correct": false }
+    ]
+  },
+  {
+    "text": "In the Roman calendar, 'the Ides' fell on the 15th of March, May, July, and October — and the 13th of all other months. What did 'Ides' originally mark?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "The Ides marked the full moon in the original Roman lunar calendar — roughly the middle of the month. The Roman calendar had three named days: the Kalends (1st), the Nones (5th or 7th), and the Ides (13th or 15th). All other days were counted backward from the next named day. Confusing? Definitely. Romans thought so too.",
+    "options": [
+      { "id": "A", "text": "The new moon", "correct": false },
+      { "id": "B", "text": "The first day of the Roman working week", "correct": false },
+      { "id": "C", "text": "The full moon — roughly the middle of the month", "correct": true },
+      { "id": "D", "text": "The last day of the month", "correct": false }
+    ]
+  },
+  {
+    "text": "A Retiarius gladiator's trademark arsenal was which combination of weapons?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Gladiators_from_the_Zliten_mosaic_3.JPG/330px-Gladiators_from_the_Zliten_mosaic_3.JPG",
+    "explanation": "The Retiarius ('net man') fought with a weighted throwing net (rete), a trident (tridens), and a dagger (pugio) for close quarters. Uniquely, he wore almost no armour — just a shoulder guard (galerus). His typical opponent was the Secutus ('chaser'), who wore a full helmet with tiny eye holes to prevent the net catching on it. 📷 Gladiators from the Zliten mosaic (2nd century AD), Archaeological Museum of Tripoli. Wikimedia Commons, Public Domain.",
+    "options": [
+      { "id": "A", "text": "Gladius (short sword) and scutum (large shield)", "correct": false },
+      { "id": "B", "text": "Net, trident, and dagger", "correct": true },
+      { "id": "C", "text": "Two curved swords (sicae) and a helmet with visor", "correct": false },
+      { "id": "D", "text": "Spear, small round shield, and full-face helmet", "correct": false }
+    ]
+  },
+  {
+    "text": "Nero was the last emperor of which imperial dynasty?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Nero_Glyptothek_Munich_321.jpg/330px-Nero_Glyptothek_Munich_321.jpg",
+    "explanation": "Nero (54–68 AD) was the fifth and final emperor of the Julio-Claudian dynasty — descended from both Julius Caesar and Augustus by blood and adoption. After his suicide (reportedly muttering 'Qualis artifex pereo!' — What an artist dies in me!), Rome plunged into the Year of the Four Emperors. 📷 Marble bust of Nero, Glyptothek Munich. Wikimedia Commons, Public Domain.",
+    "options": [
+      { "id": "A", "text": "Flavian dynasty", "correct": false },
+      { "id": "B", "text": "Julio-Claudian dynasty", "correct": true },
+      { "id": "C", "text": "Severan dynasty", "correct": false },
+      { "id": "D", "text": "Antonine dynasty", "correct": false }
+    ]
+  },
+  {
+    "text": "Why did Caesar crossing the Rubicon with his army in 49 BC constitute an act of war and treason against Rome?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Roman law strictly forbade any general from bringing his army into Italia south of the Rubicon — the river marked the legal boundary of Cisalpine Gaul (Caesar's province). Crossing armed meant declaring war on the Senate and People of Rome. Caesar knew this and reportedly quoted Menander: 'Let the die be cast' (Alea iacta est). There was no turning back.",
+    "options": [
+      { "id": "A", "text": "The Rubicon was a sacred river where all weapons were forbidden by religious law", "correct": false },
+      { "id": "B", "text": "It crossed the legal boundary of his province — entering Italy armed meant waging war on Rome itself", "correct": true },
+      { "id": "C", "text": "He had not disbanded his legions as ordered, making them an outlaw army", "correct": false },
+      { "id": "D", "text": "The Senate had formally outlawed him the week before for unpaid debts", "correct": false }
+    ]
+  },
+  {
+    "text": "According to the historian Suetonius, how many stab wounds did Julius Caesar receive on the Ides of March, 44 BC?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "Suetonius records 23 wounds, though a physician examining the body reportedly said only one — the second wound to the chest — was fatal. Up to 60 senators participated in the conspiracy, led by Brutus and Cassius. Caesar reportedly pulled his toga over his face as he fell, dying at the base of Pompey's statue — poetically in the theatre complex built by his rival.",
+    "options": [
+      { "id": "A", "text": "7", "correct": false },
+      { "id": "B", "text": "14", "correct": false },
+      { "id": "C", "text": "23", "correct": true },
+      { "id": "D", "text": "33", "correct": false }
+    ]
+  },
+  {
+    "text": "Three of these four men were Roman emperors during the 'Year of the Four Emperors' (69 AD). Which one was NOT?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Caligula died in 41 AD — nearly three decades before the chaos of 69 AD. The real Year of the Four Emperors saw: Galba (assassinated after 7 months), Otho (suicide after 95 days), Vitellius (killed after 8 months), and finally Vespasian (who prevailed and founded the Flavian dynasty). It makes Game of Thrones look peaceful.",
+    "options": [
+      { "id": "A", "text": "Galba", "correct": false },
+      { "id": "B", "text": "Caligula", "correct": true },
+      { "id": "C", "text": "Otho", "correct": false },
+      { "id": "D", "text": "Vitellius", "correct": false }
+    ]
+  },
+  {
+    "text": "'Decimation' was the Roman military's most feared collective punishment. One soldier in every ten was chosen by lot to be executed by his own comrades. From which Latin word does 'decimation' literally derive?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "From 'decem' — ten. Decimation (decimatio) meant killing exactly one in ten (deci = tenth). Soldiers drew lots; the unlucky tenth was beaten to death by the surviving nine of their own unit using clubs and stones. Officers were spared the lottery. The survivors ate barley instead of wheat and slept outside the camp — the shame was as brutal as the punishment.",
+    "options": [
+      { "id": "A", "text": "Decus (honour or glory)", "correct": false },
+      { "id": "B", "text": "Decem (ten)", "correct": true },
+      { "id": "C", "text": "Decido (to fall or to die)", "correct": false },
+      { "id": "D", "text": "Decerno (to decide by force)", "correct": false }
+    ]
+  },
+  {
+    "text": "Trajan's Column in Rome (113 AD) tells a visual story in spiralling relief carvings. Which military campaign does it commemorate?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Trajan%27s_Column_HD.jpg/330px-Trajan%27s_Column_HD.jpg",
+    "explanation": "The column celebrates Trajan's two Dacian Wars (101–102 AD and 105–106 AD) against King Decebalus of Dacia (modern Romania). The 200-metre relief winds around the column 23 times with ~2,500 figures. Trajan himself appears 58 times. Dacia's gold and silver funded building projects across Rome — including possibly the column itself. 📷 Trajan's Column, Rome. Wikimedia Commons, CC BY-SA 4.0.",
+    "options": [
+      { "id": "A", "text": "The conquest of Britain under Claudius (43 AD)", "correct": false },
+      { "id": "B", "text": "The Dacian Wars (101–106 AD)", "correct": true },
+      { "id": "C", "text": "The Jewish Wars under Vespasian and Titus (66–73 AD)", "correct": false },
+      { "id": "D", "text": "The conquest of Egypt by Augustus (30 BC)", "correct": false }
+    ]
+  },
+  {
+    "text": "Romans used fermented urine — collected from public urinals — as a tooth whitener and laundry detergent. True or false?",
+    "type": "yesno",
+    "timeLimit": 15,
+    "explanation": "Absolutely true! Stale urine contains ammonia, which breaks down stains and whitens teeth. Fullers (textile cleaners) soaked clothes in large vats of urine and stomped on them. Emperor Vespasian famously taxed the trade in urine (the 'urina tax'), prompting his son Titus to complain — Vespasian reportedly held up a coin and said 'Pecunia non olet' (Money has no smell). The phrase still survives in several European languages.",
+    "options": [
+      { "id": "yes", "text": "True", "correct": true },
+      { "id": "no", "text": "False", "correct": false }
+    ]
+  },
+  {
+    "text": "Which Roman god had two faces — one gazing into the future and one into the past — and gave his name to the first month of the year?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "Janus — the uniquely Roman god with no Greek equivalent — was the god of beginnings, doorways, transitions, and time. January (Ianuarius) is named in his honour. He presided over the start of the year, the start of each day, and the beginning of any important undertaking. Roman temples to Janus had two doors — during war both stood open; in peace they were closed (which happened very rarely).",
+    "options": [
+      { "id": "A", "text": "Saturn (god of time and harvest)", "correct": false },
+      { "id": "B", "text": "Mercury (messenger and guide)", "correct": false },
+      { "id": "C", "text": "Janus (god of beginnings and doorways)", "correct": true },
+      { "id": "D", "text": "Terminus (god of boundaries)", "correct": false }
+    ]
+  },
+  {
+    "text": "The Vestal Virgins — Rome's most sacred priestesses, keepers of the eternal flame — served for how many years in total?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/VestalisMaxima.jpg/330px-VestalisMaxima.jpg",
+    "explanation": "Vestals served 30 years in three phases: 10 years learning, 10 years performing rites, 10 years teaching novices. They were chosen between ages 6–10 from noble families. In return: supreme social status, front seats at public games, the power to pardon condemned men, and immunity from assault. The downside: breaking the vow of chastity was punishable by being buried alive. 📷 Colossal head of a Vestal Virgin, Roman Forum. Wikimedia Commons, CC BY-SA 4.0.",
+    "options": [
+      { "id": "A", "text": "10 years", "correct": false },
+      { "id": "B", "text": "20 years", "correct": false },
+      { "id": "C", "text": "30 years", "correct": true },
+      { "id": "D", "text": "For life — they never left the temple", "correct": false }
+    ]
+  },
+  {
+    "text": "Which Roman god ruled the underworld, was equivalent to the Greek Hades, and also shares his name with a demoted planet?",
+    "type": "single",
+    "timeLimit": 15,
+    "explanation": "Pluto (from Greek 'Plouton' — the Wealthy One, for all the riches buried underground) ruled the underworld alongside his queen Proserpina (the Greek Persephone). He was also called Dis Pater (Rich Father). The dwarf planet Pluto, discovered in 1930 and demoted in 2006, was named after him — partly because its first two letters honour Percival Lowell, the astronomer who predicted it.",
+    "options": [
+      { "id": "A", "text": "Saturn", "correct": false },
+      { "id": "B", "text": "Pluto", "correct": true },
+      { "id": "C", "text": "Neptune", "correct": false },
+      { "id": "D", "text": "Vulcan", "correct": false }
+    ]
+  },
+  {
+    "text": "Cleopatra VII was actually ethnically Greek, not Egyptian — descended from one of Alexander the Great's generals. Which dynasty did she belong to?",
+    "type": "single",
+    "timeLimit": 20,
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Kleopatra-VII.-Altes-Museum-Berlin1.jpg/330px-Kleopatra-VII.-Altes-Museum-Berlin1.jpg",
+    "explanation": "The Ptolemaic dynasty was founded by Ptolemy I Soter, one of Alexander's generals, who seized Egypt after Alexander's death in 323 BC. Cleopatra VII (69–30 BC) was actually the first of her dynasty to bother learning Egyptian — her predecessors spoke only Greek for nearly 300 years. She also spoke nine other languages. Extraordinary, given the bar set by her ancestors. 📷 Portrait bust of Cleopatra VII, Altes Museum, Berlin. Wikimedia Commons, CC BY-SA 4.0.",
+    "options": [
+      { "id": "A", "text": "Seleucid dynasty (rulers of Syria and Persia)", "correct": false },
+      { "id": "B", "text": "Ptolemaic dynasty", "correct": true },
+      { "id": "C", "text": "Antigonid dynasty (rulers of Macedonia)", "correct": false },
+      { "id": "D", "text": "Attalid dynasty (rulers of Pergamon)", "correct": false }
+    ]
+  },
+  {
+    "text": "'Damnatio memoriae' was a Roman Senate decree used against disgraced emperors. What did it actually involve?",
+    "type": "single",
+    "timeLimit": 25,
+    "explanation": "Damnatio memoriae (condemnation of memory) meant systematically erasing a person from history: smashing their statues, chiselling their name from inscriptions, burning official documents, and forbidding anyone to speak of them. Emperors condemned this way include Caligula, Domitian, Commodus, and Geta. The irony? We know all about them precisely because the practice is so well documented.",
+    "options": [
+      { "id": "A", "text": "Public execution in the Forum Romanum before a crowd", "correct": false },
+      { "id": "B", "text": "Permanent exile to a remote island with no return", "correct": false },
+      { "id": "C", "text": "Erasing a person from all historical records, inscriptions, and monuments", "correct": true },
+      { "id": "D", "text": "Confiscating family property and titles for three generations", "correct": false }
+    ]
+  },
+  {
+    "text": "The Roman senator Cato the Elder famously ended every speech — regardless of the topic being debated — with which phrase?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "Cato the Elder (234–149 BC), implacably hostile to Carthage, reportedly concluded every speech with 'Carthago delenda est' (Carthage must be destroyed) — or sometimes the longer 'Ceterum autem censeo Carthaginem esse delendam' (Furthermore, I am of the opinion that Carthage must be destroyed). He got his wish: Rome razed Carthage in 146 BC, three years after his death.",
+    "options": [
+      { "id": "A", "text": "'Roma vincit omnia' — Rome conquers all", "correct": false },
+      { "id": "B", "text": "'Carthago delenda est' — Carthage must be destroyed", "correct": true },
+      { "id": "C", "text": "'Senatus Populusque Romanus' — the Senate and People of Rome", "correct": false },
+      { "id": "D", "text": "'Dum spiro, spero' — while I breathe, I hope", "correct": false }
+    ]
+  },
+  {
+    "text": "According to Roman tradition, how many kings ruled Rome before the Republic was established in 509 BC?",
+    "type": "slider",
+    "timeLimit": 30,
+    "correctValue": 7,
+    "minValue": 3,
+    "maxValue": 15,
+    "explanation": "Roman tradition records exactly 7 kings: Romulus (the founder), Numa Pompilius, Tullus Hostilius, Ancus Marcius, Tarquinius Priscus, Servius Tullius, and Tarquinius Superbus (The Proud). The last king was expelled after his son Sextus raped the noblewoman Lucretia — triggering the revolution that established the Roman Republic. The last Tarquin died in 495 BC, still plotting his return.",
+    "options": []
+  },
+  {
+    "text": "What does the Latin phrase 'In flagrante delicto' literally mean — not just the idiomatic English meaning?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "'In flagrante delicto' literally means 'while the crime is blazing/burning' — from 'flagrare' (to blaze) and 'delictum' (offence or crime). The phrase is used in law to mean someone caught in the act of committing an offence. In modern English it's become a euphemism for catching someone in a compromising romantic situation — which says a lot about how Roman legal terminology evolved.",
+    "options": [
+      { "id": "A", "text": "Caught in the act of wrongdoing", "correct": false },
+      { "id": "B", "text": "While the crime is blazing (burning)", "correct": true },
+      { "id": "C", "text": "In a state of proven guilt", "correct": false },
+      { "id": "D", "text": "Under formal suspicion of wrongdoing", "correct": false }
+    ]
+  },
+  {
+    "text": "The Roman practice of building 'insulae' (literally 'islands') referred to which type of structure?",
+    "type": "single",
+    "timeLimit": 20,
+    "explanation": "Insulae were multi-storey apartment blocks — Rome's version of tower blocks. The ground floor housed shops and wealthy tenants; upper floors got cheaper and more dangerous as you climbed (fire, collapse, no plumbing). At their peak, Rome had hundreds of thousands of them. Building codes existed but were routinely ignored. Emperor Augustus tried to cap height at 70 Roman feet; Trajan later reduced it to 60 feet.",
+    "options": [
+      { "id": "A", "text": "Military watchtowers built on river islands", "correct": false },
+      { "id": "B", "text": "Multi-storey urban apartment blocks for the populace", "correct": true },
+      { "id": "C", "text": "Sacred islands in the Tiber reserved for temples", "correct": false },
+      { "id": "D", "text": "Private bathhouses accessible only to equestrians", "correct": false }
+    ]
+  },
+  {
+    "text": "Latin challenge — what does 'Et tu, Brute?' mean in English?",
+    "type": "freetext",
+    "timeLimit": 30,
+    "correctText": "And you, Brutus? / You too, Brutus?",
+    "explanation": "'Et tu, Brute?' — 'And you, Brutus?' or 'You too, Brutus?' These are Caesar's reported dying words upon recognising his trusted friend Marcus Junius Brutus among the assassins. Shakespeare immortalised them in Julius Caesar (Act III, Scene 1), though the historical Caesar more likely gasped something in Greek. Still, it's become the ultimate expression of betrayal by someone you trusted.",
+    "options": []
+  },
+  {
+    "text": "Which modern month is named after Julius Caesar?",
+    "type": "single",
+    "timeLimit": 15,
+    "explanation": "July (Iulius in Latin) was renamed from Quintilis ('fifth month') to honour Julius Caesar, who was born on 12 July 100 BC. He also reformed the calendar entirely — the Julian Calendar of 46 BC replaced the deeply chaotic Roman calendar and remained in use until the Gregorian Calendar reform of 1582. So Caesar quite literally shaped how we count time.",
+    "options": [
+      { "id": "A", "text": "June", "correct": false },
+      { "id": "B", "text": "July", "correct": true },
+      { "id": "C", "text": "August — that's also from Caesar's family", "correct": false },
+      { "id": "D", "text": "March — named after Mars, Caesar's divine ancestor", "correct": false }
+    ]
+  },
+  {
+    "text": "Name a Roman emperor you know! Any emperor — legendary, notorious, or obscure — welcome here.",
+    "type": "wordcloud",
+    "timeLimit": 30,
+    "explanation": "Rome had over 70 emperors from Augustus (27 BC) to Romulus Augustulus (476 AD) — over 500 years. Crowd favourites include Augustus, Trajan (considered the best), Hadrian (built the Wall), Marcus Aurelius (Stoic philosopher-emperor), and Commodus (fought as a gladiator — yes, really). Most notorious: Caligula, Nero, and Domitian. And then there's Elagabalus, who makes those three look restrained.",
+    "options": []
+  }
+]

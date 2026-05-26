@@ -17,11 +17,12 @@ Listed roughly in the order you'd reach for them — Splunk content first, the a
 | [`sample-all-types.json`](sample-all-types.json) | Sample — All Question Types | 5 | Sample | One question per type: single, multi, yes/no, free text, slider |
 | [`european-history.json`](european-history.json) | European History Pub Quiz 🍺 | 42 | Intermediate | Ukraine, Baltics, Poland, Germany, France, UK — pub quiz distractors, explanations, 10 Wikipedia CC images embedded |
 | [`greek-mythology.json`](greek-mythology.json) | Greek Mythology Trivia | 47 | Intermediate | Olympian gods, heroes, monsters, Underworld, Trojan War, famous myths & the Sphinx's riddle |
+| [`roman-mythology.json`](roman-mythology.json) | Roman Mythology, Culture & History 🏛️ | 32 | Intermediate | Roman gods, Latin phrases, emperors, gladiators, military customs, daily life — 10 Wikimedia images (Caesar, Augustus, Colosseum, Capitoline Wolf, Pantheon, gladiator mosaic, Nero, Trajan's Column, Vestal Virgin, Cleopatra) |
 
 > **Bundled with the app** (also available offline via **📚 Library**): `splunk-basics`, `splunk4champions`, `splunk-ai`, `sample-all-types`.
 > On first install, **Splunk Basics** is auto-seeded as the active quiz so admins land on a usable Splunk-themed quiz immediately.
 >
-> **GitHub-only** (require outbound HTTPS, fetched via **🔄 GitHub** in the Editor): `splunk4champions2-workshop`, `splunk-soar`, `splunk-basics-blast`, `european-history`, `greek-mythology`.
+> **GitHub-only** (require outbound HTTPS, fetched via **🔄 GitHub** in the Editor): `splunk4champions2-workshop`, `splunk-soar`, `splunk-basics-blast`, `european-history`, `greek-mythology`, `roman-mythology`.
 
 ---
 
