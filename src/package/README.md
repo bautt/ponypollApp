@@ -701,6 +701,7 @@ Open the **Settings** tab — the System Check runs automatically and shows a gr
 | Analytics shows no answers | Run the System Check — confirm the index and macro are correct |
 | Short URL button fails | Outbound HTTPS to `is.gd` / `v.gd` must be reachable from the browser |
 | App not visible in the Splunk nav menu | Go to **Apps → Manage Apps** and confirm Pony Poll is enabled |
+| Top navigation menu missing after login | You are likely on the `/play` page — navigate directly to the app: `…/en-GB/app/ponypollapp/poll`. The `/play` view intentionally hides the Splunk chrome so participants see only the quiz. |
 
 ---
 
