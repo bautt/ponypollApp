@@ -43,15 +43,19 @@ function getProjectorUrl() {
 }
 
 async function fetchShortUrl(url) {
-    // Try is.gd then v.gd — both have clean single-hop redirects with no tracker intermediaries.
-    // TinyURL was replaced because it now routes through redirect.viglink.com (affiliate tracker).
+    // Service notes (last checked Jun 2026):
+    //   da.gd      — plain-text response, clean single-hop redirect, not blocked on Cisco networks
+    //   is.gd/v.gd — blocked by Cisco DNS RPZ on corporate networks
+    //   TinyURL    — routes through redirect.viglink.com (affiliate tracker), replaced earlier
+    // Try da.gd first; fall back to is.gd and v.gd for non-Cisco networks.
     const apis = [
-        `https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`,
-        `https://v.gd/create.php?format=simple&url=${encodeURIComponent(url)}`,
+        { url: `https://da.gd/shorten?url=${encodeURIComponent(url)}`, json: false },
+        { url: `https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`, json: false },
+        { url: `https://v.gd/create.php?format=simple&url=${encodeURIComponent(url)}`, json: false },
     ];
-    for (const endpoint of apis) {
+    for (const api of apis) {
         try {
-            const res = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
+            const res = await fetch(api.url, { signal: AbortSignal.timeout(5000) });
             if (!res.ok) continue;
             const text = (await res.text()).trim();
             if (text.startsWith('http')) return text;
