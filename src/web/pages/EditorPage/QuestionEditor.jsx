@@ -21,6 +21,15 @@ import {
     SliderTrack, SliderInput, TBtn,
 } from './styles';
 
+const IconCopy = () => (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+        <rect x="5" y="5" width="9" height="9" rx="1"/>
+        <path d="M3 11V3a1 1 0 0 1 1-1h8"/>
+    </svg>
+);
+
 export default function QuestionEditor({
     active, activeIdx,
     onSetActive,
@@ -28,6 +37,7 @@ export default function QuestionEditor({
     onAddOption, onRemoveOption,
     onImageUpload, onRemoveImage,
     onSave,
+    onCopyFromQuiz, copyFromDisabled,
     imageInputRef, imageError, imageUploading, savingOne,
 }) {
     return (
@@ -256,9 +266,9 @@ export default function QuestionEditor({
                 />
             </div>
 
-            {/* Save button */}
+            {/* Save + copy-from-quiz */}
             <div style={{
-                display: 'flex', alignItems: 'center', gap: 12,
+                display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
                 padding: '14px 0 0',
                 borderTop: `1px solid ${C.border}`,
             }}>
@@ -277,7 +287,17 @@ export default function QuestionEditor({
                         </>
                     )}
                 </TBtn>
-                <span style={{ fontSize: 12, color: C.muted }}>
+                {onCopyFromQuiz && (
+                    <TBtn
+                        onClick={onCopyFromQuiz}
+                        disabled={copyFromDisabled}
+                        title={copyFromDisabled ? 'Need at least one other quiz to copy from' : 'Pull questions from another quiz into this one'}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
+                        <IconCopy />Copy questions from another quiz…
+                    </TBtn>
+                )}
+                <span style={{ fontSize: 12, color: C.muted, flexBasis: '100%' }}>
                     Saves this question · ↑ ↓ reordering is saved automatically
                 </span>
             </div>

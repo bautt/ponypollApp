@@ -687,18 +687,28 @@ export default function EditorPage() {
                     <TBtn onClick={() => importInputRef.current.click()} disabled={!activeQuizId}>⬆ Import</TBtn>
                     <TBtn onClick={() => openLibrary('bundled')} disabled={!activeQuizId} title="Import a pre-built quiz bundled with the app"><IconBook />Library</TBtn>
                     <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub"><IconSync />GitHub</TBtn>
-                    <TBtn
-                        onClick={openCopyModal}
-                        disabled={quizzes.length === 0}
-                        title="Pick questions from another quiz and copy them here or to a new quiz"
-                    >
-                        <IconCopy />Copy From…
-                    </TBtn>
                 </Toolbar>
 
                 {active === null ? (
                     <EmptyState>
-                        <div>← Select a question or click <strong>+ Add</strong></div>
+                        {questions.length === 0 ? (
+                            <>
+                                <div style={{ fontSize: 16, marginBottom: 4 }}>This quiz is empty.</div>
+                                <div style={{ fontSize: 13, color: 'inherit', opacity: 0.8, marginBottom: 18 }}>
+                                    Start by adding a new question, or copy existing ones from another quiz.
+                                </div>
+                                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                    <TBtn $primary onClick={addQuestion} disabled={!activeQuizId}>
+                                        + Create your first question
+                                    </TBtn>
+                                    <TBtn onClick={openCopyModal} disabled={quizzes.length < 2} title={quizzes.length < 2 ? 'Need at least one other quiz to copy from' : 'Copy questions from another quiz'}>
+                                        <IconCopy />Copy from another quiz…
+                                    </TBtn>
+                                </div>
+                            </>
+                        ) : (
+                            <div>← Select a question or click <strong>+ Add</strong></div>
+                        )}
                     </EmptyState>
                 ) : (
                     <QuestionEditor
@@ -713,6 +723,8 @@ export default function EditorPage() {
                         onImageUpload={handleImageUpload}
                         onRemoveImage={() => { setActiveField('image', ''); setImageError(null); }}
                         onSave={handleSaveActive}
+                        onCopyFromQuiz={openCopyModal}
+                        copyFromDisabled={quizzes.length < 2}
                         imageInputRef={imageInputRef}
                         imageError={imageError}
                         imageUploading={imageUploading}
