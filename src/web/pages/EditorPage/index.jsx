@@ -34,7 +34,17 @@ import { uid } from '../../lib/utils';
 import QuizSidebar from './QuizSidebar';
 import QuestionEditor from './QuestionEditor';
 import LibraryModal from './LibraryModal';
+import CopyQuestionsModal from './CopyQuestionsModal';
 import { Root, Main, Toolbar, ToolbarTitle, TBtn, EmptyState, StatusBar } from './styles';
+
+const IconCopy = () => (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor"
+        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+        style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5, flexShrink: 0 }}>
+        <rect x="5" y="5" width="9" height="9" rx="1"/>
+        <path d="M3 11V3a1 1 0 0 1 1-1h8"/>
+    </svg>
+);
 
 // ── Image compression helper ──────────────────────────────────────────────────
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -114,6 +124,16 @@ export default function EditorPage() {
     const [libraryItems, setLibraryItems] = useState({ bundled: null, github: null });
     const [libraryLoading, setLibraryLoading] = useState(false);
     const [libraryError, setLibraryError] = useState(null);
+
+    // Copy-questions modal state
+    const [showCopyModal, setShowCopyModal] = useState(false);
+    const [copySourceId, setCopySourceId] = useState('');
+    const [copySourceQs, setCopySourceQs] = useState([]);
+    const [copySourceLoading, setCopySourceLoading] = useState(false);
+    const [copySourceError, setCopySourceError] = useState(null);
+    const [copySelected, setCopySelected] = useState(new Set());
+    const [copyTargetId, setCopyTargetId] = useState('');
+    const [copying, setCopying] = useState(false);
 
     // ── Init ──────────────────────────────────────────────────────────────────
     // Seeding the sample quiz on first install is owned by App.useSeedOnFirstInstall.
@@ -501,6 +521,124 @@ export default function EditorPage() {
         }
     };
 
+    // ── Copy Questions modal ─────────────────────────────────────────────────
+    const openCopyModal = () => {
+        setCopySourceId('');
+        setCopySourceQs([]);
+        setCopySourceError(null);
+        setCopySelected(new Set());
+        setCopyTargetId(activeQuizId || '');
+        setShowCopyModal(true);
+    };
+
+    const closeCopyModal = () => {
+        if (copying) return;
+        setShowCopyModal(false);
+    };
+
+    const handleCopySelectSource = async (sourceId) => {
+        setCopySourceId(sourceId);
+        setCopySelected(new Set());
+        setCopySourceQs([]);
+        setCopySourceError(null);
+        if (!sourceId) return;
+        if (copyTargetId === sourceId) setCopyTargetId(activeQuizId !== sourceId ? activeQuizId : '');
+        setCopySourceLoading(true);
+        try {
+            const docs = await listQuestions(sourceId);
+            setCopySourceQs(docs.map(fromKvDoc));
+        } catch (e) {
+            setCopySourceError(e.message);
+        } finally {
+            setCopySourceLoading(false);
+        }
+    };
+
+    const handleCopyToggleQuestion = (idx) => {
+        setCopySelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(idx)) next.delete(idx); else next.add(idx);
+            return next;
+        });
+    };
+
+    const handleCopySelectAll = () => {
+        setCopySelected(new Set(copySourceQs.map((_, i) => i)));
+    };
+
+    const handleCopyClearAll = () => {
+        setCopySelected(new Set());
+    };
+
+    const handleCopySelectTarget = (val) => {
+        setCopyTargetId(val);
+    };
+
+    const handleCopyConfirm = async () => {
+        if (copySelected.size === 0 || !copySourceId || !copyTargetId) return;
+        const picks = copySourceQs.filter((_, i) => copySelected.has(i));
+        if (picks.length === 0) return;
+        setCopying(true);
+        try {
+            let targetId = copyTargetId;
+            let targetName;
+
+            if (targetId === '__new__') {
+                const name = window.prompt('Name for the new quiz:', 'New Quiz');
+                if (!name?.trim()) { setCopying(false); return; }
+                const finalName = uniqueQuizName(name.trim());
+                const created = await createQuiz(finalName);
+                targetId = created._key || created.key;
+                targetName = finalName;
+            } else {
+                targetName = quizzes.find((q) => q._key === targetId)?.name || 'target quiz';
+            }
+
+            // Determine current question count of the target so we append after them.
+            // If target is the active quiz we already have it in state, otherwise fetch.
+            let baseCount;
+            if (targetId === activeQuizId) {
+                baseCount = questions.length;
+            } else {
+                const existing = await listQuestions(targetId);
+                baseCount = existing.length;
+            }
+
+            for (let i = 0; i < picks.length; i++) {
+                const src = picks[i];
+                const doc = {
+                    ...toKvDoc({ ...newQuestion(), ...src, _key: '', quiz_id: targetId }),
+                    sort_order: baseCount + i,
+                    quiz_id: targetId,
+                };
+                await saveQuestion(doc);
+            }
+
+            // Refresh quiz catalogue (covers the new-quiz case) and reload questions
+            // when the target is what the user is currently editing.
+            if (targetId !== activeQuizId || copyTargetId === '__new__') {
+                const freshQuizzes = await listQuizzes();
+                setQuizzes(freshQuizzes);
+            }
+            if (copyTargetId === '__new__') {
+                setActiveQuizId(targetId);
+                await loadQuestionsForQuiz(targetId);
+            } else if (targetId === activeQuizId) {
+                await loadQuestionsForQuiz(activeQuizId);
+            }
+
+            setShowCopyModal(false);
+            setStatus({
+                error: false,
+                msg: `Copied ${picks.length} question${picks.length === 1 ? '' : 's'} to "${targetName}".`,
+            });
+        } catch (e) {
+            setStatus({ error: true, msg: `Copy failed: ${e.message}` });
+        } finally {
+            setCopying(false);
+        }
+    };
+
     // ── Render ────────────────────────────────────────────────────────────────
     return (
         <Root>
@@ -549,6 +687,13 @@ export default function EditorPage() {
                     <TBtn onClick={() => importInputRef.current.click()} disabled={!activeQuizId}>⬆ Import</TBtn>
                     <TBtn onClick={() => openLibrary('bundled')} disabled={!activeQuizId} title="Import a pre-built quiz bundled with the app"><IconBook />Library</TBtn>
                     <TBtn onClick={() => openLibrary('github')} disabled={!activeQuizId} title="Sync and import quizzes directly from GitHub"><IconSync />GitHub</TBtn>
+                    <TBtn
+                        onClick={openCopyModal}
+                        disabled={quizzes.length === 0}
+                        title="Pick questions from another quiz and copy them here or to a new quiz"
+                    >
+                        <IconCopy />Copy From…
+                    </TBtn>
                 </Toolbar>
 
                 {active === null ? (
@@ -592,6 +737,27 @@ export default function EditorPage() {
                     libraryError={libraryError}
                     onImport={handleLibraryImport}
                     onClose={() => setShowLibrary(false)}
+                />
+            )}
+
+            {showCopyModal && (
+                <CopyQuestionsModal
+                    quizzes={quizzes}
+                    activeQuizId={activeQuizId}
+                    sourceId={copySourceId}
+                    sourceQuestions={copySourceQs}
+                    sourceLoading={copySourceLoading}
+                    sourceError={copySourceError}
+                    selected={copySelected}
+                    targetId={copyTargetId}
+                    copying={copying}
+                    onSelectSource={handleCopySelectSource}
+                    onToggleQuestion={handleCopyToggleQuestion}
+                    onSelectAll={handleCopySelectAll}
+                    onClearAll={handleCopyClearAll}
+                    onSelectTarget={handleCopySelectTarget}
+                    onCopy={handleCopyConfirm}
+                    onClose={closeCopyModal}
                 />
             )}
         </Root>

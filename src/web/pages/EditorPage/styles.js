@@ -304,3 +304,93 @@ export const SourceBtn = styled.button`
     transition: background 0.15s;
     &:hover { background: ${({ $active }) => $active ? C.blue : C.blue + '22'}; color: #fff; }
 `;
+
+// ── Copy Questions modal ──────────────────────────────────────────────────────
+export const CopyPickerRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    label { font-size: 12px; font-weight: 700; color: ${C.muted}; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+    select {
+        flex: 1;
+        min-width: 0;
+        background: ${C.bg};
+        border: 1px solid ${C.border};
+        border-radius: 6px;
+        color: ${C.text};
+        font-size: 13px;
+        padding: 6px 8px;
+        &:focus { outline: none; border-color: ${C.blue}; }
+        &:disabled { opacity: 0.5; }
+    }
+`;
+
+export const SelectAllRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: ${C.muted};
+`;
+
+export const CopyQList = styled.div`
+    max-height: 38vh;
+    overflow-y: auto;
+    border: 1px solid ${C.border};
+    border-radius: 6px;
+    margin-bottom: 14px;
+`;
+
+export const CopyQRow = styled.label`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid ${C.border}55;
+    background: ${({ $checked }) => ($checked ? C.blue + '22' : 'transparent')};
+    cursor: pointer;
+    font-size: 13px;
+    &:last-child { border-bottom: none; }
+    &:hover { background: ${({ $checked }) => ($checked ? C.blue + '33' : 'rgba(255,255,255,0.04)')}; }
+    input[type="checkbox"] { accent-color: ${C.blue}; cursor: pointer; flex-shrink: 0; }
+`;
+
+export const CopyQText = styled.div`
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: ${C.text};
+`;
+
+export const CopyQMeta = styled.div`
+    font-size: 11px;
+    color: ${C.muted};
+    flex-shrink: 0;
+    white-space: nowrap;
+`;
+
+export const CopyControls = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    border-top: 1px solid ${C.border};
+    padding-top: 14px;
+    flex-wrap: wrap;
+    label { font-size: 12px; font-weight: 700; color: ${C.muted}; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+    select {
+        flex: 1;
+        min-width: 160px;
+        background: ${C.bg};
+        border: 1px solid ${C.border};
+        border-radius: 6px;
+        color: ${C.text};
+        font-size: 13px;
+        padding: 6px 8px;
+        &:focus { outline: none; border-color: ${C.blue}; }
+    }
+`;
