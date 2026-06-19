@@ -69,6 +69,11 @@ If a quiz has more questions than you need for a session, use the **🎲 Play:**
 
 See the [JSON format reference](../README.md#importexport-json-format) in the main README for the full schema.
 
+> **For AI agents:** point an LLM at [`quiz-format.md`](quiz-format.md) — a
+> self-contained, prompt-ready spec with every question type, hard rules, and a
+> complete end-to-end example. Raw URL for prompting:
+> `https://raw.githubusercontent.com/bautt/ponypollApp/main/quizzes/quiz-format.md`
+
 To contribute a quiz to the **GitHub library** (available via 🔄 GitHub sync):
 1. Create a new `.json` file in this folder following the same schema
 2. Add an entry to [`manifest.json`](manifest.json) with `id`, `name`, `description`, `questionCount`, `difficulty`, and `file`
