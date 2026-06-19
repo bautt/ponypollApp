@@ -13,8 +13,8 @@
  *   ponypoll_track_win       = "<track id>"   (default: "default-win")
  *
  * Two on/off preferences (independent of track choice, both default on):
- *   ponypoll_music — background music
- *   ponypoll_sfx   — UI sound effects (procedural, Web Audio API)
+ *   ponypoll_music — background music (default: OFF — users opt in)
+ *   ponypoll_sfx   — UI sound effects (default: ON, Web Audio API)
  *
  * SFX are synthesised — no files involved.
  */
@@ -72,7 +72,11 @@ export async function refreshCatalogue({ includeGitHub = false, forceRefresh = f
 // ── Music preference ──────────────────────────────────────────────────────────
 
 export function isMusicEnabled() {
-    return localStorage.getItem(KEY_MUSIC) !== 'off';
+    // Default OFF — participants opt in. Workshops are often run in shared
+    // rooms where unsolicited background music is disruptive. Once a user
+    // explicitly clicks the Music toggle on, setMusicEnabled() writes 'on'
+    // and the preference sticks across sessions for that browser.
+    return localStorage.getItem(KEY_MUSIC) === 'on';
 }
 
 export function setMusicEnabled(enabled) {

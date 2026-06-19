@@ -5,7 +5,7 @@
 
   **Interactive quiz app for Splunk — no extra infrastructure needed**
 
-  ![version](https://img.shields.io/badge/version-1.3.66-blue)
+  ![version](https://img.shields.io/badge/version-1.3.67-blue)
   ![Splunk](https://img.shields.io/badge/Splunk-≥8.x-orange)
   ![AppInspect](https://img.shields.io/badge/AppInspect-approved-green)
   ![React](https://img.shields.io/badge/React-16-61dafb)
@@ -403,6 +403,11 @@ Created an interesting quiz and want to share it with others? Open a GitHub issu
 ---
 
 ## Import/Export JSON format
+
+> **AI-agent-ready spec:** [`quizzes/quiz-format.md`](quizzes/quiz-format.md) is
+> a short, self-contained reference designed to be fed directly to an LLM as
+> context — point an agent at it and ask "produce a 20-question quiz on X".
+> Raw URL: `https://raw.githubusercontent.com/bautt/ponypollApp/main/quizzes/quiz-format.md`
 
 The exported JSON is an array of question objects.
 
