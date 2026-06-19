@@ -388,7 +388,20 @@ export default function EditorPage() {
     const saveOrder = async (qs) => {
         try {
             await saveAllQuestions(qs.map((q, i) => ({ ...toKvDoc(q), sort_order: i })), activeQuizId);
-        } catch (_) {}
+            // batch_save deletes the old docs and creates new ones with fresh
+            // _keys. Re-sync the _keys from KV so a subsequent Save / Delete
+            // doesn't try to PUT to a now-deleted key (Splunk returns
+            // "Could not find object."). Preserve any in-progress local edits
+            // — only the _key is refreshed, and only when the list shape is
+            // unchanged.
+            const docs = await listQuestions(activeQuizId);
+            setQuestions((prev) => {
+                if (docs.length !== prev.length) return prev;
+                return prev.map((q, i) => ({ ...q, _key: docs[i]._key }));
+            });
+        } catch (e) {
+            setStatus({ error: true, msg: `Reorder save failed: ${e.message}` });
+        }
     };
 
     const moveUp = () => {
