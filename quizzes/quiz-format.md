@@ -248,9 +248,9 @@ Before returning the JSON, verify:
 
 ## 8. Where it loads in the app
 
-- **Editor → ⬆ Import** — paste a JSON file from disk.
-- **Editor → 📚 Library** — load a bundled quiz (offline).
-- **Editor → 🔄 GitHub** — fetch any quiz listed in
+- **Editor →  Import** — paste a JSON file from disk.
+- **Editor →  Library** — load a bundled quiz (offline).
+- **Editor →  GitHub** — fetch any quiz listed in
   [`quizzes/manifest.json`](manifest.json) live from this repo.
 
 The Editor also lets you **copy questions** from one quiz to another, so a
