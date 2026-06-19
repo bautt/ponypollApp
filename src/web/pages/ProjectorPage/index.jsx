@@ -16,7 +16,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { C } from '../../lib/theme';
-import { getSession, listQuestions, getPresence, runSearch } from '../../lib/kvstore';
+import { getSession, listQuestions, getPresence, runSearch, loadConfig } from '../../lib/kvstore';
 import { fromKvDoc } from '../../lib/questions';
 import { sanitizeId } from '../../lib/utils';
 import DistBars from '../../components/DistBars';
@@ -61,7 +61,7 @@ const S = {
     },
 };
 
-function IdleView({ playUrl }) {
+function IdleView({ playUrl, shortUrl }) {
     return (
         <div style={{ ...S.root, gap: 32, textAlign: 'center' }}>
             <img src="/static/app/ponypollapp/buttercup.png" alt="Pony Poll" style={{ width: 120, opacity: 0.85 }} />
@@ -70,16 +70,21 @@ function IdleView({ playUrl }) {
             </div>
             <div style={S.muted}>Waiting for host to start a session…</div>
             <div style={{ background: '#fff', padding: 16, borderRadius: 16, lineHeight: 0 }}>
-                <QRCodeSVG value={playUrl} size={200} bgColor="#ffffff" fgColor="#000000" level="M" />
+                <QRCodeSVG value={shortUrl || playUrl} size={200} bgColor="#ffffff" fgColor="#000000" level="M" />
             </div>
-            <div style={{ fontSize: 20, fontWeight: 600, color: C.text, fontFamily: 'monospace' }}>
+            {shortUrl && (
+                <div style={{ fontSize: 40, fontWeight: 800, color: C.yellow, fontFamily: 'monospace', letterSpacing: '0.04em' }}>
+                    {shortUrl.replace(/^https?:\/\//, '')}
+                </div>
+            )}
+            <div style={{ fontSize: shortUrl ? 14 : 20, fontWeight: 600, color: shortUrl ? C.muted : C.text, fontFamily: 'monospace' }}>
                 {playUrl}
             </div>
         </div>
     );
 }
 
-function WaitingView({ session, playUrl, participantCount, participantNames = [] }) {
+function WaitingView({ session, playUrl, shortUrl, participantCount, participantNames = [] }) {
     return (
         <div style={{ ...S.root, gap: 28, textAlign: 'center' }}>
             <div style={S.label}>Join the quiz</div>
@@ -97,9 +102,14 @@ function WaitingView({ session, playUrl, participantCount, participantNames = []
                 </div>
             )}
             <div style={{ background: '#fff', padding: 14, borderRadius: 14, lineHeight: 0 }}>
-                <QRCodeSVG value={playUrl} size={180} bgColor="#ffffff" fgColor="#000000" level="M" />
+                <QRCodeSVG value={shortUrl || playUrl} size={180} bgColor="#ffffff" fgColor="#000000" level="M" />
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: C.text, fontFamily: 'monospace' }}>
+            {shortUrl && (
+                <div style={{ fontSize: 36, fontWeight: 800, color: C.yellow, fontFamily: 'monospace', letterSpacing: '0.04em' }}>
+                    {shortUrl.replace(/^https?:\/\//, '')}
+                </div>
+            )}
+            <div style={{ fontSize: shortUrl ? 13 : 18, fontWeight: 600, color: shortUrl ? C.muted : C.text, fontFamily: 'monospace' }}>
                 {playUrl}
             </div>
             {participantCount > 0 && (
@@ -311,9 +321,33 @@ export default function ProjectorPage() {
     const [answerDist,       setAnswerDist]        = useState([]);
     const [distTotal,        setDistTotal]         = useState(0);
     const [leaderboard,      setLeaderboard]       = useState([]);
+    const [shortUrl,         setShortUrl]          = useState('');
 
     const lastRevealKey = useRef(null);
     const lastDoneKey   = useRef(null);
+
+    // Pick up a host-created short URL (saved by AdminPage to ponypoll_config).
+    // Poll periodically so the projector picks up newly-created or rotated
+    // links without a page reload. Only show it when it was created against
+    // the same play URL we resolve to now.
+    useEffect(() => {
+        let mounted = true;
+        const tick = () => {
+            loadConfig()
+                .then((cfg) => {
+                    if (!mounted) return;
+                    if (cfg?.short_url && cfg.short_url_for === playUrl) {
+                        setShortUrl(cfg.short_url);
+                    } else {
+                        setShortUrl('');
+                    }
+                })
+                .catch(() => {});
+        };
+        tick();
+        const id = setInterval(tick, 30000);
+        return () => { mounted = false; clearInterval(id); };
+    }, [playUrl]);
 
     // Load questions ordered by session.question_keys (mirrors how AdminPage builds its list)
     useEffect(() => {
@@ -410,11 +444,11 @@ export default function ProjectorPage() {
             .catch(() => {});
     }, [phase, session]);
 
-    if (phase === 'idle')     return <IdleView playUrl={playUrl} />;
-    if (phase === 'waiting')  return <WaitingView session={session} playUrl={playUrl} participantCount={participantCount} participantNames={participantNames} />;
+    if (phase === 'idle')     return <IdleView playUrl={playUrl} shortUrl={shortUrl} />;
+    if (phase === 'waiting')  return <WaitingView session={session} playUrl={playUrl} shortUrl={shortUrl} participantCount={participantCount} participantNames={participantNames} />;
     if (phase === 'question') return <QuestionView session={session} questions={questions} />;
     if (phase === 'reveal')   return <RevealView session={session} questions={questions} answerDist={answerDist} distTotal={distTotal} leaderboard={leaderboard} />;
     if (phase === 'done')     return <DoneView leaderboard={leaderboard} />;
 
-    return <IdleView playUrl={playUrl} />;
+    return <IdleView playUrl={playUrl} shortUrl={shortUrl} />;
 }

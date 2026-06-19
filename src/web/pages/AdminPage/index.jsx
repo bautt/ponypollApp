@@ -108,9 +108,15 @@ export default function AdminPage() {
                 const defaultId = activeId || (qs[0]?._key ?? '');
                 setSelectedQuizId(defaultId);
                 if (defaultId) loadQuizMeta(defaultId, qs, cfg);
+                // Restore a previously-shortened URL, but only if it was created
+                // against the *same* play URL we resolve to now. Guards against
+                // a stale short link pointing to an old Splunk hostname.
+                if (cfg.short_url && cfg.short_url_for === playUrl) {
+                    setShortUrl(cfg.short_url);
+                }
             })
             .catch(() => {});
-    }, []);
+    }, [playUrl]);
 
     const handleShorten = useCallback(async () => {
         // Per-tab consent: once the host approves sending the hostname to
@@ -128,8 +134,17 @@ export default function AdminPage() {
         setShorteningUrl(true);
         try {
             const s = await fetchShortUrl(playUrl);
-            if (s) setShortUrl(s);
-            else alert('Could not create a short link. Check internet connectivity.');
+            if (s) {
+                setShortUrl(s);
+                // Persist to config so the Projector view picks it up and so
+                // the host doesn't have to re-shorten after a page reload.
+                try {
+                    const cfg = await loadConfig();
+                    await saveConfig({ ...cfg, short_url: s, short_url_for: playUrl });
+                } catch (_) { /* non-fatal — short URL still works for this tab */ }
+            } else {
+                alert('Could not create a short link. Check internet connectivity.');
+            }
         } finally {
             setShorteningUrl(false);
         }
