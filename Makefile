@@ -1,6 +1,8 @@
-.PHONY: deps dev build package
+.PHONY: deps dev build package appinspect appinspect-deps
 
 APP_NAME = ponypollapp
+APPINSPECT_VENV = .venv-appinspect
+APPINSPECT = $(APPINSPECT_VENV)/bin/splunk-appinspect
 
 deps:
 	cd src/ && yarn install
@@ -28,3 +30,14 @@ package: build
 	-cvzf $(APP_NAME).tar.gz \
 	-C /tmp \
 	$(APP_NAME)/
+
+# One-time: create the AppInspect venv (requires Python 3).
+appinspect-deps:
+	test -d $(APPINSPECT_VENV) || python3 -m venv $(APPINSPECT_VENV)
+	$(APPINSPECT_VENV)/bin/pip install -q -r requirements.txt
+
+# Splunk Cloud vetting checks (242 checks). Builds the tarball first.
+appinspect: appinspect-deps package
+	$(APPINSPECT) inspect $(APP_NAME).tar.gz \
+		--mode precert \
+		--included-tags cloud
