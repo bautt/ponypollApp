@@ -23,24 +23,13 @@ import {
 import { fromKvDoc } from '../../lib/questions';
 import { uid, shuffle, sanitizeId } from '../../lib/utils';
 import { C } from '../../lib/theme';
+import { getPlayUrl, getProjectorUrl } from '../../lib/urls';
 import { Page, StatusBanner } from './styles';
 import IdlePanel from './IdlePanel';
 import LobbyPanel from './LobbyPanel';
 import QuestionPanel from './QuestionPanel';
 import RevealPanel from './RevealPanel';
 import DonePanel from './DonePanel';
-
-function getPlayUrl() {
-    const { protocol, host, pathname } = window.location;
-    const base = pathname.replace(/\/[^/]+(\?.*)?$/, '');
-    return `${protocol}//${host}${base}/play`;
-}
-
-function getProjectorUrl() {
-    const { protocol, host, pathname } = window.location;
-    const base = pathname.replace(/\/[^/]+(\?.*)?$/, '');
-    return `${protocol}//${host}${base}/projector`;
-}
 
 async function fetchShortUrl(url) {
     // Service notes (last checked Jun 2026):

@@ -1,5 +1,5 @@
 import React from 'react';
-import { C, DIST_COLORS } from '../lib/theme';
+import { C } from '../lib/theme';
 
 /**
  * Horizontal distribution bars shown after an answer reveal.
@@ -21,10 +21,10 @@ export default function DistBars({ options, dist, total }) {
                     ({total} responded)
                 </span>
             </div>
-            {options.map((opt, i) => {
+            {options.map((opt) => {
                 const count = countMap[opt.id] || 0;
                 const pct   = total > 0 ? Math.round((count / total) * 100) : 0;
-                const color = opt.correct ? C.green : DIST_COLORS[i % DIST_COLORS.length];
+                const color = opt.correct ? C.green : C.red;
                 return (
                     <div key={opt.id} style={{ marginBottom: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, fontSize: 13 }}>

@@ -11,8 +11,9 @@ const IconMic = () => (
     </svg>
 );
 import { C } from '../../lib/theme';
+import { IconProjector } from '../../components/icons';
 import {
-    Card, Title, Subtitle, BigBtn, ActivateBadge,
+    Card, Title, Subtitle, BigBtn, SmallBtn, ActivateBadge,
     ControlLabel, QuizPicker, ModeToggleWrap, ModeBtn, SavedFlash,
 } from './styles';
 import JoinInfo from './JoinInfo';
@@ -227,6 +228,22 @@ export default function IdlePanel({
                     <BigBtn onClick={onStartSession} disabled={busy || !selectedQuizId}>
                         {busy ? 'Starting…' : '▶ Start Synchronized Session'}
                     </BigBtn>
+                    {projectorUrl && (
+                        <SmallBtn
+                            as="a"
+                            href={projectorUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open the projector (wall-screen) view in a new tab"
+                            style={{
+                                display: 'inline-flex', alignItems: 'center',
+                                textDecoration: 'none', verticalAlign: 'middle',
+                            }}
+                        >
+                            <IconProjector style={{ marginRight: 6 }} />
+                            Projector
+                        </SmallBtn>
+                    )}
                 </div>
             )}
 

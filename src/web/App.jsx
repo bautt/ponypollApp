@@ -10,6 +10,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ProjectorPage from './pages/ProjectorPage';
 import { listQuizzes, createQuiz, saveAllQuestions, loadConfig, saveConfig, getSession, fetchLibraryQuiz } from './lib/kvstore';
 import { SEED_QUESTIONS, toKvDoc, newQuestion } from './lib/questions';
+import { getProjectorUrl, getSplunkHomeUrl } from './lib/urls';
 import { IconPlay, IconPencil, IconGear, IconProjector, IconBarChart } from './components/icons';
 
 const tabIconStyle = { marginRight: 5, marginBottom: 1 };
@@ -108,6 +109,53 @@ const NavBar = styled.nav`
     &::-webkit-scrollbar { display: none; }
     @media (max-width: 600px) {
         padding: 0 8px;
+    }
+`;
+
+// Splunk wordmark — kept deliberately small and dimmed so it reads as a
+// quiet "back to Splunk" affordance rather than competing with the Pony
+// Poll branding/tabs. Full opacity + slightly larger on hover for discovery.
+const NavLogoLink = styled.a`
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding-right: 14px;
+    margin-right: 10px;
+    border-right: 1px solid ${C.border};
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+    &:hover { opacity: 0.9; }
+`;
+
+const NavLogoImg = styled.img`
+    height: 13px;
+    display: block;
+`;
+
+// Same visual language as NavTab, but rendered as a plain external link
+// (no `$active` state, opens in a new tab) and pushed to the far right so
+// it reads as a distinct action rather than another in-app tab.
+const NavExternalLink = styled.a`
+    display: flex;
+    align-items: center;
+    padding: 11px 20px;
+    margin-left: auto;
+    border-bottom: 3px solid transparent;
+    color: ${C.muted};
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s;
+    flex-shrink: 0;
+    min-height: 44px;
+    touch-action: manipulation;
+    &:hover { color: #fff; }
+    @media (max-width: 600px) {
+        padding: 10px 12px;
+        font-size: 13px;
+        .nav-label { display: none; }
     }
 `;
 
@@ -280,6 +328,8 @@ function FullApp() {
     }, []);
 
     const [tab, setTab] = useState(() => tabFromHash('poll'));
+    const [projectorUrl]  = useState(getProjectorUrl);
+    const [splunkHomeUrl] = useState(getSplunkHomeUrl);
 
     // Keep state in sync with browser back/forward navigation.
     useEffect(() => {
@@ -296,6 +346,13 @@ function FullApp() {
     return (
         <>
             <NavBar>
+                <NavLogoLink
+                    href={splunkHomeUrl}
+                    title="Back to Splunk"
+                    aria-label="Back to Splunk"
+                >
+                    <NavLogoImg src="/static/app/ponypollapp/splunk-logo.png" alt="Splunk" />
+                </NavLogoLink>
                 {TABS.map((t) => (
                     <NavTab
                         key={t.id}
@@ -307,6 +364,15 @@ function FullApp() {
                         {t.label}
                     </NavTab>
                 ))}
+                <NavExternalLink
+                    href={projectorUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open projector (wall-screen) view"
+                    aria-label="Open projector view"
+                >
+                    <IconProjector style={tabIconStyle} /><span className="nav-label">Projector</span>
+                </NavExternalLink>
             </NavBar>
 
             {tab === 'poll'      && <ErrorBoundary compact label="Poll"><PollPage /></ErrorBoundary>}
