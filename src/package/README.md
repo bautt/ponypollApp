@@ -135,7 +135,8 @@ The **Quiz music** and **Sound effects** toggles let each participant enable or 
 | **Self-paced mode** | Each participant runs at their own speed |
 | **Projector view** | Read-only `/projector` URL mirrors the live session on a wall screen — phases: idle QR, lobby nicknames, question + timer, reveal bars, final podium |
 | **Post-quiz review** | After finishing, participants see a per-question breakdown: correct/incorrect, their answer, the correct answer, and explanation hints |
-| **Admin tab** | Unified control room for both modes — QR code, short URL, session badge, projector link, live participant nickname list |
+| **Admin tab** | Unified control room for both modes — QR code, short URL, session badge, **Projector** shortcut beside Start Session, live participant nickname list |
+| **In-app navigation** | Poll · Admin · Analytics · Editor · Settings tabs; **Projector** opens the wall-screen view in a new tab; subtle **splunk>** wordmark links back to Splunk home |
 | **Editor** | WYSIWYG question editor — 6 types, drag-to-reorder, image support, explanations, **duplicate quiz** |
 | **Quiz library** | Bundled quizzes importable with one click; **GitHub** button syncs latest quizzes live |
 | **Export / Import** | JSON file per quiz — portable between any Splunk instances |
@@ -181,6 +182,8 @@ Go to the [**Releases page**](https://github.com/bautt/ponypollApp/releases/late
 
 Share `/play` with your audience. All three URLs appear in the Splunk navigation bar.
 
+The full app (`/poll`) also has its own **in-app tab bar**: Poll, Admin, Analytics, Editor, Settings, plus **Projector** on the right (opens `/projector` in a new tab). A dim **splunk>** wordmark at the far left links back to Splunk's app home.
+
 **Getting back to the admin app when Play is the default view:**
 
 | Method | How |
@@ -193,7 +196,7 @@ Share `/play` with your audience. All three URLs appear in the Splunk navigation
 | Requirement | Notes |
 |---|---|
 | Splunk Enterprise ≥ 8.x | KV Store must be enabled (requires a valid non-free license) |
-| Splunk Cloud | Tested and working — AppInspect approved |
+| Splunk Cloud | Tested and working — AppInspect approved (`make appinspect` runs 242 cloud vetting checks) |
 | Browser | Any modern browser (Chrome, Firefox, Edge, Safari) |
 
 > No Node.js, Python, or build tools are needed to run the app — the pre-built JavaScript bundle is included in the tarball.
@@ -265,11 +268,13 @@ The projector view is a dedicated read-only display designed to be shown on a wa
 **How to set it up:**
 
 1. Start a synchronized session from the **Admin** tab.
-2. In the JoinInfo panel (Idle or Lobby screen), click **📽 Projector view ↗** — this opens the projector URL in a new tab.
+2. Open the projector view — any of:
+   - **Projector** in the app's top navigation bar (right side)
+   - **Projector** button beside **Start Synchronized Session** (synchronized mode, idle screen)
+   - **📽 Projector view ↗** in the JoinInfo panel (idle or lobby)
+   - **Projector** in Splunk's own navigation bar
 3. Move or cast that tab to the projector / second display.
 4. The screen requires no interaction — it polls the session every 3 seconds and updates automatically.
-
-The projector URL is also available in the Splunk navigation bar as **📽 Projector**.
 
 **What the audience sees at each phase:**
 
@@ -278,7 +283,7 @@ The projector URL is also available in the Splunk navigation bar as **📽 Proje
 | **Idle** (no session) | App logo, large QR code + play URL — participants can scan in advance |
 | **Waiting** (lobby open) | Giant session number `#XYZ`, QR code + play URL, live participant count, nickname chips as people join |
 | **Question live** | Question number, question text, colour-coded option tiles (A/B/C/D), live countdown timer bar |
-| **Reveal** | Question + answer distribution bars (% per option), top-5 leaderboard |
+| **Reveal** | Question + answer distribution bars (**green** = correct, **red** = wrong), top-5 leaderboard |
 | **Done** | Podium (🥇🥈🥉) with names and scores, full top-10 below |
 
 | Waiting — lobby | Question live |
@@ -297,7 +302,7 @@ The projector view contains no admin controls — it is safe to leave open on a 
 | **Session visibility** | Number shown prominently on every admin panel and on the participant lobby screen |
 | **"Tell participants" cue** | JoinInfo panel shows `Tell participants: session #NNNNN` next to the QR code |
 | **Server-authoritative timer** | All clients compute remaining time from `question_started_at` in KV Store — no clock drift |
-| **Answer distribution** | Horizontal bars per option shown after reveal on both host and participant screens |
+| **Answer distribution** | After reveal: correct options in **green**, wrong options in **red** — on Admin, participant, and Projector screens |
 | **Explanation callout** | Optional "why" text per question shown as a callout after reveal |
 | **Podium** | Top 3 players shown on a visual podium at the end of a synchronized session |
 | **Random question subset** | Choose how many questions to play at session-start |
@@ -649,6 +654,14 @@ All questions, quizzes, and historical answers are preserved. Settings (poll tit
 ### What changes between versions
 
 Each release includes a changelog on the [Releases page](https://github.com/bautt/ponypollApp/releases). Check there for any manual migration steps if upgrading across multiple major versions.
+
+### Recent releases
+
+| Version | Highlights |
+|---|---|
+| **1.3.71** | `app.manifest` for Splunk Cloud package vetting; `make appinspect` target (precert + cloud tag) |
+| **1.3.70** | Splunk wordmark in nav (back to Splunk home); **Projector** link in top nav and beside Start Session; reveal bars colour-coded green/red |
+| **1.3.68** | Shortened play URL shown on projector idle + lobby screens |
 
 ### Downgrade
 

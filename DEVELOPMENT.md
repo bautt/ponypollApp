@@ -456,21 +456,17 @@ Single Webpack configuration for both `poll` and `play` entry points. Key behavi
 | `make dev` | Webpack watch mode (`yarn dev`) — rebuilds on file changes |
 | `make build` | Webpack production build → `dist/` |
 | `make package` | Production build + copies `quizzes/` into static + creates `ponypollapp.tar.gz` |
-| `make appinspect` | Runs Splunk AppInspect against the tarball (requires Python venv with `splunk-appinspect`) |
+| `make appinspect-deps` | One-time: create `.venv-appinspect` and install `splunk-appinspect` from `requirements.txt` |
+| `make appinspect` | Build tarball, then run AppInspect in precert mode with the `cloud` tag (242 checks) |
 
 ### Version bumping
 
-Before every release, bump both version fields in `src/package/default/app.conf`:
+Before every release, bump version in **both** places:
 
-```ini
-[launcher]
-version = 1.3.31
+1. `src/package/default/app.conf` — `[launcher] version` and `[id] version`
+2. `src/package/app.manifest` — `info.id.version`
 
-[id]
-version = 1.3.31
-```
-
-Also update the version badge in `README.md`.
+Also update the version badge in `README.md` and `src/package/README.md`.
 
 ---
 
@@ -549,6 +545,19 @@ sudo /opt/splunk/bin/splunk reload deploy-server
 
 ## Changelog
 
+### v1.3.71 — Splunk Cloud manifest & AppInspect target (2026-07-13)
+
+- Added `app.manifest` at package root — Splunk Cloud package-id vetting now passes (was previously skipped)
+- `make appinspect` / `make appinspect-deps` targets; `requirements.txt` pins `splunk-appinspect==4.2.0`
+- README: recent releases table, projector/nav documentation, green/red reveal bars
+
+### v1.3.70 — Nav branding, Projector shortcuts, reveal colours (2026-07-13)
+
+- Subtle **splunk>** wordmark in the in-app nav bar (links to Splunk app home)
+- **Projector** link in top nav (right) and beside **Start Synchronized Session** in Quiz Admin
+- Answer-distribution bars: correct = green, wrong = red (Admin, participant, Projector)
+- Shared URL helpers in `src/web/lib/urls.js`
+
 ### v1.3.30 — UI polish & icon overhaul (2026-05-11)
 
 - Replaced all colourful emoji icons across Admin, Analytics, Editor, and Settings pages with consistent monochrome inline SVG icons
@@ -587,7 +596,8 @@ sudo /opt/splunk/bin/splunk reload deploy-server
 2. `cd src && yarn install && yarn dev`
 3. Make changes in `src/web/` or `src/package/`.
 4. `make package` and test against a local Splunk instance.
-5. Bump the version in `app.conf` and `README.md`.
-6. Open a pull request with a clear description of the change.
+5. `make appinspect` before release — confirm 0 failures on the `cloud` tag.
+6. Bump the version in `app.conf`, `app.manifest`, and both README badges.
+7. Open a pull request with a clear description of the change.
 
 Please keep pull requests focused — one feature or fix per PR. Add or update screenshots in `docs/screenshots/` when changing visible UI. Blur any sensitive URLs in screenshots before committing.
