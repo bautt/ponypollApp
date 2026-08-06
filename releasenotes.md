@@ -4,6 +4,12 @@ Copy the section for the version you are publishing. Upgrade installs are non-de
 
 ---
 
+## v1.3.72 (2026-07-14)
+
+- UI sound effects (click / submit / timeout beeps) now default OFF — participants opt in via the **Sounds** toggle. Music was already default off (v1.3.67); this makes synchronised sessions in shared rooms fully silent by default.
+
+---
+
 ## v1.3.71 (2026-07-13)
 
 - Added `app.manifest` for Splunk Cloud package vetting

@@ -13,8 +13,13 @@
  *   ponypoll_track_win       = "<track id>"   (default: "default-win")
  *
  * Two on/off preferences (independent of track choice, both default on):
- *   ponypoll_music — background music (default: OFF — users opt in)
- *   ponypoll_sfx   — UI sound effects (default: ON, Web Audio API)
+ *   ponypoll_music — background music    (default: OFF — users opt in)
+ *   ponypoll_sfx   — UI sound effects    (default: OFF — users opt in)
+ *
+ * Both default OFF so that synchronised sessions (multiple phones in the same
+ * room) start silent. Users who explicitly opt in via the Music/Sounds
+ * toggles get an 'on' write to localStorage and keep the preference across
+ * sessions for that browser.
  *
  * SFX are synthesised — no files involved.
  */
@@ -92,7 +97,9 @@ export function setMusicEnabled(enabled) {
 // ── SFX preference ────────────────────────────────────────────────────────────
 
 export function isSfxEnabled() {
-    return localStorage.getItem(KEY_SFX) !== 'off';
+    // Default OFF — a room full of phones all beeping on every click and
+    // submit is disruptive. Users can opt in via the Sounds toggle.
+    return localStorage.getItem(KEY_SFX) === 'on';
 }
 
 export function setSfxEnabled(enabled) {
