@@ -4,16 +4,9 @@
  * The session cookie is sent automatically (same-origin).
  */
 
-const APP = 'ponypollapp';
+import { localePrefix } from './urls';
 
-/** Infer the locale prefix from the current page URL (e.g. "/en-US"). */
-function localePrefix() {
-    const parts = window.location.pathname.split('/');
-    if (parts.length >= 2 && /^[a-z]{2}(-[A-Z]{2})?$/.test(parts[1])) {
-        return '/' + parts[1];
-    }
-    return '/en-US';
-}
+const APP = 'ponypollapp';
 
 /** Read the Splunk CSRF token from the session cookie. */
 function csrfToken() {

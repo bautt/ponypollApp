@@ -4,7 +4,7 @@
  * Designed to be shown on a projector or second monitor while the host
  * uses AdminPage on their own screen.  No admin controls — read-only.
  *
- * URL: /projector  (detected by App.jsx pathname check)
+ * URL: /projector  (dedicated entries/projector.js -> roots/ProjectorRoot)
  *
  * Phases mirrored from ponypoll_session:
  *   idle     – waiting screen with QR + play URL

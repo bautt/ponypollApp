@@ -9,7 +9,7 @@
  */
 
 /** Infer the locale prefix from the current page URL (e.g. "/en-US"). */
-function localePrefix() {
+export function localePrefix() {
     const parts = window.location.pathname.split('/');
     if (parts.length >= 2 && /^[a-z]{2}(-[A-Z]{2})?$/.test(parts[1])) {
         return '/' + parts[1];

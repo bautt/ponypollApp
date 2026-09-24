@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
-<view template="ponypollapp:/templates/poll.html" type="html">
+<view template="pages/splunk_ui_app.html" type="html">
     <label>Poll</label>
 </view>
