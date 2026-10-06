@@ -74,7 +74,7 @@ Install app → create questions in the Editor → share the /play URL → watch
 | Show a wall-screen during a session | Open `/projector` on a second display — auto-updates with each phase |
 | Build or edit questions | **Editor** tab — 6 question types, drag-to-reorder, images |
 | Import a ready-made quiz | Editor → **Library** (bundled) or **GitHub** (live sync) |
-| Analyse results | **Analytics** tab — leaderboard, KPIs, difficulty breakdown, session filter |
+| Analyse results | **Analytics** tab, or Last Quiz / Advanced / Classic dashboards |
 | Install | Upload `ponypollapp.tar.gz` in **Apps → Manage Apps** |
 
 ---
@@ -113,7 +113,7 @@ The session number is displayed prominently so the host can announce it to the r
 
 ### Analytics
 
-![Analytics — KPI scorecards, leaderboard, question difficulty table, recent sessions](docs/screenshots/analytics.png)
+![Analytics — dashboard cards, KPI scorecards, leaderboard, question difficulty](docs/screenshots/analytics.png)
 
 ### Settings
 
@@ -146,7 +146,7 @@ The **Quiz music** and **Sound effects** toggles let each participant enable or 
 | **Quiz library** | Bundled quizzes importable with one click; **GitHub** button syncs latest quizzes live |
 | **Export / Import** | JSON file per quiz — portable between any Splunk instances |
 | **Random question subset** | Play N random questions from a larger pool each session |
-| **Analytics** | KPI scorecards, leaderboard, per-question difficulty, recent sessions — no SPL needed |
+| **Analytics** | In-app KPIs, leaderboard, and difficulty; cards open Last Quiz, Advanced (Dashboard Studio), and Classic Simple XML |
 | **KV Store backed** | Questions, quizzes, config, and session state in Splunk KV Store |
 | **No extra infrastructure** | Events written directly via `receivers/simple`; no Python scripts or sidecars |
 | **Participant permissions** | `ponypoll_user` role ships with `edit_tcp` + `edit_kvstore` so non-admin users can play; `ponypoll_guest` for locked-down shared workshop logins |
@@ -347,11 +347,22 @@ Each question is saved individually to KV Store — there is no "Save All".
 
 ## Analytics
 
-The **Analytics** tab gives a live view of results without writing any SPL.
+The **Analytics** tab gives a live view of results without writing any SPL. Three cards at the top open Splunk dashboards (new tab) for deeper analysis.
 
-![Analytics — filters, KPI scorecards, leaderboard, question difficulty table, recent sessions](docs/screenshots/analytics.png)
+![Analytics — dashboard cards, KPI scorecards, leaderboard, question difficulty](docs/screenshots/analytics.png)
 
-### Filters
+### Dashboards
+
+| Dashboard | View | What it shows |
+|---|---|---|
+| **Last Quiz Dashboard** | `/app/ponypollapp/analytics_last_quiz` | Dashboard Studio — latest completed run: KPIs, leaderboard, timing (seconds used), question stats. Filter by player. |
+| **Advanced Dashboard** | `/app/ponypollapp/analytics_advanced` | Dashboard Studio — cross-quiz history with time, quiz, session, and nickname filters. |
+| **Classic Analytics** | `/app/ponypollapp/analytics` | Simple XML — same KPIs and tables; open any panel in Search. |
+| **Analytics (Studio)** | `/app/ponypollapp/analytics_studio` | Dashboard Studio variant of the classic layout (also in the Splunk nav). |
+
+All four views also appear in the Splunk app navigation bar.
+
+### Filters (in-app tab)
 
 | Filter | Options |
 |---|---|
@@ -360,7 +371,7 @@ The **Analytics** tab gives a live view of results without writing any SPL.
 | **Session** | Any session number, or *All sessions* — defaults to the most recent |
 | **Nickname** | Any individual player, or *All players* |
 
-### Panels
+### Panels (in-app tab)
 
 | Panel | What it shows |
 |---|---|
@@ -371,8 +382,6 @@ The **Analytics** tab gives a live view of results without writing any SPL.
 | **Leaderboard** | Top 20 players ranked by best score, with gold/silver/bronze medals |
 | **Question difficulty** | % correct and avg points per question |
 | **Recent sessions** | Last 50 session events with timestamp, player, score |
-
-A matching **Splunk dashboard** (Simple XML) is also available at `/app/ponypollapp/analytics_dashboard` for further SPL-level analysis.
 
 ---
 
