@@ -31,6 +31,12 @@ export function getProjectorUrl() {
     return `${protocol}//${host}${base}/projector`;
 }
 
+/** Build a same-origin URL to a view in this app (classic XML or Studio). */
+export function getAppViewUrl(view) {
+    const { protocol, host } = window.location;
+    return `${protocol}//${host}${localePrefix()}/app/ponypollapp/${view}`;
+}
+
 /** Build a same-origin link back to Splunk's own app home/launcher, honoring locale. */
 export function getSplunkHomeUrl() {
     return `${localePrefix()}/app/launcher/home`;

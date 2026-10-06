@@ -4,5 +4,8 @@
     <view name="play" label="▶ Play (participant)"/>
     <view name="projector" label="Projector"/>
     <view name="analytics" label="Analytics"/>
+    <view name="analytics_last_quiz" label="Last Quiz Dashboard"/>
+    <view name="analytics_advanced" label="Advanced Dashboard"/>
+    <view name="analytics_studio" label="Analytics (Studio)"/>
     <view name="search"/>
 </nav>

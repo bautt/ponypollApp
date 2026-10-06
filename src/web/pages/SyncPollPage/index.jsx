@@ -337,6 +337,7 @@ export default function SyncPollPage() {
             correct:        correct === null ? 'n/a' : String(correct),
             points:         pts,
             time_remaining: tLeft,
+            time_limit:     q.timeLimit || 30,
         };
         lastPayloadRef.current = payload;
         setSubmitError(null);

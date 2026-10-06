@@ -196,6 +196,7 @@ export default function PollPage() {
             correct: correct === null ? 'poll' : String(correct),
             points,
             time_remaining: remainingSecs,
+            time_limit: currentQ.timeLimit || 30,
         }).catch(() => {});
     }, [currentQ, selected, freetextVal, wcWords, sliderVal, qIndex, nickname]);
 

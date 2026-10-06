@@ -391,7 +391,7 @@ function SystemCheck({ pollIndex }) {
         ['admin', 'sc_admin', 'ponypoll_admin'].includes(r)
     );
     const hasUserRole = userCtx?.roles?.some(r =>
-        ['admin', 'sc_admin', 'ponypoll_admin', 'ponypoll_user'].includes(r)
+        ['admin', 'sc_admin', 'ponypoll_admin', 'ponypoll_user', 'ponypoll_guest'].includes(r)
     );
 
     return (
@@ -476,7 +476,9 @@ function SystemCheck({ pollIndex }) {
                     {!hasUserRole && (
                         <span style={{ color: C.yellow }}>
                             {' '}To participate in quizzes, assign the{' '}
-                            <code style={{ color: C.yellow }}>ponypoll_user</code> role.
+                            <code style={{ color: C.yellow }}>ponypoll_user</code> role, or{' '}
+                            <code style={{ color: C.yellow }}>ponypoll_guest</code> for a shared
+                            workshop login.
                         </span>
                     )}
                 </div>
@@ -1015,8 +1017,9 @@ export default function SettingsPage() {
                     </summary>
                     <IndexNote style={{ marginTop: 8 }}>
                         Answer and join events are written via <code>receivers/simple</code> using
-                        the user's Splunk session. The <code style={{ color: C.accent }}>ponypoll_user</code> role
-                        ships with the <code>edit_tcp</code> capability so every authenticated user
+                        the user's Splunk session. The <code style={{ color: C.accent }}>ponypoll_user</code> and
+                        <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll_guest</code> roles
+                        ship with the <code>edit_tcp</code> capability so every authenticated user
                         can submit answers — no HEC required. The default
                         <code style={{ color: C.accent, padding: '0 3px' }}>ponypoll</code> index is created
                         by this app's <code>indexes.conf</code>; pointing the

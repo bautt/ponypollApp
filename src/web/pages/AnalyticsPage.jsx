@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { runSearch } from '../lib/kvstore';
 import { sanitizeId } from '../lib/utils';
 import { C, FONTS } from '../lib/theme';
+import { getAppViewUrl } from '../lib/urls';
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 const ico = (children) => (
@@ -25,6 +26,54 @@ const Page = styled.div`
     color: ${C.text};
     font-family: ${FONTS.sans};
     padding: 20px 24px 40px;
+`;
+
+const DashLinks = styled.div`
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+`;
+
+const DashCard = styled.a`
+    display: block;
+    text-decoration: none;
+    color: ${C.text};
+    background: ${C.surface};
+    border: 1px solid ${C.border};
+    border-top: 4px solid ${(p) => p.$accent || C.blue};
+    border-radius: 8px;
+    padding: 14px 16px 16px;
+    transition: border-color 0.12s ease, background 0.12s ease;
+    &:hover {
+        border-color: ${(p) => p.$accent || C.blue};
+        background: ${C.surface2};
+    }
+`;
+
+const DashKicker = styled.div`
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: ${(p) => p.$accent || C.blue};
+    margin-bottom: 6px;
+`;
+
+const DashTitle = styled.div`
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+`;
+
+const DashBlurb = styled.div`
+    font-size: 12px;
+    color: ${C.muted};
+    line-height: 1.4;
 `;
 
 const FilterBar = styled.div`
@@ -486,6 +535,45 @@ export default function AnalyticsPage() {
 
     return (
         <Page>
+            <DashLinks>
+                <DashCard
+                    href={getAppViewUrl('analytics_last_quiz')}
+                    $accent={C.yellow}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <DashKicker $accent={C.yellow}>Dashboard Studio</DashKicker>
+                    <DashTitle>Last Quiz Dashboard</DashTitle>
+                    <DashBlurb>
+                        Latest run, leaderboard, timing and question stats. Filter by player.
+                    </DashBlurb>
+                </DashCard>
+                <DashCard
+                    href={getAppViewUrl('analytics_advanced')}
+                    $accent={C.blue}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <DashKicker $accent={C.blue}>Dashboard Studio</DashKicker>
+                    <DashTitle>Advanced Dashboard</DashTitle>
+                    <DashBlurb>
+                        Cross-quiz history with time, quiz, session and nickname filters.
+                    </DashBlurb>
+                </DashCard>
+                <DashCard
+                    href={getAppViewUrl('analytics')}
+                    $accent={C.green}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <DashKicker $accent={C.green}>Simple XML</DashKicker>
+                    <DashTitle>Classic Analytics</DashTitle>
+                    <DashBlurb>
+                        Original XML dashboard — same KPIs and tables, open any panel in Search.
+                    </DashBlurb>
+                </DashCard>
+            </DashLinks>
+
             {/* ── Filter bar ── */}
             <FilterBar>
                 <FilterLabel>Time</FilterLabel>

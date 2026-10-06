@@ -47,8 +47,6 @@
     <input type="text" token="nickname_tok" searchWhenChanged="true">
       <label>Nickname</label>
       <default>*</default>
-      <prefix>nickname="</prefix>
-      <suffix>"</suffix>
     </input>
   </fieldset>
 
@@ -59,9 +57,9 @@
         <title>Quiz completions</title>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | stats count</query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
@@ -79,9 +77,9 @@
         <title>Unique players</title>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | stats dc(nickname) as players</query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
@@ -99,9 +97,9 @@
         <title>Avg score</title>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | stats avg(total_score) as avg_score
             | eval avg_score=round(avg_score,0)</query>
           <earliest>$tr.earliest$</earliest>
@@ -120,9 +118,9 @@
         <title>Top score</title>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | stats max(total_score) as top_score</query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
@@ -140,9 +138,9 @@
         <title>Answers submitted</title>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_answer
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | stats count</query>
           <earliest>$tr.earliest$</earliest>
           <latest>$tr.latest$</latest>
@@ -160,9 +158,9 @@
       <table>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | stats max(total_score) as best_score count as runs by nickname
             | sort -best_score
             | head 20
@@ -189,9 +187,9 @@
       <table>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_answer
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | eval correct_int=if(correct="true",1,0)
             | stats count as Total sum(correct_int) as Correct sum(points) as Pts by question
             | eval Wrong=Total-Correct
@@ -225,9 +223,9 @@
       <table>
         <search>
           <query>`ponypoll_index` sourcetype=ponypoll_attempt
-            ($quiz_tok$="*" OR quiz_id="$quiz_tok$")
-            ($session_tok$="*" OR session_name="$session_tok$")
-            ($nickname_tok$="*" OR nickname="$nickname_tok$")
+            ("$quiz_tok$"="*" OR quiz_id="$quiz_tok$")
+            ("$session_tok$"="*" OR session_name="$session_tok$")
+            ("$nickname_tok$"="*" OR nickname="$nickname_tok$")
             | sort - _time
             | head 50
             | eval Time=strftime(_time,"%Y-%m-%d %H:%M")

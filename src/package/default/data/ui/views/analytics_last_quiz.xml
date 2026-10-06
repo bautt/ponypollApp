@@ -1,0 +1,812 @@
+<?xml version="1.0"?>
+<dashboard version="2" theme="dark">
+  <label>Last Quiz Dashboard</label>
+  <description>Latest run with a prominent leaderboard, timing and question analytics. Filter by player.</description>
+  <definition><![CDATA[
+{
+  "title": "Last Quiz Dashboard",
+  "description": "Latest quiz run with leaderboard, timing and question analytics. Pick a run and optionally one player.",
+  "defaults": {
+    "visualizations": {
+      "global": {
+        "showProgressBar": true,
+        "showLastUpdated": false
+      }
+    }
+  },
+  "dataSources": {
+    "ds_last_runs": {
+      "type": "ds.search",
+      "name": "Recent quiz runs",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_answer\n            | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n            | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n            | where quiz_id!=\"\" OR session_name!=\"\"\n            | stats max(_time) as last_time values(quiz_name) as quiz_name by quiz_id session_name\n            | sort - last_time\n            | head 20\n            | eval run_id=quiz_id.\"|||\".session_name\n            | eval sess=if(session_name=\"\",\"(no session)\", session_name)\n            | eval label=strftime(last_time,\"%b %d %H:%M\").\" · \".coalesce(quiz_name,quiz_id).\" · \".sess\n            | table run_id label last_time",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_last_meta": {
+      "type": "ds.search",
+      "name": "This run",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete\n            | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n            | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n            | join type=inner quiz_id session_name\n                [| search `ponypoll_index` sourcetype=ponypoll_answer\n                 | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n                 | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n                 | where quiz_id!=\"\" OR session_name!=\"\"\n                 | eval run_id=quiz_id.\"|||\".session_name\n                 | eval tok=\"$last_run_tok$\"\n                 | where tok=\"*\" OR tok=\"\" OR run_id=tok\n                 | stats max(_time) as last_time by quiz_id session_name\n                 | sort 0 - last_time\n                 | head 1\n                 | fields quiz_id session_name]\n            | where \"$last_user_tok$\"=\"*\" OR nickname=\"$last_user_tok$\"\n            | stats max(_time) as when dc(nickname) as Players values(quiz_name) as Quiz values(session_name) as Session last(question_count) as Questions\n            | eval When=strftime(when,\"%Y-%m-%d %H:%M\")\n            | table Quiz Session When Players Questions",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_last_attempts": {
+      "type": "ds.search",
+      "name": "Last run attempts",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt\n            | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n            | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n            | join type=inner quiz_id session_name\n                [| search `ponypoll_index` sourcetype=ponypoll_answer\n                 | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n                 | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n                 | where quiz_id!=\"\" OR session_name!=\"\"\n                 | eval run_id=quiz_id.\"|||\".session_name\n                 | eval tok=\"$last_run_tok$\"\n                 | where tok=\"*\" OR tok=\"\" OR run_id=tok\n                 | stats max(_time) as last_time by quiz_id session_name\n                 | sort 0 - last_time\n                 | head 1\n                 | fields quiz_id session_name]\n            | where \"$last_user_tok$\"=\"*\" OR nickname=\"$last_user_tok$\"",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_last_answers": {
+      "type": "ds.search",
+      "name": "Last run answers",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_answer\n            | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n            | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n            | join type=inner quiz_id session_name\n                [| search `ponypoll_index` sourcetype=ponypoll_answer\n                 | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n                 | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n                 | where quiz_id!=\"\" OR session_name!=\"\"\n                 | eval run_id=quiz_id.\"|||\".session_name\n                 | eval tok=\"$last_run_tok$\"\n                 | where tok=\"*\" OR tok=\"\" OR run_id=tok\n                 | stats max(_time) as last_time by quiz_id session_name\n                 | sort 0 - last_time\n                 | head 1\n                 | fields quiz_id session_name]\n            | where \"$last_user_tok$\"=\"*\" OR nickname=\"$last_user_tok$\"\n            | eval timer=coalesce(tonumber(time_limit), tonumber(timeLimit), 30)\n            | eval seconds_used=round(timer-tonumber(time_remaining),1)\n            | eval seconds_used=if(seconds_used<0,0,seconds_used)",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_l_completions": {
+      "type": "ds.chain",
+      "name": "Last completions",
+      "options": {
+        "extend": "ds_last_attempts",
+        "query": "| search event=quiz_complete | stats count"
+      }
+    },
+    "ds_l_players": {
+      "type": "ds.chain",
+      "name": "Last players",
+      "options": {
+        "extend": "ds_last_attempts",
+        "query": "| search event=quiz_complete | stats dc(nickname) as players"
+      }
+    },
+    "ds_l_avg_score": {
+      "type": "ds.chain",
+      "name": "Last avg score",
+      "options": {
+        "extend": "ds_last_attempts",
+        "query": "| search event=quiz_complete | stats avg(total_score) as avg_score | eval avg_score=round(avg_score,0)"
+      }
+    },
+    "ds_l_answers_n": {
+      "type": "ds.chain",
+      "name": "Last answers n",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| stats count"
+      }
+    },
+    "ds_l_accuracy": {
+      "type": "ds.chain",
+      "name": "Last accuracy",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| eval c=if(correct=\"true\",1,0) | stats avg(c) as accuracy | eval accuracy=round(accuracy*100,1)"
+      }
+    },
+    "ds_l_avg_used": {
+      "type": "ds.chain",
+      "name": "Last avg used",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| stats avg(seconds_used) as avg_used | eval avg_used=round(avg_used,1)"
+      }
+    },
+    "ds_l_leaderboard": {
+      "type": "ds.chain",
+      "name": "Last leaderboard",
+      "options": {
+        "extend": "ds_last_attempts",
+        "query": "| search event=quiz_complete\n| stats max(total_score) as best_score avg(total_score) as avg_score count as runs by nickname\n| eval avg_score=round(avg_score,0)\n| sort -best_score\n| head 25\n| streamstats count as rank\n| eval \"#\"=case(rank==1,\"1\", rank==2,\"2\", rank==3,\"3\", true(),tostring(rank))\n| rename nickname as Player, best_score as \"Best score\", avg_score as \"Avg score\", runs as Runs\n| table \"#\" Player \"Best score\" \"Avg score\" Runs"
+      }
+    },
+    "ds_l_lb_chart": {
+      "type": "ds.chain",
+      "name": "Last LB chart",
+      "options": {
+        "extend": "ds_l_leaderboard",
+        "query": "| fields Player \"Best score\" | sort -\"Best score\" | head 15"
+      }
+    },
+    "ds_l_sankey": {
+      "type": "ds.chain",
+      "name": "Last sankey",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| eval type=if(isnull(type) OR type=\"\",\"unknown\",type)\n| eval speed=case(seconds_used<=8,\"Fast\", seconds_used<=16,\"Medium\", true(),\"Slow\")\n| eval result=if(correct=\"true\",\"Correct\",\"Wrong\")\n| eval from=type, to=speed\n| appendpipe [| eval from=speed, to=result]\n| stats count as count by from to | where isnotnull(from) AND isnotnull(to)"
+      }
+    },
+    "ds_l_speed_hist": {
+      "type": "ds.chain",
+      "name": "Last speed hist",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| eval used=floor(seconds_used/2)*2\n| eval result=if(correct=\"true\",\"Correct\",\"Wrong\")\n| chart count by used result | sort used | rename used as \"Seconds used\""
+      }
+    },
+    "ds_l_speed_outcome": {
+      "type": "ds.chain",
+      "name": "Last speed outcome",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| eval result=if(correct=\"true\",\"Correct\",\"Wrong\")\n| chart avg(seconds_used) as avg_sec_used, median(seconds_used) as median_sec_used by result\n| eval avg_sec_used=round(avg_sec_used,1), median_sec_used=round(median_sec_used,1)\n| rename result as Outcome, avg_sec_used as \"Avg sec used\", median_sec_used as \"Median sec used\""
+      }
+    },
+    "ds_l_speed_acc": {
+      "type": "ds.chain",
+      "name": "Last speed acc",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| eval speed=case(seconds_used<=8,\"Fast\", seconds_used<=16,\"Medium\", true(),\"Slow\")\n| eval c=if(correct=\"true\",1,0)\n| eval ord=case(speed=\"Fast\",1, speed=\"Medium\",2, true(),3)\n| stats avg(c) as pct count as Answers by speed ord | eval pct=round(pct*100,1) | sort ord\n| rename speed as Speed, pct as \"Accuracy %\" | table Speed \"Accuracy %\" Answers"
+      }
+    },
+    "ds_l_fastest": {
+      "type": "ds.chain",
+      "name": "Last fastest",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| search correct=\"true\" | where isnotnull(seconds_used) | sort seconds_used | head 12\n| rename nickname as Player, question as Question, answer as Answer, points as Points, seconds_used as \"Sec used\"\n| table \"Sec used\" Player Question Answer Points"
+      }
+    },
+    "ds_l_fastest_chart": {
+      "type": "ds.chain",
+      "name": "Last fastest chart",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| search correct=\"true\" | where isnotnull(seconds_used) | sort seconds_used | head 12\n| eval answer_label=nickname.\" · \".substr(question,1,36)\n| stats min(seconds_used) as seconds_used by answer_label | sort seconds_used | table answer_label seconds_used"
+      }
+    },
+    "ds_l_difficulty": {
+      "type": "ds.chain",
+      "name": "Last difficulty",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| eval correct_int=if(correct=\"true\",1,0)\n| stats count as Total sum(correct_int) as Correct avg(seconds_used) as avg_used avg(points) as avg_pts by question\n| eval Wrong=Total-Correct, pct_correct=round(Correct/Total*100,1), avg_used=round(avg_used,1), avg_pts=round(avg_pts,0)\n| rename question as Question, pct_correct as \"% Correct\", avg_used as \"Avg sec used\", avg_pts as \"Avg pts\"\n| table Question \"% Correct\" Correct Wrong \"Avg sec used\" \"Avg pts\" | sort \"% Correct\""
+      }
+    },
+    "ds_l_difficulty_chart": {
+      "type": "ds.chain",
+      "name": "Last difficulty chart",
+      "options": {
+        "extend": "ds_l_difficulty",
+        "query": "| fields Question \"% Correct\" | sort \"% Correct\""
+      }
+    },
+    "ds_l_missed": {
+      "type": "ds.chain",
+      "name": "Last missed",
+      "options": {
+        "extend": "ds_last_answers",
+        "query": "| search correct=\"false\" | stats count as Misses by question, answer | sort -Misses | head 12\n| rename question as Question, answer as \"Given answer\" | table Misses Question \"Given answer\""
+      }
+    },
+    "ds_last_users": {
+      "type": "ds.search",
+      "name": "Players in this run",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_answer\n            | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n            | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n            | join type=inner quiz_id session_name\n                [| search `ponypoll_index` sourcetype=ponypoll_answer\n                 | eval quiz_id=if(isnull(quiz_id) OR quiz_id=\"\",\"\", quiz_id)\n                 | eval session_name=if(isnull(session_name) OR session_name=\"\",\"\", session_name)\n                 | where quiz_id!=\"\" OR session_name!=\"\"\n                 | eval run_id=quiz_id.\"|||\".session_name\n                 | eval tok=\"$last_run_tok$\"\n                 | where tok=\"*\" OR tok=\"\" OR run_id=tok\n                 | stats max(_time) as last_time by quiz_id session_name\n                 | sort 0 - last_time\n                 | head 1\n                 | fields quiz_id session_name]\n            | where nickname!=\"\"\n            | stats count as answers by nickname\n            | sort nickname",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_last_run": {
+      "type": "input.dropdown",
+      "title": "Quiz run",
+      "options": {
+        "token": "last_run_tok",
+        "selectFirstSearchResult": false,
+        "items": [
+          {
+            "label": "Latest run",
+            "value": "*"
+          }
+        ],
+        "defaultValue": "*"
+      },
+      "dataSources": {
+        "primary": "ds_last_runs"
+      },
+      "encoding": {
+        "label": "primary.label",
+        "value": "primary.run_id"
+      }
+    },
+    "input_last_user": {
+      "type": "input.dropdown",
+      "title": "Player",
+      "options": {
+        "token": "last_user_tok",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All players",
+            "value": "*"
+          }
+        ]
+      },
+      "dataSources": {
+        "primary": "ds_last_users"
+      },
+      "encoding": {
+        "label": "primary.nickname",
+        "value": "primary.nickname"
+      }
+    }
+  },
+  "visualizations": {
+    "viz_last_meta": {
+      "type": "splunk.table",
+      "title": "This run",
+      "dataSources": {
+        "primary": "ds_last_meta"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "count": 1,
+        "showRowNumbers": false,
+        "wrap": true
+      }
+    },
+    "viz_l_players": {
+      "type": "splunk.singlevalue",
+      "title": "Players",
+      "dataSources": {
+        "primary": "ds_l_players"
+      },
+      "options": {
+        "majorColor": "#5CC05C",
+        "numberPrecision": 0,
+        "backgroundColor": "#141922",
+        "majorFontSize": 36
+      }
+    },
+    "viz_l_completions": {
+      "type": "splunk.singlevalue",
+      "title": "Completions",
+      "dataSources": {
+        "primary": "ds_l_completions"
+      },
+      "options": {
+        "majorColor": "#00A4EF",
+        "numberPrecision": 0,
+        "backgroundColor": "#141922",
+        "majorFontSize": 36
+      }
+    },
+    "viz_l_accuracy": {
+      "type": "splunk.singlevalueradial",
+      "title": "Accuracy",
+      "dataSources": {
+        "primary": "ds_l_accuracy"
+      },
+      "options": {
+        "majorColor": "#5CC05C",
+        "numberPrecision": 1,
+        "backgroundColor": "#141922",
+        "majorFontSize": 28,
+        "unit": "%",
+        "unitPosition": "after"
+      }
+    },
+    "viz_l_avg_score": {
+      "type": "splunk.singlevalue",
+      "title": "Avg score",
+      "dataSources": {
+        "primary": "ds_l_avg_score"
+      },
+      "options": {
+        "majorColor": "#F5A623",
+        "numberPrecision": 0,
+        "backgroundColor": "#141922",
+        "majorFontSize": 36
+      }
+    },
+    "viz_l_avg_used": {
+      "type": "splunk.singlevalue",
+      "title": "Avg sec used",
+      "dataSources": {
+        "primary": "ds_l_avg_used"
+      },
+      "options": {
+        "majorColor": "#ED8B00",
+        "numberPrecision": 1,
+        "backgroundColor": "#141922",
+        "majorFontSize": 36,
+        "unit": "s",
+        "unitPosition": "after"
+      }
+    },
+    "viz_l_answers": {
+      "type": "splunk.singlevalue",
+      "title": "Answers",
+      "dataSources": {
+        "primary": "ds_l_answers_n"
+      },
+      "options": {
+        "majorColor": "#56B6C2",
+        "numberPrecision": 0,
+        "backgroundColor": "#141922",
+        "majorFontSize": 36
+      }
+    },
+    "viz_l_lb_chart": {
+      "type": "splunk.bar",
+      "title": "Leaderboard",
+      "dataSources": {
+        "primary": "ds_l_lb_chart"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "legendDisplay": "off",
+        "seriesColors": [
+          "#F5A623"
+        ],
+        "yAxisTitleText": "Score",
+        "xAxisTitleText": "",
+        "dataValuesDisplay": "all"
+      }
+    },
+    "viz_l_leaderboard": {
+      "type": "splunk.table",
+      "title": "Leaderboard",
+      "dataSources": {
+        "primary": "ds_l_leaderboard"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "count": 25,
+        "showRowNumbers": false,
+        "wrap": true,
+        "columnFormat": {
+          "Best score": {
+            "data": "> table | seriesByName(\"Best score\")",
+            "rowColors": "> table | seriesByName(\"Best score\") | rangeValue(ranges)"
+          }
+        }
+      },
+      "context": {
+        "ranges": [
+          {
+            "from": 5000,
+            "value": "#5CC05C"
+          },
+          {
+            "from": 1000,
+            "to": 5000,
+            "value": "#F5A623"
+          },
+          {
+            "to": 1000,
+            "value": "#E06C75"
+          }
+        ]
+      }
+    },
+    "viz_l_sankey": {
+      "type": "splunk.sankey",
+      "title": "Type → speed → correct / wrong",
+      "description": "Fast ≤8s used, Medium 9–16s, Slow >16s.",
+      "dataSources": {
+        "primary": "ds_l_sankey"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "linksSourceField": "from",
+        "linksTargetField": "to",
+        "linksValueField": "count"
+      },
+      "encoding": {
+        "from": "primary.from",
+        "to": "primary.to",
+        "value": "primary.count",
+        "source": "primary.from",
+        "target": "primary.to"
+      }
+    },
+    "viz_l_speed_hist": {
+      "type": "splunk.column",
+      "title": "Seconds used vs correct / wrong",
+      "dataSources": {
+        "primary": "ds_l_speed_hist"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "legendDisplay": "right",
+        "seriesColors": [
+          "#5CC05C",
+          "#E06C75"
+        ],
+        "yAxisTitleText": "Answers",
+        "xAxisTitleText": "Seconds used",
+        "dataValuesDisplay": "off",
+        "stackMode": "stacked"
+      }
+    },
+    "viz_l_speed_outcome": {
+      "type": "splunk.column",
+      "title": "Avg / median seconds used",
+      "dataSources": {
+        "primary": "ds_l_speed_outcome"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "legendDisplay": "right",
+        "seriesColors": [
+          "#00A4EF",
+          "#F5A623"
+        ],
+        "yAxisTitleText": "Seconds used",
+        "xAxisTitleText": "",
+        "dataValuesDisplay": "all"
+      }
+    },
+    "viz_l_speed_acc": {
+      "type": "splunk.bar",
+      "title": "Accuracy by speed",
+      "dataSources": {
+        "primary": "ds_l_speed_acc"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "legendDisplay": "off",
+        "seriesColors": [
+          "#5CC05C"
+        ],
+        "yAxisTitleText": "Accuracy %",
+        "xAxisTitleText": "",
+        "dataValuesDisplay": "all"
+      }
+    },
+    "viz_l_fastest_chart": {
+      "type": "splunk.bar",
+      "title": "Fastest correct answers",
+      "dataSources": {
+        "primary": "ds_l_fastest_chart"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "legendDisplay": "off",
+        "seriesColors": [
+          "#56B6C2"
+        ],
+        "xAxisTitleText": "Seconds used",
+        "yAxisTitleText": "",
+        "dataValuesDisplay": "off"
+      },
+      "encoding": {
+        "x": "primary.seconds_used",
+        "y": "primary.answer_label"
+      }
+    },
+    "viz_l_fastest": {
+      "type": "splunk.table",
+      "title": "Fastest correct answers",
+      "dataSources": {
+        "primary": "ds_l_fastest"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "count": 12,
+        "showRowNumbers": false,
+        "wrap": true,
+        "columnFormat": {
+          "Sec used": {
+            "data": "> table | seriesByName(\"Sec used\")",
+            "rowColors": "> table | seriesByName(\"Sec used\") | rangeValue(ranges)"
+          }
+        }
+      },
+      "context": {
+        "ranges": [
+          {
+            "to": 8,
+            "value": "#5CC05C"
+          },
+          {
+            "from": 8,
+            "to": 16,
+            "value": "#F5A623"
+          },
+          {
+            "from": 16,
+            "value": "#E06C75"
+          }
+        ]
+      }
+    },
+    "viz_l_diff_chart": {
+      "type": "splunk.bar",
+      "title": "Question difficulty",
+      "dataSources": {
+        "primary": "ds_l_difficulty_chart"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "legendDisplay": "off",
+        "seriesColors": [
+          "#E06C75"
+        ],
+        "yAxisTitleText": "% Correct",
+        "xAxisTitleText": "",
+        "dataValuesDisplay": "off"
+      }
+    },
+    "viz_l_difficulty": {
+      "type": "splunk.table",
+      "title": "Question stats",
+      "dataSources": {
+        "primary": "ds_l_difficulty"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "count": 20,
+        "showRowNumbers": false,
+        "wrap": true,
+        "columnFormat": {
+          "% Correct": {
+            "data": "> table | seriesByName(\"% Correct\")",
+            "rowColors": "> table | seriesByName(\"% Correct\") | rangeValue(ranges)"
+          }
+        }
+      },
+      "context": {
+        "ranges": [
+          {
+            "from": 70,
+            "value": "#5CC05C"
+          },
+          {
+            "from": 40,
+            "to": 70,
+            "value": "#F5A623"
+          },
+          {
+            "to": 40,
+            "value": "#E06C75"
+          }
+        ]
+      }
+    },
+    "viz_l_missed": {
+      "type": "splunk.table",
+      "title": "Wrong answers",
+      "dataSources": {
+        "primary": "ds_l_missed"
+      },
+      "options": {
+        "backgroundColor": "#141922",
+        "count": 12,
+        "showRowNumbers": false,
+        "wrap": true
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [
+      "input_last_run",
+      "input_last_user"
+    ],
+    "tabs": {
+      "items": [
+        {
+          "layoutId": "layout_last",
+          "label": "Last quiz"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_last": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 2140,
+          "backgroundColor": "#0B0F14"
+        },
+        "structure": [
+          {
+            "item": "viz_last_meta",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 88
+            }
+          },
+          {
+            "item": "viz_l_players",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 88,
+              "w": 240,
+              "h": 152
+            }
+          },
+          {
+            "item": "viz_l_completions",
+            "type": "block",
+            "position": {
+              "x": 240,
+              "y": 88,
+              "w": 240,
+              "h": 152
+            }
+          },
+          {
+            "item": "viz_l_accuracy",
+            "type": "block",
+            "position": {
+              "x": 480,
+              "y": 88,
+              "w": 240,
+              "h": 152
+            }
+          },
+          {
+            "item": "viz_l_avg_score",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 88,
+              "w": 240,
+              "h": 152
+            }
+          },
+          {
+            "item": "viz_l_avg_used",
+            "type": "block",
+            "position": {
+              "x": 960,
+              "y": 88,
+              "w": 240,
+              "h": 152
+            }
+          },
+          {
+            "item": "viz_l_answers",
+            "type": "block",
+            "position": {
+              "x": 1200,
+              "y": 88,
+              "w": 240,
+              "h": 152
+            }
+          },
+          {
+            "item": "viz_l_lb_chart",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 240,
+              "w": 800,
+              "h": 420
+            }
+          },
+          {
+            "item": "viz_l_leaderboard",
+            "type": "block",
+            "position": {
+              "x": 800,
+              "y": 240,
+              "w": 640,
+              "h": 420
+            }
+          },
+          {
+            "item": "viz_l_sankey",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 660,
+              "w": 1440,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_l_speed_hist",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 980,
+              "w": 480,
+              "h": 280
+            }
+          },
+          {
+            "item": "viz_l_speed_outcome",
+            "type": "block",
+            "position": {
+              "x": 480,
+              "y": 980,
+              "w": 480,
+              "h": 280
+            }
+          },
+          {
+            "item": "viz_l_speed_acc",
+            "type": "block",
+            "position": {
+              "x": 960,
+              "y": 980,
+              "w": 480,
+              "h": 280
+            }
+          },
+          {
+            "item": "viz_l_fastest_chart",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1260,
+              "w": 720,
+              "h": 300
+            }
+          },
+          {
+            "item": "viz_l_fastest",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1260,
+              "w": 720,
+              "h": 300
+            }
+          },
+          {
+            "item": "viz_l_diff_chart",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1560,
+              "w": 720,
+              "h": 340
+            }
+          },
+          {
+            "item": "viz_l_difficulty",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1560,
+              "w": 720,
+              "h": 340
+            }
+          },
+          {
+            "item": "viz_l_missed",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1900,
+              "w": 1440,
+              "h": 240
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+  ]]></definition>
+  <assets><![CDATA[{}]]></assets>
+</dashboard>

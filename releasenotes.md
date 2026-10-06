@@ -4,6 +4,17 @@ Copy the section for the version you are publishing. Upgrade installs are non-de
 
 ---
 
+## v1.3.75 (2026-10-06)
+
+- **Last Quiz Dashboard** (Dashboard Studio) — latest run KPIs, leaderboard, timing, and question stats, with a player filter
+- **Advanced Dashboard** (Dashboard Studio) — cross-quiz history with time, quiz, session, and nickname filters
+- Analytics page links to Last Quiz, Advanced, and Classic Simple XML dashboards
+- Classic Analytics: quoted token compares so `*` filters no longer become `nickname="*"`
+- Answer events now include `time_limit` so timing charts use seconds used, not seconds left
+- New `ponypoll_guest` role for shared workshop logins (no `user` inheritance; poll index only)
+
+---
+
 ## v1.3.72 (2026-07-14)
 
 - UI sound effects (click / submit / timeout beeps) now default OFF — participants opt in via the **Sounds** toggle. Music was already default off (v1.3.67); this makes synchronised sessions in shared rooms fully silent by default.

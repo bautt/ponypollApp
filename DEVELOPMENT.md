@@ -545,6 +545,12 @@ sudo /opt/splunk/bin/splunk reload deploy-server
 
 ## Changelog
 
+### v1.3.75 — Analytics Studio dashboards & guest role (2026-10-06)
+
+- Last Quiz and Advanced Dashboard Studio views; Analytics page cards link to them and Classic XML
+- Classic Analytics quoted token filters (`"$tok$"="*"`)
+- Answer events include `time_limit`; `ponypoll_guest` role for shared workshop logins
+
 ### v1.3.71 — Splunk Cloud manifest & AppInspect target (2026-07-13)
 
 - Added `app.manifest` at package root — Splunk Cloud package-id vetting now passes (was previously skipped)

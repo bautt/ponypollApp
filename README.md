@@ -5,7 +5,7 @@
 
   **Interactive quiz app for Splunk — no extra infrastructure needed**
 
-  ![version](https://img.shields.io/badge/version-1.3.72-blue)
+  ![version](https://img.shields.io/badge/version-1.3.75-blue)
   ![Splunk](https://img.shields.io/badge/Splunk-≥8.x-orange)
   ![AppInspect](https://img.shields.io/badge/AppInspect-approved-green)
   ![React](https://img.shields.io/badge/React-16-61dafb)
@@ -48,11 +48,16 @@ Wondering why there is a pony? Meet Buttercup in Splunk's own story: [The Story 
 | Who | What they need |
 |---|---|
 | **Host / presenter** | Splunk admin or `ponypoll_admin` role; access to Splunk Web |
-| **Participants** | Any modern browser with access to Splunk Web (no Splunk account required if anonymous access is configured) |
+| **Participants** | A modern browser **and** a Splunk Web login with the `ponypoll_user` or `ponypoll_guest` role — see [Roles & permissions](#roles--permissions) |
 | **App installer** | Splunk admin rights to upload apps and restart Splunk |
 
 > Participants do **not** need Splunk knowledge — they interact only with the `/play` URL.  
 > Hosts are assumed to be comfortable with Splunk Web basics.
+
+> ⚠️ There is no anonymous or guest mode. `/play` is a Splunk view behind Splunk Web
+> authentication, and both the answer submission and the leaderboard run as the
+> logged-in user. For open workshops, use one shared account with the
+> `ponypoll_guest` role — see [Shared workshop logins](#shared-workshop-logins).
 
 ---
 
@@ -144,7 +149,7 @@ The **Quiz music** and **Sound effects** toggles let each participant enable or 
 | **Analytics** | KPI scorecards, leaderboard, per-question difficulty, recent sessions — no SPL needed |
 | **KV Store backed** | Questions, quizzes, config, and session state in Splunk KV Store |
 | **No extra infrastructure** | Events written directly via `receivers/simple`; no Python scripts or sidecars |
-| **Participant permissions** | `ponypoll_user` role ships with `edit_tcp` + `edit_kvstore` so non-admin users can play |
+| **Participant permissions** | `ponypoll_user` role ships with `edit_tcp` + `edit_kvstore` so non-admin users can play; `ponypoll_guest` for locked-down shared workshop logins |
 | **Quiz music** | Lobby, question, and win music from OpenGameArt.org (CC0); toggle per browser in Settings |
 
 ---
@@ -572,14 +577,15 @@ The sourcetype distinguishes the event class: `ponypoll_answer`, `ponypoll_attem
 
 ## Roles & permissions
 
-The app ships two custom roles:
+The app ships three custom roles:
 
 | Role | Inherits from | Purpose |
 |---|---|---|
-| `ponypoll_admin` | `admin` | Edit questions, quizzes, config; view analytics |
-| `ponypoll_user` | `user` | Take the quiz and submit answers only |
+| `ponypoll_admin` | — (additive) | Edit questions, quizzes, config; view analytics |
+| `ponypoll_user` | `user` | Take the quiz and submit answers |
+| `ponypoll_guest` | — (no base role) | Locked-down participation for shared workshop logins |
 
-All built-in Splunk roles work out of the box — no role assignment required for standard installs.
+All built-in Splunk roles work out of the box — no role assignment required for standard installs. Splunk admins (`admin` / `sc_admin`) already have full access through the app's metadata; assign `ponypoll_admin` to give quiz admin rights to a non-admin.
 
 ### Capabilities on `ponypoll_user`
 
@@ -587,6 +593,32 @@ All built-in Splunk roles work out of the box — no role assignment required fo
 |---|---|
 | `edit_kvstore` | Write nickname into the synchronized session lobby |
 | `edit_tcp` | Required by `receivers/simple` to accept events from non-admin users |
+
+### Shared workshop logins
+
+For an open workshop where participants have no personal Splunk account, create **one** shared account and assign `ponypoll_guest` rather than `ponypoll_user`.
+
+The difference matters. `ponypoll_user` inherits the built-in `user` role, which carries 27 capabilities — among them `delete_by_keyword`, `run_collect`, `run_dump`, `rest_properties_set` and `upload_lookup_files`. That is more than a room of strangers sharing one password should have. `ponypoll_guest` has no base role and grants only `search`, `rest_properties_get`, `edit_tcp`, `edit_kvstore` and `rest_apps_view`, with data access confined to `srchIndexesAllowed = ponypoll` and `srchFilter = sourcetype=ponypoll_*`.
+
+Rotate the shared password after the session, and never commit it or encode it into the join QR code — anyone who photographs the projected code would keep working credentials.
+
+**What this does not restrict.** The `search` capability cannot be dropped, because the reveal screen's leaderboard and distribution bars are real SPL searches. A guest can therefore still reach `services/search/jobs` directly, but only within the poll index and this app's sourcetypes. `edit_tcp` is the broadest grant and also permits editing TCP inputs, so prefer a dedicated workshop search head over a production one.
+
+**Optional hardening (Splunk Enterprise only).** Default Splunk apps ship `read : [ * ]` in their metadata, which includes the guest role. To hide them, drop the wildcard per app, e.g. in `$SPLUNK_HOME/etc/apps/search/metadata/local.meta`:
+
+```ini
+[]
+access = read : [ admin, power, user ], write : [ admin, power ]
+```
+
+To land guests straight in the app after login, set the role's default app in `$SPLUNK_HOME/etc/apps/user-prefs/local/user-prefs.conf` (it must live in the `user-prefs` app — role defaults shipped from another app are not applied):
+
+```ini
+[role_ponypoll_guest]
+default_namespace = ponypollapp
+```
+
+Neither step is available on Splunk Cloud. There, link participants directly to `/app/ponypollapp/play` instead; the role restrictions themselves apply on Cloud exactly as above, since they ship with the app.
 
 ---
 
@@ -659,6 +691,9 @@ Each release includes a changelog on the [Releases page](https://github.com/baut
 
 | Version | Highlights |
 |---|---|
+| **1.3.75** | Last Quiz and Advanced Dashboard Studio views; `ponypoll_guest` role for shared workshops; classic Analytics token-filter fix |
+| **1.3.74** | Yarn resolutions patch Dependabot findings in build-time packages |
+| **1.3.73** | Drop Mako templates; split `/play` from admin bundles |
 | **1.3.71** | `app.manifest` for Splunk Cloud package vetting; `make appinspect` target (precert + cloud tag) |
 | **1.3.70** | Splunk wordmark in nav (back to Splunk home); **Projector** link in top nav and beside Start Session; reveal bars colour-coded green/red |
 | **1.3.68** | Shortened play URL shown on projector idle + lobby screens |
@@ -695,7 +730,7 @@ Assign the `ponypoll_user` role to all participant accounts before the session �
 2. Edit each participant's account and add the `ponypoll_user` role.
 3. Alternatively, assign the role to an existing role that participants already have (e.g. `user`) by editing it under **Settings → Users and Authentication → Roles**.
 
-> For open workshops where participants have no personal Splunk account, ask your Splunk admin to create shared workshop credentials with the `ponypoll_user` role assigned in advance.
+> For open workshops where participants have no personal Splunk account, ask your Splunk admin to create shared workshop credentials with the `ponypoll_guest` role assigned in advance — see [Shared workshop logins](#shared-workshop-logins). That role is scoped tighter than `ponypoll_user`, which inherits the full built-in `user` role.
 
 ### System Check failures
 

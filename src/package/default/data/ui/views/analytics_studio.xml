@@ -1,0 +1,466 @@
+<?xml version="1.0"?>
+<dashboard version="2" theme="dark">
+  <label>PonyPoll Analytics (Studio)</label>
+  <description>Dashboard Studio alternative to the classic Analytics view. Same SPL and filters; plus a bar chart of question difficulty.</description>
+  <definition><![CDATA[
+{
+  "title": "PonyPoll Analytics (Studio)",
+  "description": "Dashboard Studio alternative to the classic Analytics view. Same SPL and filters; plus a bar chart of question difficulty. Open any panel in Search for further analysis.",
+  "dataSources": {
+    "ds_input_quiz": {
+      "type": "ds.search",
+      "name": "Quiz dropdown",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt\n          | stats first(quiz_name) as quiz_name by quiz_id\n          | eval label=if(isnotnull(quiz_name) AND quiz_name!=\"\", quiz_name, quiz_id)\n          | fields quiz_id label\n          | sort label",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_input_session": {
+      "type": "ds.search",
+      "name": "Session dropdown",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_answer session_name=*\n          | stats max(_time) as last_event by session_name\n          | sort -last_event\n          | fields session_name",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_completions": {
+      "type": "ds.search",
+      "name": "Quiz completions",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | stats count",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_players": {
+      "type": "ds.search",
+      "name": "Unique players",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | stats dc(nickname) as players",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_avg_score": {
+      "type": "ds.search",
+      "name": "Avg score",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | stats avg(total_score) as avg_score\n            | eval avg_score=round(avg_score,0)",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_top_score": {
+      "type": "ds.search",
+      "name": "Top score",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | stats max(total_score) as top_score",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_answers": {
+      "type": "ds.search",
+      "name": "Answers submitted",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_answer\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | stats count",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_leaderboard": {
+      "type": "ds.search",
+      "name": "Leaderboard",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt event=quiz_complete\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | stats max(total_score) as best_score count as runs by nickname\n            | sort -best_score\n            | head 20\n            | streamstats count as rank\n            | eval \"#\"=case(rank==1,\"🥇\", rank==2,\"🥈\", rank==3,\"🥉\", true(),tostring(rank))\n            | rename nickname as Player, best_score as \"Best score\", runs as Runs\n            | table \"#\" Player \"Best score\" Runs",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_difficulty": {
+      "type": "ds.search",
+      "name": "Question difficulty",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_answer\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | eval correct_int=if(correct=\"true\",1,0)\n            | stats count as Total sum(correct_int) as Correct sum(points) as Pts by question\n            | eval Wrong=Total-Correct\n            | eval pct_correct=round(Correct/Total*100,1)\n            | eval avg_pts=round(Pts/Total,0)\n            | rename question as Question, pct_correct as \"% Correct\", avg_pts as \"Avg pts\"\n            | table Question \"% Correct\" Correct Wrong \"Avg pts\"\n            | sort \"% Correct\"",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    },
+    "ds_difficulty_chart": {
+      "type": "ds.chain",
+      "name": "Question difficulty chart",
+      "options": {
+        "extend": "ds_difficulty",
+        "query": "| fields Question \"% Correct\" | sort \"% Correct\""
+      }
+    },
+    "ds_recent": {
+      "type": "ds.search",
+      "name": "Recent sessions",
+      "options": {
+        "query": "`ponypoll_index` sourcetype=ponypoll_attempt\n            (\"$quiz_tok$\"=\"*\" OR quiz_id=\"$quiz_tok$\")\n            (\"$session_tok$\"=\"*\" OR session_name=\"$session_tok$\")\n            (\"$nickname_tok$\"=\"*\" OR nickname=\"$nickname_tok$\")\n            | sort - _time\n            | head 50\n            | eval Time=strftime(_time,\"%Y-%m-%d %H:%M\")\n            | eval Score=if(isnotnull(total_score),total_score,\"—\")\n            | rename nickname as Player, session_name as Session, quiz_name as Quiz, question_count as Questions, event as Event\n            | table Time Player Session Quiz Event Score Questions",
+        "queryParameters": {
+          "earliest": "$tr.earliest$",
+          "latest": "$tr.latest$"
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_tr": {
+      "type": "input.timerange",
+      "title": "Time",
+      "options": {
+        "token": "tr",
+        "defaultValue": "-7d@d,now"
+      }
+    },
+    "input_quiz": {
+      "type": "input.dropdown",
+      "title": "Quiz",
+      "options": {
+        "token": "quiz_tok",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All quizzes",
+            "value": "*"
+          }
+        ]
+      },
+      "dataSources": {
+        "primary": "ds_input_quiz"
+      },
+      "encoding": {
+        "label": "primary.label",
+        "value": "primary.quiz_id"
+      }
+    },
+    "input_session": {
+      "type": "input.dropdown",
+      "title": "Session",
+      "options": {
+        "token": "session_tok",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All sessions",
+            "value": "*"
+          }
+        ]
+      },
+      "dataSources": {
+        "primary": "ds_input_session"
+      },
+      "encoding": {
+        "label": "primary.session_name",
+        "value": "primary.session_name"
+      }
+    },
+    "input_nickname": {
+      "type": "input.text",
+      "title": "Nickname",
+      "options": {
+        "token": "nickname_tok",
+        "defaultValue": "*"
+      }
+    }
+  },
+  "visualizations": {
+    "viz_completions": {
+      "type": "splunk.singlevalue",
+      "title": "Quiz completions",
+      "dataSources": {
+        "primary": "ds_completions"
+      },
+      "options": {
+        "majorColor": "#009CDE",
+        "numberPrecision": 0,
+        "unit": ""
+      }
+    },
+    "viz_players": {
+      "type": "splunk.singlevalue",
+      "title": "Unique players",
+      "dataSources": {
+        "primary": "ds_players"
+      },
+      "options": {
+        "majorColor": "#5CC05C",
+        "numberPrecision": 0
+      }
+    },
+    "viz_avg_score": {
+      "type": "splunk.singlevalue",
+      "title": "Avg score",
+      "dataSources": {
+        "primary": "ds_avg_score"
+      },
+      "options": {
+        "majorColor": "#F5A623",
+        "numberPrecision": 0
+      }
+    },
+    "viz_top_score": {
+      "type": "splunk.singlevalue",
+      "title": "Top score",
+      "dataSources": {
+        "primary": "ds_top_score"
+      },
+      "options": {
+        "majorColor": "#ED8B00",
+        "numberPrecision": 0
+      }
+    },
+    "viz_answers": {
+      "type": "splunk.singlevalue",
+      "title": "Answers submitted",
+      "dataSources": {
+        "primary": "ds_answers"
+      },
+      "options": {
+        "numberPrecision": 0
+      }
+    },
+    "viz_leaderboard": {
+      "type": "splunk.table",
+      "title": "Leaderboard",
+      "dataSources": {
+        "primary": "ds_leaderboard"
+      },
+      "options": {
+        "count": 20,
+        "showRowNumbers": false,
+        "wrap": true,
+        "columnFormat": {
+          "Best score": {
+            "data": "> table | seriesByName(\"Best score\")",
+            "rowColors": "> table | seriesByName(\"Best score\") | rangeValue(bestScoreRanges)"
+          }
+        }
+      },
+      "context": {
+        "bestScoreRanges": [
+          {
+            "from": 5000,
+            "value": "#5CC05C"
+          },
+          {
+            "from": 1000,
+            "to": 5000,
+            "value": "#F5A623"
+          },
+          {
+            "to": 1000,
+            "value": "#DC4E41"
+          }
+        ]
+      }
+    },
+    "viz_difficulty": {
+      "type": "splunk.table",
+      "title": "Question difficulty (hardest first)",
+      "dataSources": {
+        "primary": "ds_difficulty"
+      },
+      "options": {
+        "count": 20,
+        "showRowNumbers": false,
+        "wrap": true,
+        "columnFormat": {
+          "% Correct": {
+            "data": "> table | seriesByName(\"% Correct\")",
+            "rowColors": "> table | seriesByName(\"% Correct\") | rangeValue(pctRanges)",
+            "unit": "%"
+          }
+        }
+      },
+      "context": {
+        "pctRanges": [
+          {
+            "from": 70,
+            "value": "#5CC05C"
+          },
+          {
+            "from": 40,
+            "to": 70,
+            "value": "#F5A623"
+          },
+          {
+            "to": 40,
+            "value": "#DC4E41"
+          }
+        ]
+      }
+    },
+    "viz_difficulty_chart": {
+      "type": "splunk.bar",
+      "title": "Percent correct by question",
+      "dataSources": {
+        "primary": "ds_difficulty_chart"
+      },
+      "options": {
+        "legendDisplay": "off",
+        "yAxisTitleText": "% Correct",
+        "xAxisTitleText": "",
+        "dataValuesDisplay": "off",
+        "seriesColors": [
+          "#009CDE"
+        ]
+      }
+    },
+    "viz_recent": {
+      "type": "splunk.table",
+      "title": "Recent sessions",
+      "dataSources": {
+        "primary": "ds_recent"
+      },
+      "options": {
+        "count": 50,
+        "showRowNumbers": false,
+        "wrap": true
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [
+      "input_tr",
+      "input_quiz",
+      "input_session",
+      "input_nickname"
+    ],
+    "tabs": {
+      "items": [
+        {
+          "layoutId": "layout_1",
+          "label": "Analytics"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 1340,
+          "backgroundColor": "#000000"
+        },
+        "structure": [
+          {
+            "item": "viz_completions",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 480,
+              "h": 120
+            }
+          },
+          {
+            "item": "viz_players",
+            "type": "block",
+            "position": {
+              "x": 480,
+              "y": 0,
+              "w": 480,
+              "h": 120
+            }
+          },
+          {
+            "item": "viz_avg_score",
+            "type": "block",
+            "position": {
+              "x": 960,
+              "y": 0,
+              "w": 480,
+              "h": 120
+            }
+          },
+          {
+            "item": "viz_top_score",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 120,
+              "w": 720,
+              "h": 120
+            }
+          },
+          {
+            "item": "viz_answers",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 120,
+              "w": 720,
+              "h": 120
+            }
+          },
+          {
+            "item": "viz_leaderboard",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 240,
+              "w": 720,
+              "h": 400
+            }
+          },
+          {
+            "item": "viz_difficulty",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 240,
+              "w": 720,
+              "h": 400
+            }
+          },
+          {
+            "item": "viz_difficulty_chart",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 640,
+              "w": 1440,
+              "h": 280
+            }
+          },
+          {
+            "item": "viz_recent",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 920,
+              "w": 1440,
+              "h": 420
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+  ]]></definition>
+  <assets><![CDATA[{}]]></assets>
+</dashboard>
